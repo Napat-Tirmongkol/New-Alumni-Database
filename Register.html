@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Sarabun', sans-serif;
+      background-color: #f57c00;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .register-container {
+      background-color: white;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 24px;
+    }
+    p {
+      color: #777;
+      margin-top: 0;
+      margin-bottom: 30px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    /* Style สำหรับจัดวางชื่อ-นามสกุลให้อยู่ข้างกัน */
+    .name-group {
+      display: flex;
+      gap: 15px;
+    }
+    .name-group .input-group {
+      width: 50%;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: bold;
+    }
+    input[type="email"], input[type="password"], input[type="text"], select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background-color: #28a745; /* สีเขียว */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color .3s;
+    }
+    .btn:hover {
+      background-color: #218838;
+    }
+    .links {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .links a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    #message-box {
+      margin-top: 15px;
+      font-weight: bold;
+      display: none;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="register-container">
+    <h2>สมัครสมาชิก</h2>
+    <p>กรอกข้อมูลเพื่อสร้างบัญชีใหม่</p>
+    
+    <form id="registerForm">
+      <div class="input-group">
+        <label for="userType">ประเภทผู้ใช้</label>
+        <select id="userType" required>
+          <option value="" disabled selected>เลือกประเภทผู้ใช้</option>
+          <option value="Student">นักศึกษาปัจจุบัน</option>
+          <option value="Alumni">ศิษย์เก่า</option>
+        </select>
+      </div>
+
+      <div class="name-group">
+        <div class="input-group">
+          <label for="firstName">ชื่อ</label>
+          <input type="text" id="firstName" required>
+        </div>
+        <div class="input-group">
+          <label for="lastName">นามสกุล</label>
+          <input type="text" id="lastName" required>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label for="email">อีเมล</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="input-group">
+        <label for="password">รหัสผ่าน</label>
+        <input type="password" id="password" required>
+      </div>
+      
+      <button type="submit" class="btn" id="registerButton">สมัครสมาชิก</button>
+      <div id="message-box"></div>
+    </form>
+    
+    <div class="links">
+      <a id="loginLink" href="#">กลับไปหน้าเข้าสู่ระบบ</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const registerButton = document.getElementById('registerButton');
+    const messageBox = document.getElementById('message-box');
+    const loginLink = document.getElementById('loginLink');
+
+    google.script.run.withSuccessHandler(url => {
+        loginLink.href = url;
+    }).getWebAppUrl();
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      registerButton.disabled = true;
+      registerButton.textContent = 'กำลังบันทึก...';
+      messageBox.style.display = 'none';
+
+      const userData = {
+        userType: document.getElementById('userType').value, // <-- เพิ่มข้อมูลใหม่
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      };
+
+      google.script.run.withSuccessHandler(onComplete).registerUser(userData);
+    });
+
+    function onComplete(result) {
+      messageBox.textContent = result.message;
+      messageBox.className = result.success ? 'success' : 'error';
+      messageBox.style.display = 'block';
+
+      if(result.success) {
+        form.reset();
+      }
+      
+      registerButton.disabled = false;
+      registerButton.textContent = 'สมัครสมาชิก';
+    }
+  </script>
+</body>
+</html>

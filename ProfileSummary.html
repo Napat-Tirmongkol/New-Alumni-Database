@@ -1,0 +1,25 @@
+<div class="dashboard-container">
+    <div class="profile-card">
+        <h2>ข้อมูลส่วนตัว</h2>
+        <p><span>ชื่อ-สกุล:</span> <span id="profileName" style="font-weight:normal; color:#333;"></span></p>
+        <p><span>อีเมล:</span> <span id="profileEmail" style="font-weight:normal; color:#333;"></span></p>
+        <p><span>บทบาท:</span> <span id="profileRole" style="font-weight:normal; color:#333;"></span></p>
+    </div>
+    <div class="button-group">
+        <button class="edit-btn" onclick="loadContent('profile')">แก้ไขข้อมูล</button>
+    </div>
+</div>
+
+<script>
+    // Script นี้จะทำงานเมื่อถูกโหลดเข้ามาใน Dashboard
+    // เพื่อดึงข้อมูลจาก sessionStorage มาเติมในช่องต่างๆ
+    const userDataString = sessionStorage.getItem('loggedInUser');
+    const userEmail = sessionStorage.getItem('userEmail');
+
+    if (userDataString && userEmail) {
+        const user = JSON.parse(userDataString);
+        document.getElementById('profileName').textContent = `${user.firstName} ${user.lastName}`;
+        document.getElementById('profileEmail').textContent = userEmail;
+        document.getElementById('profileRole').textContent = user.role;
+    }
+</script>

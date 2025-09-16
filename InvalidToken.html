@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; text-align: center; padding-top: 50px; background-color: #f57c00; color: white; }
+        .container { background-color: #c82333; padding: 30px; border-radius: 10px; display: inline-block; }
+        a { color: white; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>ลิงก์ไม่ถูกต้อง</h1>
+        <p>ลิงก์สำหรับรีเซ็ตรหัสผ่านนี้อาจไม่ถูกต้องหรือหมดอายุแล้ว</p>
+        <p>กรุณากลับไปที่ <a id="loginLink" href="#">หน้าเข้าระบบ</a> แล้วลองอีกครั้ง</p>
+    </div>
+    <script>
+        google.script.run.withSuccessHandler(url => { 
+            document.getElementById('loginLink').href = url;
+        }).getWebAppUrl();
+    </script>
+</body>
+</html>

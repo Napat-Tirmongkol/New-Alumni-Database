@@ -1,0 +1,127 @@
+<style>
+    header {
+        background-color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: fixed; /* ทำให้ส่วนหัวลอยอยู่ด้านบนสุด */
+        top: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box; /* ป้องกัน padding ทำให้ width เกิน */
+        z-index: 1000;
+    }
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .logo {
+        width: 40px;
+        height: 40px;
+        background-color: #3f51b5;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+    .logo svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+    }
+    .logo-text h1 {
+        font-size: 18px;
+        margin: 0;
+        font-weight: bold;
+    }
+    .logo-text p {
+        font-size: 12px;
+        margin: 0;
+        color: #777;
+    }
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .lang-toggle button {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        background-color: #f0f0f0;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .lang-toggle .active {
+        background-color: #f57c00;
+        color: white;
+        border-color: #f57c00;
+    }
+    .user-info {
+        color: #555;
+    }
+    .logout-btn-header {
+        padding: 8px 15px;
+        background-color: #e53935;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    .logout-btn-header:hover {
+        background-color: #c62828;
+    }
+</style>
+
+<header>
+    <div class="header-left">
+        <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6.32L12 21l7-3.5V11.18L23 9 12 3zm0 8.69L5.5 8 12 4.31 18.5 8 12 11.69zM17 15.32v-3.13l-5 2.5-5-2.5v3.13l5 2.5 5-2.5z"></path></svg>
+        </div>
+        <div class="logo-text">
+            <h1>Alumni Tracking System</h1>
+            <p>คณะพยาบาลศาสตร์ มหาวิทยาลัยอัสสัมชัญ</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="lang-toggle">
+            <button class="active">TH</button>
+            <button>EN</button>
+        </div>
+        <div class="user-info">
+            สวัสดี, <span id="headerUserName"></span>
+        </div>
+        <button id="headerLogoutButton" class="logout-btn-header">🚪 ออกจากระบบ</button>
+    </div>
+</header>
+
+<script>
+    // Script นี้จะทำงานในหน้าที่เรียกใช้ Header
+    const headerUserName = document.getElementById('headerUserName');
+    const headerLogoutButton = document.getElementById('headerLogoutButton');
+    
+    // ดึงข้อมูลผู้ใช้จาก sessionStorage มาแสดง
+    const userDataString = sessionStorage.getItem('loggedInUser');
+    if (userDataString) {
+        const user = JSON.parse(userDataString);
+        if (headerUserName) {
+            headerUserName.textContent = user.firstName; // แสดงแค่ชื่อ
+        }
+    }
+
+    // ทำให้ปุ่ม Logout ทำงาน
+    if (headerLogoutButton) {
+        headerLogoutButton.addEventListener('click', () => {
+            sessionStorage.removeItem('loggedInUser');
+            sessionStorage.removeItem('userEmail');
+            google.script.run.withSuccessHandler((url) => {
+                window.top.location.href = url;
+            }).getWebAppUrl();
+        });
+    }
+</script>
