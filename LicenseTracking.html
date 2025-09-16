@@ -1,26 +1,217 @@
 <style>
-    .placeholder-card {
+    /* General Card Style */
+    .content-card {
         background-color: white;
-        padding: 2rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        text-align: center;
-        max-width: 600px;
-        margin: 2rem auto;
+        padding: 1.5rem; /* 24px */
+        border-radius: 0.5rem; /* 8px */
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        margin-bottom: 1.5rem;
     }
-    .placeholder-card h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #111827;
+    .card-header {
+        font-size: 1.125rem; /* 18px */
+        font-weight: 600;
         margin-top: 0;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
     }
-    .placeholder-card p {
-        color: #6b7280;
-    }
+
+    /* Progress Section */
+    .progress-bar-container { display: flex; align-items: center; gap: 1rem; }
+    .progress-bar-wrapper { flex-grow: 1; background-color: #e5e7eb; border-radius: 9999px; height: 0.75rem; overflow: hidden; }
+    .progress-bar { background-color: #f59e0b; height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
+    .progress-label { font-weight: 600; color: #f59e0b; }
+    .subjects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+    .subject-item { background-color: #f3f4f6; padding: 0.75rem 1rem; border-radius: 0.375rem; display: flex; align-items: center; gap: 0.75rem; color: #374151; }
+    .subject-status-icon { width: 16px; height: 16px; border-radius: 9999px; background-color: #d1d5db; flex-shrink: 0; }
+    .subject-status-icon.passed { background-color: #10b981; }
+
+    /* Form Section */
+    .form-grid-license { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem 1.5rem; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; font-family: 'Sarabun', sans-serif; }
+    .form-actions { text-align: right; margin-top: 1.5rem; }
+    .submit-btn { background-color: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+    .submit-btn:disabled { background-color: #9ca3af; }
+
+    /* History Table Section */
+    .history-table-wrapper { overflow-x: auto; }
+    .history-table { width: 100%; border-collapse: collapse; }
+    .history-table th, .history-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .history-table th { background-color: #f9fafb; font-weight: 600; color: #4b5563; }
+    .status-passed { color: #059669; font-weight: bold; }
+    .status-failed { color: #dc2626; }
+    .no-history { text-align: center; color: #6b7280; padding: 2rem; }
 </style>
 
-<div class="placeholder-card">
-    <h2>ติดตามใบประกอบวิชาชีพ</h2>
-    <p>ส่วนนี้ยังอยู่ระหว่างการพัฒนา จะพร้อมให้ใช้งานเร็วๆ นี้</p>
+<!-- ======================= 1. ส่วนแสดงความคืบหน้า ======================= -->
+<div class="content-card">
+    <h3 class="card-header">ความคืบหน้าการสอบ</h3>
+    <div class="progress-bar-container">
+        <span>วิชาที่สอบผ่านแล้ว</span>
+        <div class="progress-bar-wrapper">
+            <div id="licenseProgressBar" class="progress-bar"></div>
+        </div>
+        <span id="licenseProgressLabel" class="progress-label">0/8</span>
+    </div>
+
+    <div class="subjects-grid">
+        <div class="subject-item"><div id="status-Subject1_Maternity" class="subject-status-icon"></div><span>การผดุงครรภ์</span></div>
+        <div class="subject-item"><div id="status-Subject2_Pediatric" class="subject-status-icon"></div><span>การพยาบาลมารดาและทารก</span></div>
+        <div class="subject-item"><div id="status-Subject3_Adult" class="subject-status-icon"></div><span>การพยาบาลเด็กและวัยรุ่น</span></div>
+        <div class="subject-item"><div id="status-Subject4_Geriatric" class="subject-status-icon"></div><span>การพยาบาลผู้ใหญ่</span></div>
+        <div class="subject-item"><div id="status-Subject5_Psychiatric" class="subject-status-icon"></div><span>การพยาบาลผู้สูงอายุ</span></div>
+        <div class="subject-item"><div id="status-Subject6_Community" class="subject-status-icon"></div><span>การพยาบาลสุขภาพจิตและจิตเวช</span></div>
+        <div class="subject-item"><div id="status-Subject7_Law" class="subject-status-icon"></div><span>การพยาบาลอนามัยชุมชนฯ</span></div>
+        <div class="subject-item"><div id="status-Subject8_Surgical" class="subject-status-icon"></div><span>กฎหมายว่าด้วยวิชาชีพการพยาบาลฯ</span></div>
+    </div>
 </div>
+
+<!-- ======================= 2. ส่วนเพิ่มข้อมูลการสอบ ======================= -->
+<div class="content-card">
+    <h3 class="card-header">เพิ่มข้อมูลการสอบใหม่</h3>
+    <form id="licenseExamForm">
+        <div class="form-grid-license">
+            <div class="form-group">
+                <label for="examRound">ครั้งที่</label>
+                <input type="number" id="examRound" required>
+            </div>
+            <div class="form-group">
+                <label for="examYear">ปีที่สอบ</label>
+                <input type="number" id="examYear" placeholder="พ.ศ." required>
+            </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 1.5rem 0;">
+
+        <div class="form-grid-license">
+            <div class="form-group"><label>การผดุงครรภ์</label><select id="s1"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>การพยาบาลมารดาและทารก</label><select id="s2"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>การพยาบาลเด็กและวัยรุ่น</label><select id="s3"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>การพยาบาลผู้ใหญ่</label><select id="s4"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>การพยาบาลผู้สูงอายุ</label><select id="s5"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>การพยาบาลสุขภาพจิตฯ</label><select id="s6"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>การพยาบาลอนามัยชุมชนฯ</label><select id="s7"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="form-group"><label>กฎหมายว่าด้วยวิชาชีพฯ</label><select id="s8"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" id="saveExamBtn" class="submit-btn">➕ เพิ่มข้อมูลการสอบ</button>
+        </div>
+    </form>
+</div>
+
+<!-- ======================= 3. ส่วนประวัติการสอบ ======================= -->
+<div class="content-card">
+    <h3 class="card-header">ประวัติการสอบ</h3>
+    <div class="history-table-wrapper">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>ครั้งที่/ปี</th>
+                    <th>ผลการสอบ</th>
+                </tr>
+            </thead>
+            <tbody id="examHistoryBody">
+                <!-- ข้อมูลจะถูกเติมที่นี่ -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const subjectKeys = [
+        'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric',
+        'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical'
+    ];
+
+    function loadLicensePageData() {
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) return;
+
+        google.script.run.withSuccessHandler(updateProgressUI).getLicenseExamStatus(userEmail);
+        google.script.run.withSuccessHandler(populateHistoryTable).getLicenseExamHistory(userEmail);
+    }
+
+    function updateProgressUI(status) {
+        if (!status) return;
+        let passedCount = 0;
+        subjectKeys.forEach(key => {
+            const iconElement = document.getElementById('status-' + key);
+            if (iconElement && status[key] === true) {
+                iconElement.classList.add('passed');
+                passedCount++;
+            }
+        });
+        const percentage = (passedCount / 8) * 100;
+        document.getElementById('licenseProgressBar').style.width = percentage + '%';
+        document.getElementById('licenseProgressLabel').textContent = `${passedCount}/8`;
+    }
+
+    function populateHistoryTable(history) {
+        const tableBody = document.getElementById('examHistoryBody');
+        if (!history || history.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="2" class="no-history">ยังไม่มีประวัติการสอบ</td></tr>';
+            return;
+        }
+        
+        let tableHtml = '';
+        history.forEach(record => {
+            let resultsHtml = '<ul>';
+            subjectKeys.forEach((key, index) => {
+                const subjectName = document.querySelector(`#s${index+1}`).parentElement.querySelector('label').textContent;
+                const result = record[key];
+                if (result) {
+                    const statusClass = result === 'ผ่าน' ? 'status-passed' : 'status-failed';
+                    resultsHtml += `<li>${subjectName}: <span class="${statusClass}">${result}</span></li>`;
+                }
+            });
+            resultsHtml += '</ul>';
+
+            tableHtml += `
+                <tr>
+                    <td>${record.ExamRound}/${record.ExamYear}</td>
+                    <td>${resultsHtml}</td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = tableHtml;
+    }
+
+    document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const saveBtn = document.getElementById('saveExamBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'กำลังบันทึก...';
+
+        const recordData = {
+            examRound: document.getElementById('examRound').value,
+            examYear: document.getElementById('examYear').value,
+            Subject1_Maternity: document.getElementById('s1').value,
+            Subject2_Pediatric: document.getElementById('s2').value,
+            Subject3_Adult: document.getElementById('s3').value,
+            Subject4_Geriatric: document.getElementById('s4').value,
+            Subject5_Psychiatric: document.getElementById('s5').value,
+            Subject6_Community: document.getElementById('s6').value,
+            Subject7_Law: document.getElementById('s7').value,
+            Subject8_Surgical: document.getElementById('s8').value,
+        };
+        google.script.run.withSuccessHandler(onSaveSuccess).saveLicenseExamRecord(recordData);
+    });
+
+    function onSaveSuccess(response) {
+        alert(response.message);
+        const saveBtn = document.getElementById('saveExamBtn');
+        saveBtn.disabled = false;
+        saveBtn.textContent = '➕ เพิ่มข้อมูลการสอบ';
+
+        if (response.success) {
+            document.getElementById('licenseExamForm').reset();
+            loadLicensePageData(); // โหลดข้อมูลใหม่ทั้งหมด
+        }
+    }
+
+    loadLicensePageData();
+</script>
 
