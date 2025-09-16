@@ -32,28 +32,43 @@ function setupProjectSheets() {
       'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'
     ];
     const userProfileHeaders = [
-      'Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 
+      'UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 
       'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 
       'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX', 'CurrentAddress',
       'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards',
       'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'
     ];
+    // --- ↓↓↓ เพิ่ม Header สำหรับชีตใหม่ ↓↓↓ ---
+    const licenseExamHeaders = [
+      'UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 
+      'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric',
+      'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical',
+      'EvidenceFileID' // สำหรับเก็บ ID ไฟล์หลักฐานผลสอบ
+    ];
     
     checkAndCreateSheet(spreadsheet, 'User_Database', userDbHeaders);
     checkAndCreateSheet(spreadsheet, 'User_Profiles', userProfileHeaders);
+    checkAndCreateSheet(spreadsheet, 'License_Exam_Records', licenseExamHeaders);
 
     Browser.msgBox("ตั้งค่าชีตสำเร็จ!");
-  } catch (e) {
+  } 
+  catch (e) {
     Browser.msgBox("เกิดข้อผิดพลาด: " + e.message);
   }
 }
 
+/**
+ * @description ฟังก์ชันผู้ช่วย: ตรวจสอบชีต ถ้าไม่มีจะสร้างใหม่พร้อม Header
+ */
 function checkAndCreateSheet(spreadsheet, sheetName, headers) {
   let sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.setFrozenRows(1);
+    Logger.log(`Created sheet: ${sheetName}`);
+  } else {
+    Logger.log(`Sheet "${sheetName}" already exists.`);
   }
 }
 
@@ -176,20 +191,34 @@ function validateLogin(credentials) {
   }
 }
 
+// --- ↓↓↓ อัปเดตฟังก์ชัน registerUser ↓↓↓ ---
 function registerUser(userData) {
   try {
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
-    if (!sheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
+    const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+    if (!dbSheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
     
-    const emails = sheet.getRange(2, COLS_DB.EMAIL, sheet.getLastRow(), 1).getValues().flat(); // <-- แก้ไขเป็น COLS_DB
-    
+    const emails = dbSheet.getRange(2, COLS_DB.EMAIL, dbSheet.getLastRow(), 1).getValues().flat();
     if (emails.includes(userData.email)) { return { success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' }; }
     
-    const newRow = [
-      "UID-" + new Date().getTime(), userData.email, userData.password, userData.userType,
+    const newUserId = "UID-" + new Date().getTime(); // สร้าง UserID ใหม่
+
+    // 1. เพิ่มข้อมูลลงใน User_Database
+    const newUserDbRow = [
+      newUserId, userData.email, userData.password, userData.userType,
       userData.firstName, userData.lastName, new Date(), null, true, null, null
     ];
-    sheet.appendRow(newRow);
+    dbSheet.appendRow(newUserDbRow);
+
+    // 2. เพิ่มข้อมูลเริ่มต้นลงใน User_Profiles
+    const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (profileSheet) {
+      const newUserProfileRow = [
+        newUserId, userData.email, '', '', userData.firstName, userData.lastName
+        // คอลัมน์ที่เหลือปล่อยให้เป็นค่าว่างไปก่อน
+      ];
+      profileSheet.appendRow(newUserProfileRow);
+    }
+    
     return { success: true, message: 'สมัครสมาชิกสำเร็จ!' };
   } catch(error) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + error.message };
@@ -295,10 +324,19 @@ function saveUserProfile(profileData) {
     const userEmail = Session.getActiveUser().getEmail();
     if (!userEmail) throw new Error("ไม่สามารถระบุตัวตนผู้ใช้ได้");
 
-    Logger.log("ได้รับคำขอบันทึกข้อมูลจาก: " + userEmail);
+    const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+    const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
-    let pictureFileId = profileData.existingPictureId || null;
+    // --- หา UserID จาก User_Database ---
+    const dbData = dbSheet.getRange("A:B").getValues();
+    let userId = null;
+    for (let i = 0; i < dbData.length; i++) {
+      if (dbData[i][1] === userEmail) { // คอลัมน์ B คือ Email
+        userId = dbData[i][0]; // คอลัมน์ A คือ UserID
+        break;
+      }
+    }
+    if (!userId) throw new Error("ไม่พบ UserID สำหรับผู้ใช้นี้");
 
     // --- ส่วนจัดการอัปโหลดรูปภาพ ---
     if (profileData.profilePicture && profileData.mimeType) {
