@@ -354,3 +354,44 @@ function saveUserProfile(profileData) {
     return `เกิดข้อผิดพลาด: ${e.message}`;
   }
 }
+
+function getLicenseExamStatus(email) {
+  const subjects = [
+    'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric',
+    'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical'
+  ];
+  
+  // สร้างสถานะเริ่มต้น ทุกวิชาคือยังไม่ผ่าน
+  const status = {};
+  subjects.forEach(subject => status[subject] = false);
+
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(CONFIG.SHEETS.LICENSE_EXAMS);
+    if (!sheet || sheet.getLastRow() < 2) {
+      return status; // ถ้าไม่มีข้อมูลเลย ให้คืนค่าสถานะเริ่มต้น
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift(); // ดึงหัวข้อออก
+
+    // วนลูปดูข้อมูลการสอบทุกครั้งที่ผู้ใช้เคยบันทึกไว้
+    for (const row of data) {
+      const rowEmail = row[headers.indexOf('Email')];
+      
+      if (rowEmail === email) {
+        // ตรวจสอบผลสอบของแต่ละวิชาในแถวนี้
+        subjects.forEach(subjectKey => {
+          const subjectIndex = headers.indexOf(subjectKey);
+          // ถ้าวิชานี้เคยสอบผ่านแล้ว ให้เปลี่ยนสถานะเป็น true
+          if (row[subjectIndex] === 'ผ่าน') {
+            status[subjectKey] = true;
+          }
+        });
+      }
+    }
+    return status;
+  } catch (e) {
+    Logger.log('Error in getLicenseExamStatus: ' + e.toString());
+    return status; // กรณีเกิด Error ให้คืนค่าสถานะเริ่มต้น
+  }
+}
