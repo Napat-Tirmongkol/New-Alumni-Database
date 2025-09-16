@@ -27,7 +27,6 @@ function setupProjectSheets() {
   try {
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
     
-    // --- 1. กำหนดชื่อคอลัมน์ที่ถูกต้องสำหรับแต่ละชีต ---
     const userDbHeaders = [
       'UserID', 'Email', 'Password', 'Role', 'FirstNameTH', 'LastNameTH', 
       'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'
@@ -40,7 +39,6 @@ function setupProjectSheets() {
       'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'
     ];
     
-    // --- 2. ตรวจสอบและสร้างชีต ---
     checkAndCreateSheet(spreadsheet, 'User_Database', userDbHeaders);
     checkAndCreateSheet(spreadsheet, 'User_Profiles', userProfileHeaders);
 
@@ -50,18 +48,12 @@ function setupProjectSheets() {
   }
 }
 
-/**
- * @description ฟังก์ชันผู้ช่วย: ตรวจสอบชีต ถ้าไม่มีจะสร้างใหม่พร้อม Header
- */
 function checkAndCreateSheet(spreadsheet, sheetName, headers) {
   let sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.setFrozenRows(1);
-    Logger.log(`Created sheet: ${sheetName}`);
-  } else {
-    Logger.log(`Sheet "${sheetName}" already exists.`);
   }
 }
 
