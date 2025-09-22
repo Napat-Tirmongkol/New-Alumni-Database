@@ -1,3 +1,4 @@
+// @ts-nocheck
 // =================================================================
 // ส่วนที่ 1: การตั้งค่าและตัวแปรหลัก (CONFIGURATION)
 // =================================================================
@@ -25,7 +26,7 @@ function setupProjectSheets() {
     const userDbHeaders = ['UserID', 'Email', 'Password', 'Role', 'FirstNameTH', 'LastNameTH', 'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'];
     const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'];
     const licenseExamHeaders = ['UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical', 'EvidenceFileID'];
-    
+
     checkAndCreateSheet(spreadsheet, 'User_Database', userDbHeaders);
     checkAndCreateSheet(spreadsheet, 'User_Profiles', userProfileHeaders);
     checkAndCreateSheet(spreadsheet, 'License_Exam_Records', licenseExamHeaders);
@@ -73,7 +74,6 @@ function include(filename) {
 
 function getPageContent(pageName) {
   const pageMap = {
-    // หน้าสำหรับผู้ใช้ทั่วไป
     'profile': 'Profile',
     'profileSummary': 'ProfileSummary',
     'license': 'LicenseTracking',
@@ -81,13 +81,10 @@ function getPageContent(pageName) {
     'virtual_id': 'VirtualID',
     'adminDashboard': 'AdminStatsDashboard',
     'manageUsers': 'AdminUserManagement', 
-    'licenseForAdmin': 'LicenseTracking' 
+    'licenseForAdmin': 'LicenseTracking',
+    'manageBackend': 'AdminBackendManagement' 
   };
-
-  if (pageMap[pageName]) {
-    return include(pageMap[pageName]);
-  }
-
+  if (pageMap[pageName]) { return include(pageMap[pageName]); }
   return '<h1>ไม่พบหน้าเว็บ</h1>';
 }
 
@@ -425,6 +422,8 @@ function searchUsers(searchText) {
 
 // ในไฟล์ Code.gs (ส่วนที่ 7)
 
+// ในไฟล์ Code.gs (ส่วนที่ 7)
+
 /**
  * คำนวณและดึงข้อมูลสรุปสำหรับหน้าแดชบอร์ด
  * @returns {object} อ็อบเจกต์ข้อมูลสถิติ
@@ -436,11 +435,19 @@ function getDashboardStats() {
 
     if (!dbSheet) throw new Error("ไม่พบชีต User_Database");
 
+    // ดึงข้อมูล Role ทั้งหมดออกมา
     const roles = dbSheet.getRange(2, COLS_DB.ROLE, dbSheet.getLastRow() - 1, 1).getValues().flat();
-
-    const totalUsers = roles.length;
+    
+    // นับจำนวนศิษย์เก่า
     const alumniCount = roles.filter(role => role === 'Alumni').length;
+    // นับจำนวนนักศึกษาปัจจุบัน
     const studentCount = roles.filter(role => role === 'Student').length;
+    
+    // --- ↓↓↓ แก้ไขส่วนนี้ครับ ↓↓↓ ---
+    // "ผู้ใช้ทั้งหมด" จะเท่ากับผลรวมของศิษย์เก่าและนักศึกษาปัจจุบันเท่านั้น
+    const totalUsers = alumniCount + studentCount;
+    // --- ↑↑↑ จบส่วนที่แก้ไข ↑↑↑ ---
+
     const totalExamRecords = licenseSheet ? licenseSheet.getLastRow() - 1 : 0;
 
     return {

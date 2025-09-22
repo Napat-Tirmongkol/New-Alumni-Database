@@ -1,75 +1,109 @@
 <style>
+    /* --- New Styles for Admin Dashboard --- */
+    .page-header {
+        font-size: 1.875rem; /* 30px */
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+    }
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
     }
     .stat-card {
         background-color: white;
         padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-left: 5px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     }
     .stat-card-info .title {
         color: #6b7280;
-        font-size: 0.875rem;
+        font-size: 0.875rem; /* 14px */
+        margin: 0 0 0.25rem 0;
     }
     .stat-card-info .value {
-        font-size: 2rem;
+        font-size: 2.25rem; /* 36px */
         font-weight: 700;
         color: #111827;
+        margin: 0;
     }
     .stat-card-icon {
-        font-size: 2rem;
-        padding: 1rem;
+        font-size: 1.5rem; /* 24px */
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         color: white;
     }
+
+    /* Card Border Colors */
+    .stat-card.users { border-left-color: #ef4444; }
+    .stat-card.alumni { border-left-color: #f97316; }
+    .stat-card.students { border-left-color: #3b82f6; }
+    .stat-card.exams { border-left-color: #16a34a; }
+
+    /* Icon Colors */
     .icon-users { background-color: #ef4444; }
     .icon-alumni { background-color: #f97316; }
     .icon-students { background-color: #3b82f6; }
     .icon-exams { background-color: #16a34a; }
 </style>
 
-<h2 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 1.5rem;">แดชบอร์ด</h2>
+<h2 class="page-header">แดชบอร์ด</h2>
 
 <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card users">
         <div class="stat-card-info">
             <p class="title">ผู้ใช้ทั้งหมด</p>
             <p id="totalUsers" class="value">0</p>
         </div>
-        <div class="stat-card-icon icon-users">👥</div>
+        <div class="stat-card-icon icon-users">
+            <i class="fas fa-users"></i>
+        </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card alumni">
         <div class="stat-card-info">
             <p class="title">ศิษย์เก่า</p>
             <p id="alumniCount" class="value">0</p>
         </div>
-        <div class="stat-card-icon icon-alumni">🎓</div>
+        <div class="stat-card-icon icon-alumni">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card students">
         <div class="stat-card-info">
             <p class="title">นักศึกษาปัจจุบัน</p>
             <p id="studentCount" class="value">0</p>
         </div>
-        <div class="stat-card-icon icon-students">🧑‍🎓</div>
+        <div class="stat-card-icon icon-students">
+            <i class="fas fa-user-graduate"></i>
+        </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card exams">
         <div class="stat-card-info">
             <p class="title">จำนวนการสอบ</p>
             <p id="totalExamRecords" class="value">0</p>
         </div>
-        <div class="stat-card-icon icon-exams">📝</div>
+        <div class="stat-card-icon icon-exams">
+            <i class="fas fa-file-alt"></i>
+        </div>
     </div>
 </div>
 
 <script>
     function loadDashboardData() {
-        // แสดงสถานะกำลังโหลด
         document.getElementById('totalUsers').textContent = '...';
         document.getElementById('alumniCount').textContent = '...';
         document.getElementById('studentCount').textContent = '...';
@@ -82,6 +116,5 @@
             document.getElementById('totalExamRecords').textContent = stats.totalExamRecords;
         }).getDashboardStats();
     }
-
     loadDashboardData();
 </script>

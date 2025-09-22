@@ -244,13 +244,10 @@
 <script>
     function populateYearDropdown() {
         const yearSelect = document.getElementById('examYear');
-        // Clear existing options except the first one
-        while (yearSelect.options.length > 1) {
-            yearSelect.remove(1);
-        }
+        while (yearSelect.options.length > 1) { yearSelect.remove(1); }
         google.script.run.withSuccessHandler(years => {
             if (years && years.length > 0) {
-                years.sort((a, b) => b - a); // เรียงจากมากไปน้อย
+                years.sort((a, b) => b - a);
                 years.forEach(year => {
                     const option = document.createElement('option');
                     option.value = year;
@@ -262,36 +259,19 @@
     }
 
     const subjectMap = {
-        'Subject1_Maternity': 'การผดุงครรภ์',
-        'Subject2_Pediatric': 'การพยาบาลมารดาและทารก',
-        'Subject3_Adult': 'การพยาบาลเด็กและวัยรุ่น',
-        'Subject4_Geriatric': 'การพยาบาลผู้ใหญ่',
-        'Subject5_Psychiatric': 'การพยาบาลผู้สูงอายุ',
-        'Subject6_Community': 'การพยาบาลสุขภาพจิตฯ',
-        'Subject7_Law': 'การพยาบาลอนามัยชุมชนฯ',
-        'Subject8_Surgical': 'กฎหมายว่าด้วยวิชาชีพฯ'
+        'Subject1_Maternity': 'การผดุงครรภ์', 'Subject2_Pediatric': 'การพยาบาลมารดาและทารก',
+        'Subject3_Adult': 'การพยาบาลเด็กและวัยรุ่น', 'Subject4_Geriatric': 'การพยาบาลผู้ใหญ่',
+        'Subject5_Psychiatric': 'การพยาบาลผู้สูงอายุ', 'Subject6_Community': 'การพยาบาลสุขภาพจิตฯ',
+        'Subject7_Law': 'การพยาบาลอนามัยชุมชนฯ', 'Subject8_Surgical': 'กฎหมายว่าด้วยวิชาชีพฯ'
     };
     const subjectKeys = Object.keys(subjectMap);
 
-        function loadLicensePageData() {
-            // --- แก้ไขส่วนนี้ ---
-            // ตรวจสอบว่ามี selectedUserEmail (ที่แอดมินเลือก) หรือไม่
-            // ถ้าไม่มี ให้ใช้ userEmail ของคนที่ล็อกอินอยู่ตามปกติ
-            const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-            if (!userEmail) return;
-
-            google.script.run.withSuccessHandler(updateProgressUI).getLicenseExamStatus(userEmail);
-            google.script.run.withSuccessHandler(populateHistoryTable).getLicenseExamHistory(userEmail);
-        }
-
-        document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // --- แก้ไขส่วนนี้ ---
-            const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-            if (!userEmail) {
-                alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองค้นหาใหม่อีกครั้ง');
-                return;
-            }
+    function loadLicensePageData() {
+        const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
+        if (!userEmail) return;
+        google.script.run.withSuccessHandler(updateProgressUI).getLicenseExamStatus(userEmail);
+        google.script.run.withSuccessHandler(populateHistoryTable).getLicenseExamHistory(userEmail);
+    }
 
     function updateProgressUI(status) {
         if (!status) return;
@@ -348,15 +328,13 @@
     document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const saveBtn = document.getElementById('saveExamBtn');
-        const userEmail = sessionStorage.getItem('userEmail');
+        const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
         if (!userEmail) {
-            alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองเข้าสู่ระบบใหม่อีกครั้ง');
+            alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองค้นหาใหม่อีกครั้ง');
             return;
         }
-
         saveBtn.disabled = true;
         saveBtn.textContent = 'กำลังบันทึก...';
-
         const recordData = {
             userEmail: userEmail,
             examRound: document.getElementById('examRound').value,
@@ -379,15 +357,13 @@
         const saveBtn = document.getElementById('saveExamBtn');
         saveBtn.disabled = false;
         saveBtn.textContent = '➕ เพิ่มข้อมูลการสอบ';
-
         if (response.success) {
             document.getElementById('licenseExamForm').reset();
             loadLicensePageData(); 
-            populateYearDropdown(); // โหลดปีใหม่หลังจากบันทึก
+            populateYearDropdown();
         }
     }
 
-    // Initial load of the page data
     loadLicensePageData();
     populateYearDropdown();
 </script>
