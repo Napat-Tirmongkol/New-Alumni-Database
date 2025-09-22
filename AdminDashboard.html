@@ -2,47 +2,66 @@
 <html>
 <head>
     <base target="_top">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body { font-family: 'Sarabun', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #dcedc8; color: #333; }
-        .content { text-align: center; border: 2px dashed #558b2f; padding: 40px; border-radius: 10px; }
-        h1 { color: #33691e; }
-        /* --- CSS สำหรับปุ่ม Logout --- */
-        .logout-btn {
-            margin-top: 30px;
-            padding: 10px 20px;
-            font-size: 16px;
+        body {
+            margin: 0;
             font-family: 'Sarabun', sans-serif;
-            color: white;
-            background-color: #757575; /* สีเทา */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            background-color: #f4f6f9;
         }
-        .logout-btn:hover {
-            background-color: #616161;
+        .main-content {
+            margin-left: 250px; 
+            padding: 20px;
+            padding-top: 93px; /* 73px (Header) + 20px */
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="content">
-        <h1>หน้าแดชบอร์ดสำหรับ Admin</h1>
-        <p>คุณเข้าสู่ระบบในฐานะผู้ดูแลระบบ</p>
 
-        <button id="logoutButton" class="logout-btn">ออกจากระบบ</button>
-    </div>
+    <?!= include('Header.html'); ?>
+    <?!= include('AdminSidebar.html'); ?>
 
+    <main class="main-content" id="mainContentArea">
+        </main>
+    
     <script>
-        // Script สำหรับปุ่ม Logout
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            // 1. ล้างข้อมูลผู้ใช้ออกจาก sessionStorage
-            sessionStorage.removeItem('loggedInUser');
+        function loadContent(pageName) {
+            const contentArea = document.getElementById('mainContentArea');
+            if (!contentArea) return;
+
+            contentArea.innerHTML = '<div style="text-align:center; padding:50px;"><h2>กำลังโหลด...</h2></div>';
             
-            // 2. กลับไปที่หน้า Login
-            google.script.run.withSuccessHandler((url) => {
-                window.top.location.href = url;
-            }).getWebAppUrl();
+            google.script.run
+                .withSuccessHandler(html => {
+                    contentArea.innerHTML = html;
+                    const scripts = contentArea.getElementsByTagName('script');
+                    for (let i = 0; i < scripts.length; i++) {
+                        eval(scripts[i].innerText);
+                    }
+                })
+                .getPageContent(pageName);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userDataString = sessionStorage.getItem('loggedInUser');
+            if (userDataString) {
+                const user = JSON.parse(userDataString);
+                if (user.role === 'Admin') {
+                    // โหลดหน้า "จัดการข้อมูลผู้ใช้" เป็นหน้าเริ่มต้น
+                    loadContent('manageUsers');
+                } else {
+                    // ถ้าไม่ใช่ Admin ให้ส่งกลับไปหน้า dashboard ผู้ใช้
+                    google.script.run.withSuccessHandler(url => {
+                         window.top.location.href = url + '?page=dashboard';
+                    }).getWebAppUrl();
+                }
+            } else {
+                // ถ้ายังไม่ได้ล็อกอิน ให้กลับไปหน้า Login
+                google.script.run.withSuccessHandler(url => {
+                    window.top.location.href = url;
+                }).getWebAppUrl();
+            }
         });
     </script>
 </body>

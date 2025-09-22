@@ -13,32 +13,11 @@
     .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; font-family: 'Sarabun', sans-serif; width: 100%; box-sizing: border-box; }
     .form-group textarea { resize: vertical; min-height: 80px; }
     .form-actions { text-align: right; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-    .save-btn { padding: 12px 25px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
-    .save-btn:disabled { background-color: #aaa; cursor: not-allowed; }
-    .section-header {
-    margin-top: 30px;
-    margin-bottom: 10px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    padding-bottom: 8px;
-    grid-column: 1 / -1;
-}
-.btn {
-        padding: 12px 25px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        margin-left: 10px;
-    }
+    .btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-left: 10px; }
     .save-btn { background-color: #28a745; color: white; }
     .save-btn:disabled { background-color: #aaa; cursor: not-allowed; }
-     .back-btn {
-        background-color: #6c757d; /* สีเทา */
-        color: white;
-    }
+    .back-btn { background-color: #6c757d; color: white; }
+    .section-header { margin-top: 30px; margin-bottom: 10px; font-size: 18px; font-weight: bold; color: #333; padding-bottom: 8px; grid-column: 1 / -1; }
 </style>
 
 <div class="profile-form-container">
@@ -81,25 +60,10 @@
 
             <div class="section-header">ข้อมูลเพิ่มเติม</div>
             <div class="form-group" style="grid-column: 1 / -1;"><label for="awards">ประวัติการได้รับรางวัล</label><textarea id="awards" placeholder="ระบุชื่อรางวัล, ปี, หน่วยงานที่มอบ"></textarea></div>
-            
-            <div class="form-group"><label for="futurePlan">แผนการทำงานในอนาคต</label><select id="futurePlan">
-                <option value="">เลือกแผนการทำงาน</option><option value="hospital_public">ทำงานโรงพยาบาลรัฐ</option><option value="hospital_private">ทำงานโรงพยาบาลเอกชน</option><option value="clinic">ทำงานคลินิก</option><option value="community_health">ทำงานด้านสาธารณสุขชุมชน</option><option value="home_care">ทำงานด้านการดูแลผู้ป่วยที่บ้าน</option><option value="elderly_care">ทำงานด้านการดูแลผู้สูงอายุ</option><option value="occupational_health">ทำงานด้านอาชีวอนามัย</option><option value="education">ทำงานด้านการศึกษา/อาจารย์</option><option value="research">ทำงานด้านการวิจัย</option><option value="entrepreneur">ประกอบธุรกิจส่วนตัว</option><option value="international">ทำงานต่างประเทศ</option><option value="other">อื่นๆ</option>
-            </select></div>
-            
-            <div class="form-group"><label for="educationPlan">แผนการศึกษาต่อ</label><select id="educationPlan">
-                <option value="">เลือกแผนการศึกษาต่อ</option><option value="no_plan">ไม่มีแผนศึกษาต่อ</option><option value="master_nursing">ปริญญาโท พยาบาลศาสตร์</option><option value="master_public_health">ปริญญาโท สาธารณสุขศาสตร์</option><option value="master_health_admin">ปริญญาโท การบริหารสุขภาพ</option><option value="master_midwifery">ปริญญาโท การผดุงครรภ์</option><option value="master_mental_health">ปริญญาโท สุขภาพจิต</option><option value="master_community">ปริญญาโท พยาบาลชุมชน</option><option value="master_critical_care">ปริญญาโท พยาบาลผู้ป่วยวิกฤต</option><option value="master_pediatric">ปริญญาโท พยาบาลเด็ก</option><option value="master_geriatric">ปริญญาโท พยาบาลผู้สูงอายุ</option><option value="phd_nursing">ปริญญาเอก พยาบาลศาสตร์</option><option value="certificate">หลักสูตรประกาศนียบัตร</option><option value="international">ศึกษาต่อต่างประเทศ</option><option value="other">อื่นๆ</option>
-            </select></div>
-
-            <div class="form-group"><label for="internationalPlan">แผนการไปทำงานต่างประเทศ</label><select id="internationalPlan">
-                <option value="">เลือกแผนการทำงานต่างประเทศ</option><option value="no_plan">ไม่มีแผนไปทำงานต่างประเทศ</option><option value="usa">สหรัฐอเมริกา</option><option value="canada">แคนาดา</option><option value="australia">ออสเตรเลีย</option><option value="uk">สหราชอาณาจักร</option><option value="germany">เยอรมนี</option><option value="netherlands">เนเธอร์แลนด์</option><option value="sweden">สวีเดน</option><option value="norway">นอร์เวย์</option><option value="singapore">สิงคโปร์</option><option value="japan">ญี่ปุ่น</option><option value="south_korea">เกาหลีใต้</option><option value="uae">สหรัฐอาหรับเอมิเรตส์</option><option value="saudi_arabia">ซาอุดีอาระเบีย</option><option value="qatar">กาตาร์</option><option value="kuwait">คูเวต</option><option value="new_zealand">นิวซีแลนด์</option><option value="other">ประเทศอื่นๆ</option>
-            </select></div>
-
-            <div class="form-group" style="justify-content: center;">
-                <label style="flex-direction: row; cursor:pointer; align-items: center; display:flex; gap: 8px;">
-                    <input type="checkbox" id="willTakeThaiLicense" style="width: auto;">
-                    <span>จะสอบใบประกอบวิชาชีพของไทย</span>
-                </label>
-            </div>
+            <div class="form-group"><label for="futurePlan">แผนการทำงานในอนาคต</label><select id="futurePlan"><option value="">เลือกแผนการทำงาน</option><option value="hospital_public">ทำงานโรงพยาบาลรัฐ</option><option value="hospital_private">ทำงานโรงพยาบาลเอกชน</option><option value="clinic">ทำงานคลินิก</option><option value="community_health">ทำงานด้านสาธารณสุขชุมชน</option><option value="home_care">ทำงานด้านการดูแลผู้ป่วยที่บ้าน</option><option value="elderly_care">ทำงานด้านการดูแลผู้สูงอายุ</option><option value="occupational_health">ทำงานด้านอาชีวอนามัย</option><option value="education">ทำงานด้านการศึกษา/อาจารย์</option><option value="research">ทำงานด้านการวิจัย</option><option value="entrepreneur">ประกอบธุรกิจส่วนตัว</option><option value="international">ทำงานต่างประเทศ</option><option value="other">อื่นๆ</option></select></div>
+            <div class="form-group"><label for="educationPlan">แผนการศึกษาต่อ</label><select id="educationPlan"><option value="">เลือกแผนการศึกษาต่อ</option><option value="no_plan">ไม่มีแผนศึกษาต่อ</option><option value="master_nursing">ปริญญาโท พยาบาลศาสตร์</option><option value="master_public_health">ปริญญาโท สาธารณสุขศาสตร์</option><option value="master_health_admin">ปริญญาโท การบริหารสุขภาพ</option><option value="master_midwifery">ปริญญาโท การผดุงครรภ์</option><option value="master_mental_health">ปริญญาโท สุขภาพจิต</option><option value="master_community">ปริญญาโท พยาบาลชุมชน</option><option value="master_critical_care">ปริญญาโท พยาบาลผู้ป่วยวิกฤต</option><option value="master_pediatric">ปริญญาโท พยาบาลเด็ก</option><option value="master_geriatric">ปริญญาโท พยาบาลผู้สูงอายุ</option><option value="phd_nursing">ปริญญาเอก พยาบาลศาสตร์</option><option value="certificate">หลักสูตรประกาศนียบัตร</option><option value="international">ศึกษาต่อต่างประเทศ</option><option value="other">อื่นๆ</option></select></div>
+            <div class="form-group"><label for="internationalPlan">แผนการไปทำงานต่างประเทศ</label><select id="internationalPlan"><option value="">เลือกแผนการทำงานต่างประเทศ</option><option value="no_plan">ไม่มีแผนไปทำงานต่างประเทศ</option><option value="usa">สหรัฐอเมริกา</option><option value="canada">แคนาดา</option><option value="australia">ออสเตรเลีย</option><option value="uk">สหราชอาณาจักร</option><option value="germany">เยอรมนี</option><option value="netherlands">เนเธอร์แลนด์</option><option value="sweden">สวีเดน</option><option value="norway">นอร์เวย์</option><option value="singapore">สิงคโปร์</option><option value="japan">ญี่ปุ่น</option><option value="south_korea">เกาหลีใต้</option><option value="uae">สหรัฐอาหรับเอมิเรตส์</option><option value="saudi_arabia">ซาอุดีอาระเบีย</option><option value="qatar">กาตาร์</option><option value="kuwait">คูเวต</option><option value="new_zealand">นิวซีแลนด์</option><option value="other">ประเทศอื่นๆ</option></select></div>
+            <div class="form-group" style="justify-content: center;"><label style="flex-direction: row; cursor:pointer; align-items: center; display:flex; gap: 8px;"><input type="checkbox" id="willTakeThaiLicense" style="width: auto;"><span>จะสอบใบประกอบวิชาชีพของไทย</span></label></div>
         </div>
 
         <div class="form-actions">
@@ -114,7 +78,6 @@
     let profilePictureMimeType = null;
     let existingPictureId = null;
 
-    // --- 1. จัดการการเลือกรูปภาพ ---
     document.getElementById('profilePictureUpload').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -129,7 +92,6 @@
         }
     });
 
-    // --- 2. จัดการการส่งฟอร์ม ---
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const saveButton = document.getElementById('saveButton');
@@ -165,6 +127,10 @@
             mimeType: profilePictureMimeType,
             existingPictureId: existingPictureId
         };
+        
+        const userEmailForSave = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
+        profileData.email = userEmailForSave;
+
         google.script.run.withSuccessHandler(onSaveSuccess).saveUserProfile(profileData);
     });
 
@@ -173,14 +139,10 @@
         const saveButton = document.getElementById('saveButton');
         saveButton.disabled = false;
         saveButton.textContent = '💾 บันทึกข้อมูล';
-        if (message.includes("สำเร็จ")) {
-            loadContent('profileSummary');
-        }
     }
 
-    // --- 3. โหลดข้อมูลเดิมมาแสดง ---
     function loadProfileData() {
-        const userEmail = sessionStorage.getItem('userEmail');
+        const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
         if (userEmail) {
             google.script.run.withSuccessHandler(populateForm).getUserProfile(userEmail);
         }
@@ -188,7 +150,8 @@
 
     function populateForm(data) {
         if (!data) {
-            document.getElementById('email').value = sessionStorage.getItem('userEmail') || '';
+            const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
+            document.getElementById('email').value = userEmail || '';
             return;
         };
         
@@ -199,22 +162,6 @@
             }
         };
 
-        setValue('prefix', data.Prefix);
-        setValue('studentId', data.StudentID);
-        setValue('firstNameTH', data.FirstNameTH);
-        setValue('lastNameTH', data.LastNameTH);
-        setValue('firstNameEN', data.FirstNameEN);
-        setValue('lastNameEN', data.LastNameEN);
-        setValue('gradClass', data.GraduationClass);
-        setValue('advisor', data.Advisor);
-        
-        if (data.DateOfBirth) {
-            try {
-                setValue('dob', new Date(data.DateOfBirth).toISOString().split('T')[0]);
-            } catch (e) {
-                console.error("รูปแบบวันที่ไม่ถูกต้อง:", data.DateOfBirth);
-            }
-        }
         setValue('prefix', data.Prefix);
         setValue('studentId', data.StudentID);
         setValue('firstNameTH', data.FirstNameTH);

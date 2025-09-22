@@ -2,98 +2,221 @@
     /* General Card Style */
     .content-card {
         background-color: white;
-        padding: 1.5rem; /* 24px */
-        border-radius: 0.5rem; /* 8px */
+        padding: 1.5rem;
+        border-radius: 0.5rem;
         box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
         margin-bottom: 1.5rem;
     }
     .card-header {
-        font-size: 1.125rem; /* 18px */
+        font-size: 1.25rem;
         font-weight: 600;
         margin-top: 0;
         margin-bottom: 1rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-
-    /* Progress Section */
-    .progress-bar-container { display: flex; align-items: center; gap: 1rem; }
-    .progress-bar-wrapper { flex-grow: 1; background-color: #e5e7eb; border-radius: 9999px; height: 0.75rem; overflow: hidden; }
-    .progress-bar { background-color: #f59e0b; height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
-    .progress-label { font-weight: 600; color: #f59e0b; }
-    .subjects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
-    .subject-item { background-color: #f3f4f6; padding: 0.75rem 1rem; border-radius: 0.375rem; display: flex; align-items: center; gap: 0.75rem; color: #374151; }
-    .subject-status-icon { width: 16px; height: 16px; border-radius: 9999px; background-color: #d1d5db; flex-shrink: 0; }
-    .subject-status-icon.passed { background-color: #10b981; }
-
-    /* Form Section */
-    .form-grid-license { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem 1.5rem; }
-    .form-group { display: flex; flex-direction: column; }
-    .form-group label { margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
-    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; font-family: 'Sarabun', sans-serif; }
-    .form-actions { text-align: right; margin-top: 1.5rem; }
-    .submit-btn { background-color: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
-    .submit-btn:disabled { background-color: #9ca3af; }
-
-    /* History Table Section */
-    .history-table-wrapper { overflow-x: auto; }
-    .history-table { width: 100%; border-collapse: collapse; }
-    .history-table th, .history-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
-    .history-table th { background-color: #f9fafb; font-weight: 600; color: #4b5563; }
-    .status-passed { color: #059669; font-weight: bold; }
-    .status-failed { color: #dc2626; }
-    .no-history { text-align: center; color: #6b7280; padding: 2rem; }
+    .header-meta {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+    }
+    .subjects-list {
+        columns: 2;
+        -webkit-columns: 2;
+        -moz-columns: 2;
+        gap: 1.5rem;
+        padding-left: 1.5rem;
+        color: #4b5563;
+        font-size: 0.9rem;
+    }
+    .subjects-list li {
+        margin-bottom: 0.5rem;
+    }
+    .no-passed-subjects {
+        color: #9ca3af;
+        text-align: center;
+        padding: 1rem 0;
+    }
+    .instruction-box {
+        background-color: #eef2ff;
+        border-left: 4px solid #3b82f6;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        font-size: 0.875rem;
+        color: #374151;
+    }
+    .instruction-box .icon {
+        flex-shrink: 0;
+        color: #3b82f6;
+        margin-top: 2px;
+    }
+    .instruction-box ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    .instruction-box li {
+        margin-bottom: 0.35rem;
+    }
+    .instruction-box b {
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+    .instruction-box strong {
+        font-weight: 700;
+        color: #1e3a8a;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .form-row {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    .form-group label {
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+        font-size: 14px;
+    }
+    .form-group input,
+    .form-group select {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .exam-subjects-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem 2rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .subject-input-group {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 1rem;
+    }
+    .subject-input-group span {
+        color: #374151;
+    }
+    .form-actions {
+        text-align: left;
+        margin-top: 1.5rem;
+    }
+    .submit-btn {
+        background-color: #16a34a;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .submit-btn:disabled {
+        background-color: #9ca3af;
+    }
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .history-table th,
+    .history-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .history-table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+        color: #4b5563;
+    }
+    .status-passed {
+        color: #059669;
+        font-weight: bold;
+    }
+    .status-failed {
+        color: #dc2626;
+    }
+    .no-history {
+        text-align: center;
+        color: #6b7280;
+        padding: 2rem;
+    }
 </style>
 
-<!-- ======================= 1. ส่วนแสดงความคืบหน้า ======================= -->
 <div class="content-card">
-    <h3 class="card-header">ความคืบหน้าการสอบ</h3>
-    <div class="progress-bar-container">
-        <span>วิชาที่สอบผ่านแล้ว</span>
-        <div class="progress-bar-wrapper">
-            <div id="licenseProgressBar" class="progress-bar"></div>
-        </div>
-        <span id="licenseProgressLabel" class="progress-label">0/8</span>
+    <div class="card-header">
+        <span>ความคืบหน้าการสอบ</span>
+        <span id="licenseProgressLabel" class="header-meta">0/8</span>
     </div>
-
-    <div class="subjects-grid">
-        <div class="subject-item"><div id="status-Subject1_Maternity" class="subject-status-icon"></div><span>การผดุงครรภ์</span></div>
-        <div class="subject-item"><div id="status-Subject2_Pediatric" class="subject-status-icon"></div><span>การพยาบาลมารดาและทารก</span></div>
-        <div class="subject-item"><div id="status-Subject3_Adult" class="subject-status-icon"></div><span>การพยาบาลเด็กและวัยรุ่น</span></div>
-        <div class="subject-item"><div id="status-Subject4_Geriatric" class="subject-status-icon"></div><span>การพยาบาลผู้ใหญ่</span></div>
-        <div class="subject-item"><div id="status-Subject5_Psychiatric" class="subject-status-icon"></div><span>การพยาบาลผู้สูงอายุ</span></div>
-        <div class="subject-item"><div id="status-Subject6_Community" class="subject-status-icon"></div><span>การพยาบาลสุขภาพจิตและจิตเวช</span></div>
-        <div class="subject-item"><div id="status-Subject7_Law" class="subject-status-icon"></div><span>การพยาบาลอนามัยชุมชนฯ</span></div>
-        <div class="subject-item"><div id="status-Subject8_Surgical" class="subject-status-icon"></div><span>กฎหมายว่าด้วยวิชาชีพการพยาบาลฯ</span></div>
+    <div id="passedSubjectsList">
+        <p class="no-passed-subjects">ยังไม่มีวิชาที่สอบผ่าน</p>
     </div>
 </div>
 
-<!-- ======================= 2. ส่วนเพิ่มข้อมูลการสอบ ======================= -->
 <div class="content-card">
-    <h3 class="card-header">เพิ่มข้อมูลการสอบใหม่</h3>
+    <h3 class="card-header" style="border-bottom: none; padding-bottom: 0;">เพิ่มข้อมูลการสอบใหม่</h3>
+    <div class="instruction-box">
+        <i class="fas fa-info-circle icon"></i>
+        <div>
+            <strong>วิธีการใช้งาน</strong>
+            <ul>
+                <li><b>สอบผ่าน:</b> เลือก "ผ่าน" สำหรับวิชาที่สอบผ่านในรอบนี้</li>
+                <li><b>สอบไม่ผ่าน:</b> เลือก "ไม่ผ่าน" สำหรับวิชาที่สอบแต่ไม่ผ่าน</li>
+                <li><b>ไม่ได้สอบ:</b> เว้นว่างไว้สำหรับวิชาที่ไม่ได้สอบในรอบนี้</li>
+                <li>สามารถเพิ่มข้อมูลการสอบหลายรอบได้</li>
+            </ul>
+        </div>
+    </div>
+
     <form id="licenseExamForm">
-        <div class="form-grid-license">
+        <div class="form-row">
             <div class="form-group">
                 <label for="examRound">ครั้งที่</label>
                 <input type="number" id="examRound" required>
             </div>
             <div class="form-group">
+                <label for="examSession">รอบที่</label>
+                <select id="examSession" required>
+                    <option value="">เลือกรอบ</option>
+                    <option value="1">รอบที่ 1</option>
+                    <option value="2">รอบที่ 2</option>
+                    <option value="3">รอบที่ 3</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="examYear">ปีที่สอบ</label>
-                <input type="number" id="examYear" placeholder="พ.ศ." required>
+                <select id="examYear" required>
+                    <option value="">เลือกปี พ.ศ.</option>
+                </select>
             </div>
         </div>
 
-        <hr style="border: none; border-top: 1px solid #eee; margin: 1.5rem 0;">
-
-        <div class="form-grid-license">
-            <div class="form-group"><label>การผดุงครรภ์</label><select id="s1"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>การพยาบาลมารดาและทารก</label><select id="s2"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>การพยาบาลเด็กและวัยรุ่น</label><select id="s3"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>การพยาบาลผู้ใหญ่</label><select id="s4"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>การพยาบาลผู้สูงอายุ</label><select id="s5"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>การพยาบาลสุขภาพจิตฯ</label><select id="s6"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>การพยาบาลอนามัยชุมชนฯ</label><select id="s7"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="form-group"><label>กฎหมายว่าด้วยวิชาชีพฯ</label><select id="s8"><option value="">-</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+        <div class="exam-subjects-grid">
+            <div class="subject-input-group"><span>การผดุงครรภ์</span><select id="Subject1_Maternity"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>การพยาบาลมารดาและทารก</span><select id="Subject2_Pediatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>การพยาบาลเด็กและวัยรุ่น</span><select id="Subject3_Adult"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>การพยาบาลผู้ใหญ่</span><select id="Subject4_Geriatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>การพยาบาลผู้สูงอายุ</span><select id="Subject5_Psychiatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>การพยาบาลสุขภาพจิตฯ</span><select id="Subject6_Community"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>การพยาบาลอนามัยชุมชนฯ</span><select id="Subject7_Law"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group"><span>กฎหมายว่าด้วยวิชาชีพฯ</span><select id="Subject8_Surgical"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
         </div>
 
         <div class="form-actions">
@@ -102,7 +225,6 @@
     </form>
 </div>
 
-<!-- ======================= 3. ส่วนประวัติการสอบ ======================= -->
 <div class="content-card">
     <h3 class="card-header">ประวัติการสอบ</h3>
     <div class="history-table-wrapper">
@@ -114,38 +236,83 @@
                 </tr>
             </thead>
             <tbody id="examHistoryBody">
-                <!-- ข้อมูลจะถูกเติมที่นี่ -->
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const subjectKeys = [
-        'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric',
-        'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical'
-    ];
-
-    function loadLicensePageData() {
-        const userEmail = sessionStorage.getItem('userEmail');
-        if (!userEmail) return;
-
-        google.script.run.withSuccessHandler(updateProgressUI).getLicenseExamStatus(userEmail);
-        google.script.run.withSuccessHandler(populateHistoryTable).getLicenseExamHistory(userEmail);
+    function populateYearDropdown() {
+        const yearSelect = document.getElementById('examYear');
+        // Clear existing options except the first one
+        while (yearSelect.options.length > 1) {
+            yearSelect.remove(1);
+        }
+        google.script.run.withSuccessHandler(years => {
+            if (years && years.length > 0) {
+                years.sort((a, b) => b - a); // เรียงจากมากไปน้อย
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
+        }).getExamYears();
     }
+
+    const subjectMap = {
+        'Subject1_Maternity': 'การผดุงครรภ์',
+        'Subject2_Pediatric': 'การพยาบาลมารดาและทารก',
+        'Subject3_Adult': 'การพยาบาลเด็กและวัยรุ่น',
+        'Subject4_Geriatric': 'การพยาบาลผู้ใหญ่',
+        'Subject5_Psychiatric': 'การพยาบาลผู้สูงอายุ',
+        'Subject6_Community': 'การพยาบาลสุขภาพจิตฯ',
+        'Subject7_Law': 'การพยาบาลอนามัยชุมชนฯ',
+        'Subject8_Surgical': 'กฎหมายว่าด้วยวิชาชีพฯ'
+    };
+    const subjectKeys = Object.keys(subjectMap);
+
+        function loadLicensePageData() {
+            // --- แก้ไขส่วนนี้ ---
+            // ตรวจสอบว่ามี selectedUserEmail (ที่แอดมินเลือก) หรือไม่
+            // ถ้าไม่มี ให้ใช้ userEmail ของคนที่ล็อกอินอยู่ตามปกติ
+            const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
+            if (!userEmail) return;
+
+            google.script.run.withSuccessHandler(updateProgressUI).getLicenseExamStatus(userEmail);
+            google.script.run.withSuccessHandler(populateHistoryTable).getLicenseExamHistory(userEmail);
+        }
+
+        document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // --- แก้ไขส่วนนี้ ---
+            const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
+            if (!userEmail) {
+                alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองค้นหาใหม่อีกครั้ง');
+                return;
+            }
 
     function updateProgressUI(status) {
         if (!status) return;
+        const passedListContainer = document.getElementById('passedSubjectsList');
         let passedCount = 0;
+        let passedHtml = '<ul class="subjects-list">';
+
         subjectKeys.forEach(key => {
-            const iconElement = document.getElementById('status-' + key);
-            if (iconElement && status[key] === true) {
-                iconElement.classList.add('passed');
+            if (status[key] === true) {
                 passedCount++;
+                passedHtml += `<li>${subjectMap[key]}</li>`;
             }
         });
-        const percentage = (passedCount / 8) * 100;
-        document.getElementById('licenseProgressBar').style.width = percentage + '%';
+        passedHtml += '</ul>';
+
+        if (passedCount > 0) {
+            passedListContainer.innerHTML = passedHtml;
+        } else {
+            passedListContainer.innerHTML = '<p class="no-passed-subjects">ยังไม่มีวิชาที่สอบผ่าน</p>';
+        }
+
         document.getElementById('licenseProgressLabel').textContent = `${passedCount}/8`;
     }
 
@@ -160,18 +327,17 @@
         history.forEach(record => {
             let resultsHtml = '<ul>';
             subjectKeys.forEach((key, index) => {
-                const subjectName = document.querySelector(`#s${index+1}`).parentElement.querySelector('label').textContent;
                 const result = record[key];
                 if (result) {
                     const statusClass = result === 'ผ่าน' ? 'status-passed' : 'status-failed';
-                    resultsHtml += `<li>${subjectName}: <span class="${statusClass}">${result}</span></li>`;
+                    resultsHtml += `<li>${subjectMap[key]}: <span class="${statusClass}">${result}</span></li>`;
                 }
             });
             resultsHtml += '</ul>';
 
             tableHtml += `
                 <tr>
-                    <td>${record.ExamRound}/${record.ExamYear}</td>
+                    <td>${record.ExamRound || ''}/${record.ExamYear || ''}</td>
                     <td>${resultsHtml}</td>
                 </tr>
             `;
@@ -182,20 +348,28 @@
     document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const saveBtn = document.getElementById('saveExamBtn');
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) {
+            alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองเข้าสู่ระบบใหม่อีกครั้ง');
+            return;
+        }
+
         saveBtn.disabled = true;
         saveBtn.textContent = 'กำลังบันทึก...';
 
         const recordData = {
+            userEmail: userEmail,
             examRound: document.getElementById('examRound').value,
+            examSession: document.getElementById('examSession').value,
             examYear: document.getElementById('examYear').value,
-            Subject1_Maternity: document.getElementById('s1').value,
-            Subject2_Pediatric: document.getElementById('s2').value,
-            Subject3_Adult: document.getElementById('s3').value,
-            Subject4_Geriatric: document.getElementById('s4').value,
-            Subject5_Psychiatric: document.getElementById('s5').value,
-            Subject6_Community: document.getElementById('s6').value,
-            Subject7_Law: document.getElementById('s7').value,
-            Subject8_Surgical: document.getElementById('s8').value,
+            Subject1_Maternity: document.getElementById('Subject1_Maternity').value,
+            Subject2_Pediatric: document.getElementById('Subject2_Pediatric').value,
+            Subject3_Adult: document.getElementById('Subject3_Adult').value,
+            Subject4_Geriatric: document.getElementById('Subject4_Geriatric').value,
+            Subject5_Psychiatric: document.getElementById('Subject5_Psychiatric').value,
+            Subject6_Community: document.getElementById('Subject6_Community').value,
+            Subject7_Law: document.getElementById('Subject7_Law').value,
+            Subject8_Surgical: document.getElementById('Subject8_Surgical').value,
         };
         google.script.run.withSuccessHandler(onSaveSuccess).saveLicenseExamRecord(recordData);
     });
@@ -208,10 +382,12 @@
 
         if (response.success) {
             document.getElementById('licenseExamForm').reset();
-            loadLicensePageData(); // โหลดข้อมูลใหม่ทั้งหมด
+            loadLicensePageData(); 
+            populateYearDropdown(); // โหลดปีใหม่หลังจากบันทึก
         }
     }
 
+    // Initial load of the page data
     loadLicensePageData();
+    populateYearDropdown();
 </script>
-

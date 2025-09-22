@@ -1,0 +1,100 @@
+<style>
+    .search-container { padding: 1rem; background-color: white; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .search-bar { display: flex; gap: 10px; }
+    .search-bar input { flex-grow: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    .search-bar button { padding: 10px 20px; font-size: 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    #resultsContainer { margin-top: 1rem; }
+    .user-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #f9fafb; border-radius: 4px; margin-bottom: 5px; }
+    .user-item button { background-color: #16a34a; color: white; border:none; padding: 5px 10px; border-radius: 4px; cursor: pointer;}
+    #editorContainer { margin-top: 1.5rem; border-top: 2px solid #ddd; padding-top: 1.5rem; }
+    .editor-section { margin-bottom: 2rem; }
+</style>
+
+<div class="search-container">
+    <h2>ค้นหาผู้ใช้เพื่อจัดการข้อมูล</h2>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ, นามสกุล, หรืออีเมล...">
+        <button id="searchBtn">ค้นหา</button>
+    </div>
+    <div id="resultsContainer"></div>
+</div>
+
+<div id="editorContainer" style="display: none;">
+    <h2 id="editingUserName" style="text-align: center; margin-bottom: 1rem;"></h2>
+    <div id="profileEditor" class="editor-section"></div>
+    <hr style="margin: 2rem 0;">
+    <div id="licenseEditor" class="editor-section"></div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const editorContainer = document.getElementById('editorContainer');
+    const editingUserName = document.getElementById('editingUserName');
+    const profileEditor = document.getElementById('profileEditor');
+    const licenseEditor = document.getElementById('licenseEditor');
+
+    function performSearch() {
+        const searchText = searchInput.value.trim();
+        if (searchText.length < 2) {
+            alert('กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา');
+            return;
+        }
+        resultsContainer.innerHTML = 'กำลังค้นหา...';
+        google.script.run.withSuccessHandler(displayResults).searchUsers(searchText);
+    }
+
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') performSearch();
+    });
+
+    function displayResults(users) {
+        resultsContainer.innerHTML = '';
+        editorContainer.style.display = 'none';
+        if (users && users.length > 0) {
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-item';
+                userDiv.innerHTML = `
+                    <div>
+                        <strong>${user.firstName} ${user.lastName}</strong><br>
+                        <small>${user.email}</small>
+                    </div>
+                    <button onclick="loadUserEditor('${user.email}', '${user.firstName} ${user.lastName}')">จัดการข้อมูล</button>
+                `;
+                resultsContainer.appendChild(userDiv);
+            });
+        } else {
+            resultsContainer.innerHTML = '<p>ไม่พบผู้ใช้งาน</p>';
+        }
+    }
+
+    // --- ↓↓↓ แก้ไขวิธีประกาศฟังก์ชันตรงนี้ครับ ↓↓↓ ---
+    window.loadUserEditor = function(email, fullName) {
+        sessionStorage.setItem('selectedUserEmail', email);
+        editingUserName.textContent = `กำลังจัดการข้อมูล: ${fullName}`;
+        editorContainer.style.display = 'block';
+
+        profileEditor.innerHTML = '<h3>กำลังโหลดฟอร์มโปรไฟล์...</h3>';
+        google.script.run.withSuccessHandler(html => {
+            profileEditor.innerHTML = html;
+            evalScripts(profileEditor);
+        }).getPageContent('profile');
+
+        licenseEditor.innerHTML = '<h3>กำลังโหลดฟอร์มใบประกอบ...</h3>';
+        google.script.run.withSuccessHandler(html => {
+            licenseEditor.innerHTML = html;
+            evalScripts(licenseEditor);
+        }).getPageContent('licenseForAdmin');
+    }
+    // --- ↑↑↑ จบส่วนที่แก้ไข ↑↑↑ ---
+    
+    function evalScripts(element) {
+        const scripts = element.getElementsByTagName('script');
+        for (let i = 0; i < scripts.length; i++) {
+            eval(scripts[i].innerText);
+        }
+    }
+</script>
