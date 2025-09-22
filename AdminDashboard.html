@@ -49,7 +49,7 @@
                 const user = JSON.parse(userDataString);
                 if (user.role === 'Admin') {
                     // โหลดหน้า "จัดการข้อมูลผู้ใช้" เป็นหน้าเริ่มต้น
-                    loadContent('manageUsers');
+                    loadContent('adminDashboard');
                 } else {
                     // ถ้าไม่ใช่ Admin ให้ส่งกลับไปหน้า dashboard ผู้ใช้
                     google.script.run.withSuccessHandler(url => {

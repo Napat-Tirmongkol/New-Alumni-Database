@@ -79,8 +79,7 @@ function getPageContent(pageName) {
     'license': 'LicenseTracking',
     'donations': 'Donations',
     'virtual_id': 'VirtualID',
-
-    // หน้าสำหรับ Admin
+    'adminDashboard': 'AdminStatsDashboard',
     'manageUsers': 'AdminUserManagement', 
     'licenseForAdmin': 'LicenseTracking' 
   };
@@ -421,5 +420,37 @@ function searchUsers(searchText) {
   } catch(e) {
     Logger.log("Error in searchUsers: " + e.message);
     return [];
+  }
+}
+
+// ในไฟล์ Code.gs (ส่วนที่ 7)
+
+/**
+ * คำนวณและดึงข้อมูลสรุปสำหรับหน้าแดชบอร์ด
+ * @returns {object} อ็อบเจกต์ข้อมูลสถิติ
+ */
+function getDashboardStats() {
+  try {
+    const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+    const licenseSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
+
+    if (!dbSheet) throw new Error("ไม่พบชีต User_Database");
+
+    const roles = dbSheet.getRange(2, COLS_DB.ROLE, dbSheet.getLastRow() - 1, 1).getValues().flat();
+
+    const totalUsers = roles.length;
+    const alumniCount = roles.filter(role => role === 'Alumni').length;
+    const studentCount = roles.filter(role => role === 'Student').length;
+    const totalExamRecords = licenseSheet ? licenseSheet.getLastRow() - 1 : 0;
+
+    return {
+      totalUsers: totalUsers,
+      alumniCount: alumniCount,
+      studentCount: studentCount,
+      totalExamRecords: totalExamRecords > 0 ? totalExamRecords : 0
+    };
+  } catch (e) {
+    Logger.log("Error in getDashboardStats: " + e.message);
+    return { totalUsers: 0, alumniCount: 0, studentCount: 0, totalExamRecords: 0 };
   }
 }

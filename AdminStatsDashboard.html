@@ -1,0 +1,87 @@
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    .stat-card {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .stat-card-info .title {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    .stat-card-info .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+    }
+    .stat-card-icon {
+        font-size: 2rem;
+        padding: 1rem;
+        border-radius: 50%;
+        color: white;
+    }
+    .icon-users { background-color: #ef4444; }
+    .icon-alumni { background-color: #f97316; }
+    .icon-students { background-color: #3b82f6; }
+    .icon-exams { background-color: #16a34a; }
+</style>
+
+<h2 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 1.5rem;">แดชบอร์ด</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-info">
+            <p class="title">ผู้ใช้ทั้งหมด</p>
+            <p id="totalUsers" class="value">0</p>
+        </div>
+        <div class="stat-card-icon icon-users">👥</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-info">
+            <p class="title">ศิษย์เก่า</p>
+            <p id="alumniCount" class="value">0</p>
+        </div>
+        <div class="stat-card-icon icon-alumni">🎓</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-info">
+            <p class="title">นักศึกษาปัจจุบัน</p>
+            <p id="studentCount" class="value">0</p>
+        </div>
+        <div class="stat-card-icon icon-students">🧑‍🎓</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-info">
+            <p class="title">จำนวนการสอบ</p>
+            <p id="totalExamRecords" class="value">0</p>
+        </div>
+        <div class="stat-card-icon icon-exams">📝</div>
+    </div>
+</div>
+
+<script>
+    function loadDashboardData() {
+        // แสดงสถานะกำลังโหลด
+        document.getElementById('totalUsers').textContent = '...';
+        document.getElementById('alumniCount').textContent = '...';
+        document.getElementById('studentCount').textContent = '...';
+        document.getElementById('totalExamRecords').textContent = '...';
+
+        google.script.run.withSuccessHandler(stats => {
+            document.getElementById('totalUsers').textContent = stats.totalUsers;
+            document.getElementById('alumniCount').textContent = stats.alumniCount;
+            document.getElementById('studentCount').textContent = stats.studentCount;
+            document.getElementById('totalExamRecords').textContent = stats.totalExamRecords;
+        }).getDashboardStats();
+    }
+
+    loadDashboardData();
+</script>
