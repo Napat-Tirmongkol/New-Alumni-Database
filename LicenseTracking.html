@@ -1,172 +1,112 @@
 <style>
     /* General Card Style */
     .content-card {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
+        background-color: white; padding: 1.5rem; border-radius: 0.5rem;
         box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
         margin-bottom: 1.5rem;
     }
     .card-header {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-top: 0;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        font-size: 1.25rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem;
+        padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; display: flex;
+        justify-content: space-between; align-items: center;
     }
-    .header-meta {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #6b7280;
+    
+    /* --- CSS ที่ถูกต้องสำหรับ Status Grid --- */
+    .progress-subtitle {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;
     }
-    .subjects-list {
-        columns: 2;
-        -webkit-columns: 2;
-        -moz-columns: 2;
-        gap: 1.5rem;
-        padding-left: 1.5rem;
-        color: #4b5563;
-        font-size: 0.9rem;
-    }
-    .subjects-list li {
-        margin-bottom: 0.5rem;
-    }
-    .no-passed-subjects {
-        color: #9ca3af;
-        text-align: center;
-        padding: 1rem 0;
-    }
-    .instruction-box {
-        background-color: #eef2ff;
-        border-left: 4px solid #3b82f6;
-        border-radius: 0.25rem;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        display: flex;
+    .progress-subtitle .title { color: #4b5563; font-weight: 500; }
+    .progress-subtitle .counter { color: #f97316; font-weight: 600; font-size: 0.9rem; }
+    .subject-status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 0.75rem;
-        font-size: 0.875rem;
-        color: #374151;
     }
-    .instruction-box .icon {
-        flex-shrink: 0;
-        color: #3b82f6;
-        margin-top: 2px;
+    .subject-status-item {
+        background-color: #f9fafb; border-radius: 0.5rem; padding: 0.75rem 1rem;
+        display: flex; align-items: center; gap: 0.75rem;
     }
-    .instruction-box ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
+    .status-circle {
+        width: 12px; height: 12px; border-radius: 50%;
+        background-color: #d1d5db; /* สีเทา (ยังไม่ผ่าน) */
+        flex-shrink: 0; transition: background-color 0.3s;
     }
-    .instruction-box li {
-        margin-bottom: 0.35rem;
+    .status-circle.passed {
+        background-color: #16a34a; /* สีเขียว (ผ่านแล้ว) */
     }
-    .instruction-box b {
-        font-weight: 700;
-        color: #1e3a8a;
-    }
-    .instruction-box strong {
-        font-weight: 700;
-        color: #1e3a8a;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    .form-row {
-        display: flex;
-        gap: 1.5rem;
-        margin-bottom: 1rem;
-    }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-    .form-group label {
-        margin-bottom: 5px;
-        font-weight: bold;
-        color: #555;
-        font-size: 14px;
-    }
-    .form-group input,
-    .form-group select {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 16px;
-    }
-    .exam-subjects-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem 2rem;
-        border-top: 1px solid #e5e7eb;
-        padding-top: 1.5rem;
-        margin-top: 1.5rem;
-    }
-    .subject-input-group {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 1rem;
-    }
-    .subject-input-group span {
-        color: #374151;
-    }
-    .form-actions {
-        text-align: left;
-        margin-top: 1.5rem;
-    }
-    .submit-btn {
-        background-color: #16a34a;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    .submit-btn:disabled {
-        background-color: #9ca3af;
-    }
-    .history-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .history-table th,
-    .history-table td {
-        padding: 0.75rem 1rem;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .history-table th {
-        background-color: #f9fafb;
-        font-weight: 600;
-        color: #4b5563;
-    }
-    .status-passed {
-        color: #059669;
-        font-weight: bold;
-    }
-    .status-failed {
-        color: #dc2626;
-    }
-    .no-history {
-        text-align: center;
-        color: #6b7280;
-        padding: 2rem;
-    }
+    .subject-name { color: #4b5563; font-size: 0.875rem; }
+    /* --- จบส่วน CSS ของ Status Grid --- */
+    
+    .instruction-box { background-color: #eef2ff; border-left: 4px solid #3b82f6; border-radius: 0.25rem; padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; font-size: 0.875rem; color: #374151; }
+    .instruction-box .icon { flex-shrink: 0; color: #3b82f6; margin-top: 2px; }
+    .instruction-box ul { list-style-type: none; padding: 0; margin: 0; }
+    .instruction-box li { margin-bottom: 0.35rem; }
+    .instruction-box b { font-weight: 700; color: #1e3a8a; }
+    .instruction-box strong { font-weight: 700; color: #1e3a8a; display: block; margin-bottom: 0.5rem; }
+    .form-row { display: flex; gap: 1.5rem; margin-bottom: 1rem; }
+    .form-group { display: flex; flex-direction: column; flex-grow: 1; }
+    .form-group label { margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+    .form-actions { text-align: left; margin-top: 1.5rem; }
+    .submit-btn { background-color: #16a34a; color: white; border: none; padding: 12px 24px; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+    .submit-btn:disabled { background-color: #9ca3af; }
+    .history-table { width: 100%; border-collapse: collapse; }
+    .history-table th, .history-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .history-table th { background-color: #f9fafb; font-weight: 600; color: #4b5563; }
+    .status-passed { color: #059669; font-weight: bold; }
+    .status-failed { color: #dc2626; }
+    .no-history { text-align: center; color: #6b7280; padding: 2rem; }
+    .exam-subjects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem; margin-top: 1.5rem; }
+    .subject-input-group { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
+    .subject-input-group span { color: #374151; font-weight: 500; }
+    .subject-input-group select { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 10px; background-color: #f9fafb; }
+    .file-upload-group {border-top: 1px solid #e5e7eb;padding-top: 1.5rem;margin-top: 1.5rem;}
+    .upload-area {display: flex;flex-direction: column;justify-content: center;align-items: center;border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.upload-area:hover {
+    background-color: #f9fafb;
+    border-color: #3b82f6;
+}
+
+.upload-icon {
+    font-size: 2.5rem; /* 40px */
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+}
+
+.upload-text {
+    font-weight: 500;
+    color: #374151;
+}
+
+.upload-hint {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
 </style>
 
 <div class="content-card">
-    <div class="card-header">
-        <span>ความคืบหน้าการสอบ</span>
-        <span id="licenseProgressLabel" class="header-meta">0/8</span>
+    <h3 class="card-header">ความคืบหน้าการสอบ</h3>
+    <div class="progress-subtitle">
+        <span class="title">วิชาที่สอบผ่านแล้ว</span>
+        <span id="licenseProgressLabel" class="counter">0/8</span>
     </div>
-    <div id="passedSubjectsList">
-        <p class="no-passed-subjects">ยังไม่มีวิชาที่สอบผ่าน</p>
+    <div class="subject-status-grid">
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject1_Maternity"></div><span class="subject-name">การผดุงครรภ์</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject2_Pediatric"></div><span class="subject-name">การพยาบาลมารดาและทารก</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject3_Adult"></div><span class="subject-name">การพยาบาลเด็กและวัยรุ่น</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject4_Geriatric"></div><span class="subject-name">การพยาบาลผู้ใหญ่</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject5_Psychiatric"></div><span class="subject-name">การพยาบาลผู้สูงอายุ</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject6_Community"></div><span class="subject-name">การพยาบาลสุขภาพจิตฯ</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject7_Law"></div><span class="subject-name">การพยาบาลอนามัยชุมชนฯ</span></div>
+        <div class="subject-status-item"><div class="status-circle" id="status-circle-Subject8_Surgical"></div><span class="subject-name">กฎหมายว่าด้วยวิชาชีพฯ</span></div>
     </div>
 </div>
 
@@ -209,18 +149,29 @@
         </div>
 
         <div class="exam-subjects-grid">
-            <div class="subject-input-group"><span>การผดุงครรภ์</span><select id="Subject1_Maternity"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>การพยาบาลมารดาและทารก</span><select id="Subject2_Pediatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>การพยาบาลเด็กและวัยรุ่น</span><select id="Subject3_Adult"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>การพยาบาลผู้ใหญ่</span><select id="Subject4_Geriatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>การพยาบาลผู้สูงอายุ</span><select id="Subject5_Psychiatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>การพยาบาลสุขภาพจิตฯ</span><select id="Subject6_Community"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>การพยาบาลอนามัยชุมชนฯ</span><select id="Subject7_Law"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
-            <div class="subject-input-group"><span>กฎหมายว่าด้วยวิชาชีพฯ</span><select id="Subject8_Surgical"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject1_Maternity"><span>การผดุงครรภ์</span><select id="Subject1_Maternity"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject2_Pediatric"><span>การพยาบาลมารดาและทารก</span><select id="Subject2_Pediatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject3_Adult"><span>การพยาบาลเด็กและวัยรุ่น</span><select id="Subject3_Adult"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject4_Geriatric"><span>การพยาบาลผู้ใหญ่</span><select id="Subject4_Geriatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject5_Psychiatric"><span>การพยาบาลผู้สูงอายุ</span><select id="Subject5_Psychiatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject6_Community"><span>การพยาบาลสุขภาพจิตฯ</span><select id="Subject6_Community"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject7_Law"><span>การพยาบาลอนามัยชุมชนฯ</span><select id="Subject7_Law"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            <div class="subject-input-group" id="form-group-Subject8_Surgical"><span>กฎหมายว่าด้วยวิชาชีพฯ</span><select id="Subject8_Surgical"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+        </div>
+
+        <div class="file-upload-group">
+          <label for="evidenceFile" class="upload-area">
+              <i class="fas fa-cloud-upload-alt upload-icon"></i>
+              <span id="upload-text" class="upload-text">อัปโหลดหลักฐานผลสอบ (ถ้ามี)</span>
+              <span class="upload-hint">รองรับไฟล์ JPG, PNG, PDF</span>
+          </label>
+          <input type="file" id="evidenceFile" accept=".pdf,.png,.jpg,.jpeg" style="display: none;">
         </div>
 
         <div class="form-actions">
-            <button type="submit" id="saveExamBtn" class="submit-btn">➕ เพิ่มข้อมูลการสอบ</button>
+            <button type="submit" id="saveExamBtn" class="submit-btn">
+                <i class="fas fa-plus" style="margin-right: 8px;"></i>เพิ่มข้อมูลการสอบ
+            </button>
         </div>
     </form>
 </div>
@@ -275,25 +226,39 @@
 
     function updateProgressUI(status) {
         if (!status) return;
-        const passedListContainer = document.getElementById('passedSubjectsList');
         let passedCount = 0;
-        let passedHtml = '<ul class="subjects-list">';
-
         subjectKeys.forEach(key => {
-            if (status[key] === true) {
-                passedCount++;
-                passedHtml += `<li>${subjectMap[key]}</li>`;
+            const circleElement = document.getElementById(`status-circle-${key}`);
+            if (circleElement) {
+                if (status[key] === true) {
+                    circleElement.classList.add('passed');
+                    passedCount++;
+                } else {
+                    circleElement.classList.remove('passed');
+                }
             }
         });
-        passedHtml += '</ul>';
-
-        if (passedCount > 0) {
-            passedListContainer.innerHTML = passedHtml;
-        } else {
-            passedListContainer.innerHTML = '<p class="no-passed-subjects">ยังไม่มีวิชาที่สอบผ่าน</p>';
-        }
-
         document.getElementById('licenseProgressLabel').textContent = `${passedCount}/8`;
+        updateExamFormVisibility(status);
+    }
+
+    function updateExamFormVisibility(status) {
+        let allSubjectsPassed = true;
+        subjectKeys.forEach(key => {
+            const subjectFormGroup = document.getElementById(`form-group-${key}`);
+            if (subjectFormGroup) {
+                if (status[key] === true) {
+                    subjectFormGroup.style.display = 'none';
+                } else {
+                    subjectFormGroup.style.display = 'flex';
+                    allSubjectsPassed = false;
+                }
+            }
+        });
+        const formContainer = document.getElementById('licenseExamForm');
+        if (allSubjectsPassed) {
+            formContainer.innerHTML = '<p style="text-align:center; color:green; font-weight:bold; padding: 2rem 0;">🎉 ยินดีด้วย! คุณสอบผ่านครบทุกวิชาแล้ว</p>';
+        }
     }
 
     function populateHistoryTable(history) {
@@ -302,7 +267,6 @@
             tableBody.innerHTML = '<tr><td colspan="2" class="no-history">ยังไม่มีประวัติการสอบ</td></tr>';
             return;
         }
-        
         let tableHtml = '';
         history.forEach(record => {
             let resultsHtml = '<ul>';
@@ -314,7 +278,6 @@
                 }
             });
             resultsHtml += '</ul>';
-
             tableHtml += `
                 <tr>
                     <td>${record.ExamRound || ''}/${record.ExamYear || ''}</td>
@@ -325,16 +288,48 @@
         tableBody.innerHTML = tableHtml;
     }
 
+    document.getElementById('evidenceFile').addEventListener('change', function() {
+    const uploadText = document.getElementById('upload-text');
+    if (this.files && this.files.length > 0) {
+        // ถ้าผู้ใช้เลือกไฟล์ ให้แสดงชื่อไฟล์
+        uploadText.textContent = this.files[0].name;
+    } else {
+        // ถ้าผู้ใช้ยกเลิก ให้กลับไปเป็นข้อความเดิม
+        uploadText.textContent = 'อัปโหลดหลักฐานผลสอบ';
+    }
+});
+
     document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const saveBtn = document.getElementById('saveExamBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'กำลังบันทึก...';
+        const file = document.getElementById('evidenceFile').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const fileData = {
+                    base64: event.target.result.split(',')[1],
+                    mimeType: file.type,
+                    fileName: file.name
+                };
+                sendDataToServer(fileData);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            sendDataToServer(null);
+        }
+    });
+
+    function sendDataToServer(fileData) {
         const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
         if (!userEmail) {
             alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองค้นหาใหม่อีกครั้ง');
+            const saveBtn = document.getElementById('saveExamBtn');
+            saveBtn.disabled = false;
+            saveBtn.textContent = '➕ เพิ่มข้อมูลการสอบ';
             return;
         }
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'กำลังบันทึก...';
         const recordData = {
             userEmail: userEmail,
             examRound: document.getElementById('examRound').value,
@@ -348,9 +343,10 @@
             Subject6_Community: document.getElementById('Subject6_Community').value,
             Subject7_Law: document.getElementById('Subject7_Law').value,
             Subject8_Surgical: document.getElementById('Subject8_Surgical').value,
+            file: fileData
         };
         google.script.run.withSuccessHandler(onSaveSuccess).saveLicenseExamRecord(recordData);
-    });
+    }
 
     function onSaveSuccess(response) {
         alert(response.message);
