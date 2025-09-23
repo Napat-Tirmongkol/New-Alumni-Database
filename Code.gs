@@ -4,6 +4,7 @@
 // =================================================================
 const SHEET_ID = "1yXsIRJB56XDGPANqMTD1tbAgPPZhnRVj5rwCg1F3Ew8";
 const PROFILE_PICTURE_FOLDER_ID = "12VC1rdV1sRXxFP0M-QnZgytokZHwwx26";
+const EVIDENCE_FOLDER_ID = "1JZBj33PHAtRcPsMi_URIB0s9Y4VDPFeI";
 
 const COLS_DB = {
   USER_ID: 1, EMAIL: 2, PASSWORD: 3, ROLE: 4, FIRST_NAME: 5, LAST_NAME: 6,
@@ -279,8 +280,22 @@ function saveLicenseExamRecord(recordData) {
   try {
     const email = recordData.userEmail;
     if (!email) throw new Error("ไม่พบอีเมลผู้ใช้");
+
+    let evidenceFileId = null;
+
+    // --- ส่วนจัดการไฟล์ที่เพิ่มเข้ามา ---
+    if (recordData.file) {
+      const decodedImage = Utilities.base64Decode(recordData.file.base64);
+      const blob = Utilities.newBlob(decodedImage, recordData.file.mimeType, recordData.file.fileName);
+      const folder = DriveApp.getFolderById(EVIDENCE_FOLDER_ID);
+      const file = folder.createFile(blob);
+      evidenceFileId = file.getId(); // เก็บ ID ของไฟล์ที่อัปโหลด
+    }
+    // --- จบส่วนจัดการไฟล์ ---
+
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (!sheet) throw new Error("ไม่พบชีต License_Exam_Records");
+
     const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     const dbData = dbSheet.getRange(2, 1, dbSheet.getLastRow(), 2).getValues();
     let userId = null;
@@ -291,9 +306,20 @@ function saveLicenseExamRecord(recordData) {
       }
     }
     if (!userId) throw new Error("ไม่พบ UserID สำหรับอีเมลนี้");
-    const newRecordRow = [userId,email,recordData.examRound,recordData.examSession,recordData.examYear,recordData.Subject1_Maternity,recordData.Subject2_Pediatric,recordData.Subject3_Adult,recordData.Subject4_Geriatric,recordData.Subject5_Psychiatric,recordData.Subject6_Community,recordData.Subject7_Law,recordData.Subject8_Surgical,null];
+
+    const newRecordRow = [
+      userId, email,
+      recordData.examRound, recordData.examSession, recordData.examYear,
+      recordData.Subject1_Maternity, recordData.Subject2_Pediatric,
+      recordData.Subject3_Adult, recordData.Subject4_Geriatric,
+      recordData.Subject5_Psychiatric, recordData.Subject6_Community,
+      recordData.Subject7_Law, recordData.Subject8_Surgical,
+      evidenceFileId // บันทึก ID ของไฟล์ลงในคอลัมน์สุดท้าย
+    ];
+
     sheet.appendRow(newRecordRow);
     return { success: true, message: 'บันทึกข้อมูลการสอบสำเร็จ!' };
+
   } catch (e) {
     Logger.log("Error in saveLicenseExamRecord: " + e.message);
     return { success: false, message: 'เกิดข้อผิดพลาดในการบันทึก: ' + e.message };
