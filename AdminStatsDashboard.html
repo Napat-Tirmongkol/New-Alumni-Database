@@ -1,104 +1,86 @@
 <style>
-    /* --- New Styles for Admin Dashboard --- */
-    .page-header {
-        font-size: 1.875rem; /* 30px */
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 1.5rem;
-    }
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-    }
+    .page-header { font-size: 1.875rem; font-weight: 700; color: #1f2937; margin-bottom: 1.5rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
     .stat-card {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 12px;
+        background-color: white; padding: 1.5rem; border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-left: 5px solid transparent;
-        transition: all 0.3s ease;
+        display: flex; justify-content: space-between; align-items: center;
+        border-left: 5px solid transparent; transition: all 0.3s ease;
     }
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    }
-    .stat-card-info .title {
-        color: #6b7280;
-        font-size: 0.875rem; /* 14px */
-        margin: 0 0 0.25rem 0;
-    }
-    .stat-card-info .value {
-        font-size: 2.25rem; /* 36px */
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-    }
-    .stat-card-icon {
-        font-size: 1.5rem; /* 24px */
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-    }
-
-    /* Card Border Colors */
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); }
+    .stat-card-info .title { color: #6b7280; font-size: 0.875rem; margin: 0 0 0.25rem 0; }
+    .stat-card-info .value { font-size: 2.25rem; font-weight: 700; color: #111827; margin: 0; }
+    .stat-card-icon { font-size: 1.5rem; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; }
     .stat-card.users { border-left-color: #ef4444; }
     .stat-card.alumni { border-left-color: #f97316; }
     .stat-card.students { border-left-color: #3b82f6; }
     .stat-card.exams { border-left-color: #16a34a; }
-
-    /* Icon Colors */
     .icon-users { background-color: #ef4444; }
     .icon-alumni { background-color: #f97316; }
     .icon-students { background-color: #3b82f6; }
     .icon-exams { background-color: #16a34a; }
+
+    .tabs-container { border-bottom: 2px solid #e5e7eb; margin-top: 2.5rem; margin-bottom: 1.5rem; }
+    .tab-button {
+        padding: 0.75rem 1.5rem; border: none; background-color: transparent;
+        cursor: pointer; font-size: 1rem; font-weight: 600; color: #6b7280;
+        border-bottom: 3px solid transparent; margin-bottom: -2px;
+    }
+    .tab-button.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+    .chart-card {
+        background-color: white; padding: 1.5rem; border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+    .chart-card h3 { margin-top: 0; font-size: 1.125rem; color: #374151; }
+    .chart-placeholder { min-height: 280px; display: flex; justify-content: center; align-items: center; color: #9ca3af; background-color: #f9fafb; border-radius: 8px; }
 </style>
 
 <h2 class="page-header">แดชบอร์ด</h2>
-
 <div class="stats-grid">
     <div class="stat-card users">
-        <div class="stat-card-info">
-            <p class="title">ผู้ใช้ทั้งหมด</p>
-            <p id="totalUsers" class="value">0</p>
-        </div>
-        <div class="stat-card-icon icon-users">
-            <i class="fas fa-users"></i>
-        </div>
+        <div class="stat-card-info"><p class="title">ผู้ใช้ทั้งหมด</p><p id="totalUsers" class="value">0</p></div>
+        <div class="stat-card-icon icon-users"><i class="fas fa-users"></i></div>
     </div>
     <div class="stat-card alumni">
-        <div class="stat-card-info">
-            <p class="title">ศิษย์เก่า</p>
-            <p id="alumniCount" class="value">0</p>
-        </div>
-        <div class="stat-card-icon icon-alumni">
-            <i class="fas fa-graduation-cap"></i>
-        </div>
+        <div class="stat-card-info"><p class="title">ศิษย์เก่า</p><p id="alumniCount" class="value">0</p></div>
+        <div class="stat-card-icon icon-alumni"><i class="fas fa-graduation-cap"></i></div>
     </div>
     <div class="stat-card students">
-        <div class="stat-card-info">
-            <p class="title">นักศึกษาปัจจุบัน</p>
-            <p id="studentCount" class="value">0</p>
-        </div>
-        <div class="stat-card-icon icon-students">
-            <i class="fas fa-user-graduate"></i>
-        </div>
+        <div class="stat-card-info"><p class="title">นักศึกษาปัจจุบัน</p><p id="studentCount" class="value">0</p></div>
+        <div class="stat-card-icon icon-students"><i class="fas fa-user-graduate"></i></div>
     </div>
     <div class="stat-card exams">
-        <div class="stat-card-info">
-            <p class="title">จำนวนการสอบ</p>
-            <p id="totalExamRecords" class="value">0</p>
+        <div class="stat-card-info"><p class="title">จำนวนการสอบ</p><p id="totalExamRecords" class="value">0</p></div>
+        <div class="stat-card-icon icon-exams"><i class="fas fa-file-alt"></i></div>
+    </div>
+</div>
+
+<div class="tabs-container">
+    <button class="tab-button active" onclick="showTab(event, 'demographics')">ข้อมูลประชากร</button>
+    <button class="tab-button" onclick="showTab(event, 'employment')">การทำงาน</button>
+    <button class="tab-button" onclick="showTab(event, 'license')">ใบประกอบวิชาชีพ</button>
+    <button class="tab-button" onclick="showTab(event, 'donations')">การบริจาค</button>
+</div>
+
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3>การกระจายตามเพศ</h3>
+        <div class="chart-placeholder">
+            <canvas id="genderChart"></canvas>
         </div>
-        <div class="stat-card-icon icon-exams">
-            <i class="fas fa-file-alt"></i>
-        </div>
+    </div>
+    <div class="chart-card">
+        <h3>การกระจายตามอายุ</h3>
+        <div class="chart-placeholder"><span>(กราฟแท่งแสดงข้อมูลอายุจะมาที่นี่)</span></div>
+    </div>
+    <div class="chart-card">
+        <h3>การกระจายตามสัญชาติ</h3>
+        <div class="chart-placeholder"><span>(กราฟแสดงข้อมูลสัญชาติจะมาที่นี่)</span></div>
+    </div>
+    <div class="chart-card">
+        <h3>การกระจายตามรุ่น</h3>
+        <div class="chart-placeholder"><span>(กราฟแสดงข้อมูลรุ่นที่จบจะมาที่นี่)</span></div>
     </div>
 </div>
 
@@ -115,6 +97,41 @@
             document.getElementById('studentCount').textContent = stats.studentCount;
             document.getElementById('totalExamRecords').textContent = stats.totalExamRecords;
         }).getDashboardStats();
+
+        // --- ↓↓↓ เพิ่มการเรียกใช้ฟังก์ชันดึงข้อมูลเพศที่นี่ ↓↓↓ ---
+        google.script.run.withSuccessHandler(renderGenderChart).getGenderDistribution();
     }
+
+    function renderGenderChart(data) {
+        const ctx = document.getElementById('genderChart');
+        if (!ctx || !data) return;
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['ชาย', 'หญิง', 'ไม่ระบุ'],
+                datasets: [{
+                    label: 'จำนวน',
+                    data: [data.male, data.female, data.other],
+                    backgroundColor: ['#3b82f6', '#ec4899', '#a8a29e'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    } // --- ↑↑↑ แก้ไข: เพิ่มวงเล็บปีกกาปิดที่ขาดไป ↑↑↑ ---
+function showTab(evt, tabName) {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        evt.currentTarget.classList.add('active');
+
+        console.log("เปลี่ยนไปที่แท็บ:", tabName);
+    }
+
     loadDashboardData();
 </script>

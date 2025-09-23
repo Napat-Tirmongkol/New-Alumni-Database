@@ -539,3 +539,39 @@ function saveDonationRecord(donationData) {
     return { success: false, message: 'เกิดข้อผิดพลาดในการบันทึก: ' + e.message };
   }
 }
+
+// ในไฟล์ Code.gs (ส่วนที่ 7)
+
+/**
+ * ดึงข้อมูลการกระจายตัวตามเพศจากชีต User_Profiles
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนแต่ละเพศ
+ */
+function getGenderDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+
+    const genderData = sheet.getRange(2, COLS_PROFILE.GENDER, sheet.getLastRow() - 1, 1).getValues().flat();
+
+    const distribution = {
+      male: 0,
+      female: 0,
+      other: 0
+    };
+
+    genderData.forEach(gender => {
+      if (gender === 'ชาย') {
+        distribution.male++;
+      } else if (gender === 'หญิง') {
+        distribution.female++;
+      } else if (gender) { // นับ "ไม่ระบุ" หรือค่าอื่นๆ ที่ไม่ใช่ค่าว่าง
+        distribution.other++;
+      }
+    });
+
+    return distribution;
+  } catch (e) {
+    Logger.log("Error in getGenderDistribution: " + e.message);
+    return {};
+  }
+}

@@ -4,6 +4,9 @@
     <base target="_top">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -24,14 +27,12 @@
 
     <main class="main-content" id="mainContentArea">
         </main>
-    
+
     <script>
         function loadContent(pageName) {
             const contentArea = document.getElementById('mainContentArea');
             if (!contentArea) return;
-
             contentArea.innerHTML = '<div style="text-align:center; padding:50px;"><h2>กำลังโหลด...</h2></div>';
-            
             google.script.run
                 .withSuccessHandler(html => {
                     contentArea.innerHTML = html;
@@ -48,16 +49,13 @@
             if (userDataString) {
                 const user = JSON.parse(userDataString);
                 if (user.role === 'Admin') {
-                    // โหลดหน้า "จัดการข้อมูลผู้ใช้" เป็นหน้าเริ่มต้น
                     loadContent('adminDashboard');
                 } else {
-                    // ถ้าไม่ใช่ Admin ให้ส่งกลับไปหน้า dashboard ผู้ใช้
                     google.script.run.withSuccessHandler(url => {
                          window.top.location.href = url + '?page=dashboard';
                     }).getWebAppUrl();
                 }
             } else {
-                // ถ้ายังไม่ได้ล็อกอิน ให้กลับไปหน้า Login
                 google.script.run.withSuccessHandler(url => {
                     window.top.location.href = url;
                 }).getWebAppUrl();
