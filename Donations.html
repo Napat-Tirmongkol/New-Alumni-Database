@@ -189,11 +189,116 @@
         color: rgb(234 88 12 / var(--tw-text-opacity, 1));
       }
 
+      .text-gray-600 {
+        --tw-text-opacity: 1;
+        color: rgb(75 85 99 / var(--tw-text-opacity, 1));
+      }
+
       .contact-info p {
         display: flex;
         align-items: center;
         gap: 0.75rem;
         margin: 0.5rem 0;
+      }
+
+      .info-card .item-container {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      .info-card .item-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+      .info-card .item-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 0.875rem;
+      }
+      .info-card .icon-scb {
+        background-color: #4f46e5;
+      }
+      .info-card .icon-ktb {
+        background-color: #0284c7;
+      }
+      .info-card .item-header-text .bank-name {
+        font-weight: 500;
+        color: #111827;
+      }
+      .info-card .item-header-text .branch {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+
+      .info-card .item-details {
+        margin-left: calc(32px + 0.75rem); /* icon width + gap */
+      }
+      .info-card .item-details .label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+      }
+      .info-card .item-details .value {
+        font-weight: 500;
+        color: #111827;
+      }
+      .info-card .item-details .account-number {
+        font-family: monospace;
+        font-size: 1.125rem;
+        font-weight: 700;
+      }
+      .text-scb {
+        color: #4f46e5;
+      }
+      .text-ktb {
+        color: #0284c7;
+      }
+
+      .tax-card {
+        background: linear-gradient(to right, #fffbeb, #fefce8);
+      }
+      .tax-card .tax-item {
+        display: flex;
+        align-items: center; /* ให้ไอคอนกับข้อความอยู่กลางบรรทัด */
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .tax-card .tax-icon {
+        color: #16a34a;
+        margin-top: 0; /* รีเซ็ตไม่ให้ดันขึ้น */
+        font-size: 1rem;
+      }
+
+      .tax-card .tax-note {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background-color: white;
+        border-left: 4px solid #f97316;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #b45309;
+      }
+
+      .contact-card .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        color: #4b5563;
+      }
+      .contact-card .contact-icon {
+        color: #ea580c;
       }
     </style>
   </head>
@@ -206,12 +311,7 @@
           <form id="donationForm">
             <div class="form-group">
               <label for="amount">จำนวนเงินที่ต้องการบริจาค</label
-              ><input
-                type="number"
-                id="amount"
-                placeholder="0.00"
-                required
-              />
+              ><input type="number" id="amount" placeholder="0.00" required />
             </div>
             <div class="form-group">
               <label for="purpose">วัตถุประสงค์การบริจาค</label
@@ -291,6 +391,7 @@
           <h2 class="text-orange-600">ข้อมูลการโอนเงิน</h2>
           <div class="bank-info">
             <p><strong>ธนาคารไทยพาณิชย์</strong></p>
+            <p class="text-sm text-gray-600">สาขามหาวิทยาลัยอัสสัมชัญ</p>
             <p>ชื่อบัญชี: คณะพยาบาลศาสตร์ มหาวิทยาลัยอัสสัมชัญ</p>
             <p>เลขที่บัญชี: <strong>123-4-56789-0</strong></p>
           </div>
@@ -300,20 +401,27 @@
             <p>เลขที่บัญชี: <strong>987-6-54321-0</strong></p>
           </div>
         </div>
-        <div class="card info-card tax-info">
-          <h2 class="text-orange-600">สิทธิประโยชน์ทางภาษี</h2>
-          <ul>
-            <li>สามารถนำไปลดหย่อนภาษีได้ 100% ของจำนวนเงินบริจาค</li>
-            <li>ไม่เกิน 10% ของเงินได้สุทธิ หรือไม่เกิน 200,000 บาท</li>
-            <li>
-              ใบกำกับภาษีจะถูกส่งภายใน 30 วันหลังเจ้าหน้าที่ได้รับการบริจาค
-            </li>
-          </ul>
-          <p style="margin-top: 1rem; font-weight: 600">
-            หมายเหตุ:
-            การบริจาคเพื่อการศึกษาให้กับสถาบันการศึกษาที่ได้รับการยอมรับ
-            สามารถนำไปลดหย่อนภาษีได้สองเท่า
-          </p>
+        <div class="card info-card tax-card">
+          <h2>สิทธิประโยชน์ทางภาษี</h2>
+          <div class="tax-item">
+            <i class="fas fa-check-circle tax-icon"></i>
+            <p>สามารถนำไปลดหย่อนภาษีได้ 100% ของจำนวนเงินบริจาค</p>
+          </div>
+          <div class="tax-item">
+            <i class="fas fa-check-circle tax-icon"></i>
+            <p>ไม่เกิน 10% ของเงินได้สุทธิ หรือไม่เกิน 200,000 บาท</p>
+          </div>
+          <div class="tax-item">
+            <i class="fas fa-check-circle tax-icon"></i>
+            <p>ใบกำกับภาษีจะถูกส่งภายใน 30 วันหลังจากได้รับการบริจาค</p>
+          </div>
+          <div class="tax-note">
+            <p>
+              หมายเหตุ:
+              การบริจาคให้สถาบันการศึกษาเป็นการกุศลที่ได้รับการยกเว้นภาษี
+              ตามมาตรา 47(7) แห่งประมวลรัษฎากร
+            </p>
+          </div>
         </div>
         <div class="card info-card">
           <h2 class="text-orange-600">ติดต่อสอบถาม</h2>
