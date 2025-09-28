@@ -28,9 +28,7 @@ function setupProjectSheets() {
     const userDbHeaders = ['UserID', 'Email', 'Password', 'Role', 'FirstNameTH', 'LastNameTH', 'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'];
     const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'];
     const licenseExamHeaders = ['UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical', 'EvidenceFileID'];
-    const donationLogHeaders = [
-      'DonationID', 'UserID', 'Email', 'Amount', 'Purpose', 'Message', 
-      'DonorName', 'DonorAddress', 'SlipFileID', 'Timestamp', 'Status'];
+    const donationLogHeaders = ['DonationID', 'UserID', 'Email', 'Amount', 'Purpose', 'Message', 'DonorName', 'DonorAddress', 'donorTaxid','SlipFileID', 'Timestamp', 'Status'];
 
 
     checkAndCreateSheet(spreadsheet, 'User_Database', userDbHeaders);
