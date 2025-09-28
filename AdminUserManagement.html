@@ -8,15 +8,20 @@
     .user-item button { background-color: #16a34a; color: white; border:none; padding: 5px 10px; border-radius: 4px; cursor: pointer;}
     #editorContainer { margin-top: 1.5rem; border-top: 2px solid #ddd; padding-top: 1.5rem; }
     .editor-section { margin-bottom: 2rem; }
+    
+    .pagination-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; font-size: 0.875rem; }
+    .pagination-controls button { background-color: #e5e7eb; border: 1px solid #d1d5db; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .pagination-controls button:disabled { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
 </style>
 
 <div class="search-container">
-    <h2>ค้นหาผู้ใช้เพื่อจัดการข้อมูล</h2>
+    <h2>จัดการข้อมูลผู้ใช้</h2>
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ, นามสกุล, หรืออีเมล...">
+        <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ, นามสกุล, หรืออีเมลเพื่อค้นหา...">
         <button id="searchBtn">ค้นหา</button>
     </div>
-    <div id="resultsContainer"></div>
+    <div id="resultsContainer"><p>กำลังโหลดรายชื่อผู้ใช้...</p></div>
+    <div id="paginationContainer"></div>
 </div>
 
 <div id="editorContainer" style="display: none;">
@@ -30,38 +35,39 @@
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const resultsContainer = document.getElementById('resultsContainer');
+    const paginationContainer = document.getElementById('paginationContainer');
     const editorContainer = document.getElementById('editorContainer');
-    const editingUserName = document.getElementById('editingUserName');
-    const profileEditor = document.getElementById('profileEditor');
-    const licenseEditor = document.getElementById('licenseEditor');
 
-    function performSearch() {
+    let currentPage = 1;
+    let totalUsers = 0;
+    const pageSize = 10;
+
+    /**
+     * ฟังก์ชันหลักสำหรับเรียกข้อมูลผู้ใช้จาก Server
+     */
+    function fetchUsers(page) {
         const searchText = searchInput.value.trim();
-        if (searchText.length < 2) {
-            alert('กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา');
-            return;
-        }
-        resultsContainer.innerHTML = 'กำลังค้นหา...';
-        google.script.run.withSuccessHandler(displayResults).searchUsers(searchText);
+        resultsContainer.innerHTML = '<p>กำลังโหลดข้อมูล...</p>';
+        paginationContainer.innerHTML = '';
+        editorContainer.style.display = 'none';
+        
+        google.script.run.withSuccessHandler(displayResults).getUsers(page, searchText);
     }
 
-    searchBtn.addEventListener('click', performSearch);
-    searchInput.addEventListener('keyup', (event) => {
-        if (event.key === 'Enter') performSearch();
-    });
-
-    function displayResults(users) {
+    /**
+     * ฟังก์ชันสำหรับแสดงผลข้อมูลและสร้างปุ่ม Pagination
+     */
+    function displayResults(response) {
         resultsContainer.innerHTML = '';
-        editorContainer.style.display = 'none';
+        const { users, totalUsers: count } = response;
+        totalUsers = count;
+        
         if (users && users.length > 0) {
             users.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.className = 'user-item';
                 userDiv.innerHTML = `
-                    <div>
-                        <strong>${user.firstName} ${user.lastName}</strong><br>
-                        <small>${user.email}</small>
-                    </div>
+                    <div><strong>${user.firstName} ${user.lastName}</strong> (${user.role})<br><small>${user.email}</small></div>
                     <button onclick="loadUserEditor('${user.email}', '${user.firstName} ${user.lastName}')">จัดการข้อมูล</button>
                 `;
                 resultsContainer.appendChild(userDiv);
@@ -69,32 +75,61 @@
         } else {
             resultsContainer.innerHTML = '<p>ไม่พบผู้ใช้งาน</p>';
         }
-    }
 
-    // --- ↓↓↓ แก้ไขวิธีประกาศฟังก์ชันตรงนี้ครับ ↓↓↓ ---
-    window.loadUserEditor = function(email, fullName) {
-        sessionStorage.setItem('selectedUserEmail', email);
-        editingUserName.textContent = `กำลังจัดการข้อมูล: ${fullName}`;
-        editorContainer.style.display = 'block';
-
-        profileEditor.innerHTML = '<h3>กำลังโหลดฟอร์มโปรไฟล์...</h3>';
-        google.script.run.withSuccessHandler(html => {
-            profileEditor.innerHTML = html;
-            evalScripts(profileEditor);
-        }).getPageContent('profile');
-
-        licenseEditor.innerHTML = '<h3>กำลังโหลดฟอร์มใบประกอบ...</h3>';
-        google.script.run.withSuccessHandler(html => {
-            licenseEditor.innerHTML = html;
-            evalScripts(licenseEditor);
-        }).getPageContent('licenseForAdmin');
-    }
-    // --- ↑↑↑ จบส่วนที่แก้ไข ↑↑↑ ---
-    
-    function evalScripts(element) {
-        const scripts = element.getElementsByTagName('script');
-        for (let i = 0; i < scripts.length; i++) {
-            eval(scripts[i].innerText);
+        const totalPages = Math.ceil(totalUsers / pageSize);
+        if (totalPages > 1) {
+            const startItem = (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(startItem + pageSize - 1, totalUsers);
+            
+            paginationContainer.innerHTML = `
+                <div class="pagination-controls">
+                    <button id="prevBtn" onclick="changePage(-1)">ก่อนหน้า</button>
+                    <span>แสดง ${startItem} - ${endItem} จาก ${totalUsers}</span>
+                    <button id="nextBtn" onclick="changePage(1)">ถัดไป</button>
+                </div>
+            `;
+            
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        } else {
+             paginationContainer.innerHTML = '';
         }
     }
+
+    /**
+     * ฟังก์ชันสำหรับเปลี่ยนหน้า
+     */
+    window.changePage = function(direction) {
+        currentPage += direction;
+        fetchUsers(currentPage);
+    }
+
+    // --- Event Listeners ---
+    searchBtn.addEventListener('click', () => {
+        currentPage = 1;
+        fetchUsers(currentPage);
+    });
+
+    searchInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+            currentPage = 1;
+            fetchUsers(currentPage);
+        }
+    });
+
+    window.loadUserEditor = function(email, fullName) {
+        sessionStorage.setItem('selectedUserEmail', email);
+        editorContainer.style.display = 'block';
+        document.getElementById('editingUserName').textContent = `กำลังจัดการข้อมูล: ${fullName}`;
+        
+        profileEditor.innerHTML = '<h3>กำลังโหลดฟอร์มโปรไฟล์...</h3>';
+        google.script.run.withSuccessHandler(html => { profileEditor.innerHTML = html; }).getPageContent('profile');
+
+        licenseEditor.innerHTML = '<h3>กำลังโหลดฟอร์มใบประกอบ...</h3>';
+        google.script.run.withSuccessHandler(html => { licenseEditor.innerHTML = html; }).getPageContent('licenseForAdmin');
+    }
+    
+    // --- จุดที่แก้ไข: เรียกใช้ฟังก์ชันโดยตรง ---
+    // เพื่อให้แน่ใจว่าทำงานได้ในทุกสภาพแวดล้อม
+    fetchUsers(1);
 </script>

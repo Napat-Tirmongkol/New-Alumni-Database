@@ -11,32 +11,15 @@
         justify-content: space-between; align-items: center;
     }
     
-    /* --- CSS ที่ถูกต้องสำหรับ Status Grid --- */
-    .progress-subtitle {
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;
-    }
+    /* Status Grid */
+    .progress-subtitle { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
     .progress-subtitle .title { color: #4b5563; font-weight: 500; }
     .progress-subtitle .counter { color: #f97316; font-weight: 600; font-size: 0.9rem; }
-    .subject-status-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 0.75rem;
-    }
-    .subject-status-item {
-        background-color: #f9fafb; border-radius: 0.5rem; padding: 0.75rem 1rem;
-        display: flex; align-items: center; gap: 0.75rem;
-    }
-    .status-circle {
-        width: 12px; height: 12px; border-radius: 50%;
-        background-color: #d1d5db; /* สีเทา (ยังไม่ผ่าน) */
-        flex-shrink: 0; transition: background-color 0.3s;
-    }
-    .status-circle.passed {
-        background-color: #16a34a; /* สีเขียว (ผ่านแล้ว) */
-    }
+    .subject-status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
+    .subject-status-item { background-color: #f9fafb; border-radius: 0.5rem; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .status-circle { width: 12px; height: 12px; border-radius: 50%; background-color: #d1d5db; flex-shrink: 0; transition: background-color 0.3s; }
+    .status-circle.passed { background-color: #16a34a; }
     .subject-name { color: #4b5563; font-size: 0.875rem; }
-    /* --- จบส่วน CSS ของ Status Grid --- */
     
     .instruction-box { background-color: #eef2ff; border-left: 4px solid #3b82f6; border-radius: 0.25rem; padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; font-size: 0.875rem; color: #374151; }
     .instruction-box .icon { flex-shrink: 0; color: #3b82f6; margin-top: 2px; }
@@ -62,34 +45,22 @@
     .subject-input-group span { color: #374151; font-weight: 500; }
     .subject-input-group select { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 10px; background-color: #f9fafb; }
     .file-upload-group {border-top: 1px solid #e5e7eb;padding-top: 1.5rem;margin-top: 1.5rem;}
-    .upload-area {display: flex;flex-direction: column;justify-content: center;align-items: center;border: 2px dashed #d1d5db;
-    border-radius: 0.5rem;
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-}
+    .upload-area {display: flex;flex-direction: column;justify-content: center;align-items: center;border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer; transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
+    .upload-area:hover { background-color: #f9fafb; border-color: #3b82f6; }
+    .upload-icon { font-size: 2.5rem; color: #9ca3af; margin-bottom: 0.5rem; }
+    .upload-text { font-weight: 500; color: #374151; }
+    .upload-hint { font-size: 0.8rem; color: #6b7280; }
+    
+    /* -------- CSS สำหรับปุ่มแก้ไข/ลบ และ Modal -------- */
+    .action-buttons button { border: none; background: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .edit-btn { color: #3b82f6; } .edit-btn:hover { background-color: #e0e7ff; }
+    .delete-btn { color: #ef4444; } .delete-btn:hover { background-color: #fee2e2; }
 
-.upload-area:hover {
-    background-color: #f9fafb;
-    border-color: #3b82f6;
-}
-
-.upload-icon {
-    font-size: 2.5rem; /* 40px */
-    color: #9ca3af;
-    margin-bottom: 0.5rem;
-}
-
-.upload-text {
-    font-weight: 500;
-    color: #374151;
-}
-
-.upload-hint {
-    font-size: 0.8rem;
-    color: #6b7280;
-}
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+    .modal-content { background-color: white; padding: 2rem; border-radius: 0.5rem; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .modal-header h3 { margin: 0; font-size: 1.25rem; }
+    .close-modal-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
 </style>
 
 <div class="content-card">
@@ -127,27 +98,10 @@
 
     <form id="licenseExamForm">
         <div class="form-row">
-            <div class="form-group">
-                <label for="examRound">ครั้งที่</label>
-                <input type="number" id="examRound" required>
-            </div>
-            <div class="form-group">
-                <label for="examSession">รอบที่</label>
-                <select id="examSession" required>
-                    <option value="">เลือกรอบ</option>
-                    <option value="1">รอบที่ 1</option>
-                    <option value="2">รอบที่ 2</option>
-                    <option value="3">รอบที่ 3</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="examYear">ปีที่สอบ</label>
-                <select id="examYear" required>
-                    <option value="">เลือกปี พ.ศ.</option>
-                </select>
-            </div>
+            <div class="form-group"><label for="examRound">ครั้งที่</label><input type="number" id="examRound" required></div>
+            <div class="form-group"><label for="examSession">รอบที่</label><select id="examSession" required><option value="">เลือกรอบ</option><option value="1">รอบที่ 1</option><option value="2">รอบที่ 2</option><option value="3">รอบที่ 3</option></select></div>
+            <div class="form-group"><label for="examYear">ปีที่สอบ</label><select id="examYear" required><option value="">เลือกปี พ.ศ.</option></select></div>
         </div>
-
         <div class="exam-subjects-grid">
             <div class="subject-input-group" id="form-group-Subject1_Maternity"><span>การผดุงครรภ์</span><select id="Subject1_Maternity"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
             <div class="subject-input-group" id="form-group-Subject2_Pediatric"><span>การพยาบาลมารดาและทารก</span><select id="Subject2_Pediatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
@@ -158,21 +112,11 @@
             <div class="subject-input-group" id="form-group-Subject7_Law"><span>การพยาบาลอนามัยชุมชนฯ</span><select id="Subject7_Law"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
             <div class="subject-input-group" id="form-group-Subject8_Surgical"><span>กฎหมายว่าด้วยวิชาชีพฯ</span><select id="Subject8_Surgical"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
         </div>
-
         <div class="file-upload-group">
-          <label for="evidenceFile" class="upload-area">
-              <i class="fas fa-cloud-upload-alt upload-icon"></i>
-              <span id="upload-text" class="upload-text">อัปโหลดหลักฐานผลสอบ (ถ้ามี)</span>
-              <span class="upload-hint">รองรับไฟล์ JPG, PNG, PDF</span>
-          </label>
+          <label for="evidenceFile" class="upload-area"><i class="fas fa-cloud-upload-alt upload-icon"></i><span id="upload-text" class="upload-text">อัปโหลดหลักฐานผลสอบ (ถ้ามี)</span><span class="upload-hint">รองรับไฟล์ JPG, PNG, PDF</span></label>
           <input type="file" id="evidenceFile" accept=".pdf,.png,.jpg,.jpeg" style="display: none;">
         </div>
-
-        <div class="form-actions">
-            <button type="submit" id="saveExamBtn" class="submit-btn">
-                <i class="fas fa-plus" style="margin-right: 8px;"></i>เพิ่มข้อมูลการสอบ
-            </button>
-        </div>
+        <div class="form-actions"><button type="submit" id="saveExamBtn" class="submit-btn"><i class="fas fa-plus" style="margin-right: 8px;"></i>เพิ่มข้อมูลการสอบ</button></div>
     </form>
 </div>
 
@@ -180,21 +124,48 @@
     <h3 class="card-header">ประวัติการสอบ</h3>
     <div class="history-table-wrapper">
         <table class="history-table">
-            <thead>
-                <tr>
-                    <th>ครั้งที่/ปี</th>
-                    <th>ผลการสอบ</th>
-                </tr>
-            </thead>
-            <tbody id="examHistoryBody">
-            </tbody>
+            <thead><tr><th>ครั้งที่/ปี</th><th>ผลการสอบ</th><th>จัดการ</th></tr></thead>
+            <tbody id="examHistoryBody"></tbody>
         </table>
     </div>
 </div>
 
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>แก้ไขข้อมูลการสอบ</h3>
+            <button class="close-modal-btn" onclick="closeEditModal()">×</button>
+        </div>
+        <form id="editExamForm">
+            <input type="hidden" id="editRecordId">
+            <input type="hidden" id="editUserId">
+            <input type="hidden" id="editEmail">
+            <div class="form-row">
+                <div class="form-group"><label for="editExamRound">ครั้งที่</label><input type="number" id="editExamRound" required></div>
+                <div class="form-group"><label for="editExamSession">รอบที่</label><select id="editExamSession" required><option value="">เลือกรอบ</option><option value="1">รอบที่ 1</option><option value="2">รอบที่ 2</option><option value="3">รอบที่ 3</option></select></div>
+                <div class="form-group"><label for="editExamYear">ปีที่สอบ</label><select id="editExamYear" required><option value="">เลือกปี พ.ศ.</option></select></div>
+            </div>
+            <div class="exam-subjects-grid">
+                <div class="subject-input-group"><span>การผดุงครรภ์</span><select id="edit_Subject1_Maternity"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>การพยาบาลมารดาและทารก</span><select id="edit_Subject2_Pediatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>การพยาบาลเด็กและวัยรุ่น</span><select id="edit_Subject3_Adult"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>การพยาบาลผู้ใหญ่</span><select id="edit_Subject4_Geriatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>การพยาบาลผู้สูงอายุ</span><select id="edit_Subject5_Psychiatric"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>การพยาบาลสุขภาพจิตฯ</span><select id="edit_Subject6_Community"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>การพยาบาลอนามัยชุมชนฯ</span><select id="edit_Subject7_Law"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+                <div class="subject-input-group"><span>กฎหมายว่าด้วยวิชาชีพฯ</span><select id="edit_Subject8_Surgical"><option value="">- เลือกผล -</option><option>ผ่าน</option><option>ไม่ผ่าน</option></select></div>
+            </div>
+            <div class="form-actions"><button type="submit" id="updateExamBtn" class="submit-btn">บันทึกการเปลี่ยนแปลง</button></div>
+        </form>
+    </div>
+</div>
+
+
 <script>
-    function populateYearDropdown() {
-        const yearSelect = document.getElementById('examYear');
+    let currentExamHistory = [];
+
+    function populateYearDropdown(selectElementId = 'examYear') {
+        const yearSelect = document.getElementById(selectElementId);
         while (yearSelect.options.length > 1) { yearSelect.remove(1); }
         google.script.run.withSuccessHandler(years => {
             if (years && years.length > 0) {
@@ -262,15 +233,16 @@
     }
 
     function populateHistoryTable(history) {
+        currentExamHistory = history;
         const tableBody = document.getElementById('examHistoryBody');
         if (!history || history.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="2" class="no-history">ยังไม่มีประวัติการสอบ</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="3" class="no-history">ยังไม่มีประวัติการสอบ</td></tr>';
             return;
         }
         let tableHtml = '';
         history.forEach(record => {
             let resultsHtml = '<ul>';
-            subjectKeys.forEach((key, index) => {
+            subjectKeys.forEach(key => {
                 const result = record[key];
                 if (result) {
                     const statusClass = result === 'ผ่าน' ? 'status-passed' : 'status-failed';
@@ -279,25 +251,22 @@
             });
             resultsHtml += '</ul>';
             tableHtml += `
-                <tr>
+                <tr data-record-id="${record.RecordID}">
                     <td>${record.ExamRound || ''}/${record.ExamYear || ''}</td>
                     <td>${resultsHtml}</td>
-                </tr>
-            `;
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="openEditModal('${record.RecordID}')"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn" onclick="handleDeleteRecord('${record.RecordID}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
         });
         tableBody.innerHTML = tableHtml;
     }
 
     document.getElementById('evidenceFile').addEventListener('change', function() {
-    const uploadText = document.getElementById('upload-text');
-    if (this.files && this.files.length > 0) {
-        // ถ้าผู้ใช้เลือกไฟล์ ให้แสดงชื่อไฟล์
-        uploadText.textContent = this.files[0].name;
-    } else {
-        // ถ้าผู้ใช้ยกเลิก ให้กลับไปเป็นข้อความเดิม
-        uploadText.textContent = 'อัปโหลดหลักฐานผลสอบ';
-    }
-});
+        const uploadText = document.getElementById('upload-text');
+        uploadText.textContent = this.files.length > 0 ? this.files[0].name : 'อัปโหลดหลักฐานผลสอบ';
+    });
 
     document.getElementById('licenseExamForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -308,12 +277,11 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
-                const fileData = {
+                sendDataToServer({
                     base64: event.target.result.split(',')[1],
                     mimeType: file.type,
                     fileName: file.name
-                };
-                sendDataToServer(fileData);
+                });
             };
             reader.readAsDataURL(file);
         } else {
@@ -324,27 +292,15 @@
     function sendDataToServer(fileData) {
         const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
         if (!userEmail) {
-            alert('ไม่สามารถระบุตัวตนผู้ใช้ได้ กรุณาลองค้นหาใหม่อีกครั้ง');
-            const saveBtn = document.getElementById('saveExamBtn');
-            saveBtn.disabled = false;
-            saveBtn.textContent = '➕ เพิ่มข้อมูลการสอบ';
+            alert('ไม่สามารถระบุตัวตนผู้ใช้ได้');
+            document.getElementById('saveExamBtn').disabled = false;
+            document.getElementById('saveExamBtn').textContent = '➕ เพิ่มข้อมูลการสอบ';
             return;
         }
-        const recordData = {
-            userEmail: userEmail,
-            examRound: document.getElementById('examRound').value,
-            examSession: document.getElementById('examSession').value,
-            examYear: document.getElementById('examYear').value,
-            Subject1_Maternity: document.getElementById('Subject1_Maternity').value,
-            Subject2_Pediatric: document.getElementById('Subject2_Pediatric').value,
-            Subject3_Adult: document.getElementById('Subject3_Adult').value,
-            Subject4_Geriatric: document.getElementById('Subject4_Geriatric').value,
-            Subject5_Psychiatric: document.getElementById('Subject5_Psychiatric').value,
-            Subject6_Community: document.getElementById('Subject6_Community').value,
-            Subject7_Law: document.getElementById('Subject7_Law').value,
-            Subject8_Surgical: document.getElementById('Subject8_Surgical').value,
-            file: fileData
-        };
+        const recordData = { userEmail: userEmail, file: fileData };
+        ['examRound', 'examSession', 'examYear', ...subjectKeys].forEach(id => {
+            recordData[id] = document.getElementById(id).value;
+        });
         google.script.run.withSuccessHandler(onSaveSuccess).saveLicenseExamRecord(recordData);
     }
 
@@ -356,10 +312,79 @@
         if (response.success) {
             document.getElementById('licenseExamForm').reset();
             loadLicensePageData(); 
-            populateYearDropdown();
         }
     }
 
+    // -------- จุดที่แก้ไข: เพิ่ม window. ข้างหน้าชื่อฟังก์ชัน --------
+    window.openEditModal = function(recordId) {
+        const record = currentExamHistory.find(r => r.RecordID === recordId);
+        if (!record) return;
+
+        document.getElementById('editRecordId').value = record.RecordID;
+        document.getElementById('editUserId').value = record.UserID;
+        document.getElementById('editEmail').value = record.Email;
+        document.getElementById('editExamRound').value = record.ExamRound;
+        document.getElementById('editExamSession').value = record.ExamSession;
+        
+        const yearSelect = document.getElementById('editExamYear');
+        populateYearDropdown('editExamYear');
+        setTimeout(() => {
+            yearSelect.value = record.ExamYear;
+        }, 200);
+
+        subjectKeys.forEach(key => {
+            document.getElementById(`edit_${key}`).value = record[key] || '';
+        });
+
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    window.closeEditModal = function() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    document.getElementById('editExamForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const updateBtn = document.getElementById('updateExamBtn');
+        updateBtn.disabled = true;
+        updateBtn.textContent = 'กำลังบันทึก...';
+
+        const updatedData = {
+            recordId: document.getElementById('editRecordId').value,
+            userId: document.getElementById('editUserId').value,
+            email: document.getElementById('editEmail').value,
+            examRound: document.getElementById('editExamRound').value,
+            examSession: document.getElementById('editExamSession').value,
+            examYear: document.getElementById('editExamYear').value,
+        };
+        subjectKeys.forEach(key => {
+            updatedData[key] = document.getElementById(`edit_${key}`).value;
+        });
+
+        google.script.run.withSuccessHandler(response => {
+            alert(response.message);
+            updateBtn.disabled = false;
+            updateBtn.textContent = 'บันทึกการเปลี่ยนแปลง';
+            if (response.success) {
+                closeEditModal();
+                loadLicensePageData();
+            }
+        }).updateLicenseExamRecord(updatedData);
+    });
+
+    window.handleDeleteRecord = function(recordId) {
+        if (confirm('คุณต้องการลบข้อมูลการสอบนี้ใช่หรือไม่?')) {
+            google.script.run.withSuccessHandler(response => {
+                alert(response.message);
+                if (response.success) {
+                    loadLicensePageData();
+                }
+            }).deleteLicenseExamRecord(recordId);
+        }
+    }
+    
+    // Initial load
     loadLicensePageData();
     populateYearDropdown();
+
 </script>

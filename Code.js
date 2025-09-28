@@ -27,7 +27,7 @@ function setupProjectSheets() {
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
     const userDbHeaders = ['UserID', 'Email', 'Password', 'Role', 'FirstNameTH', 'LastNameTH', 'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'];
     const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'];
-    const licenseExamHeaders = ['UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical', 'EvidenceFileID'];
+    const licenseExamHeaders = ['RecordID', 'UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical', 'EvidenceFileID'];
     const donationLogHeaders = ['DonationID', 'UserID', 'Email', 'Amount', 'Purpose', 'Message', 'DonorName', 'DonorAddress', 'donorTaxid','SlipFileID', 'Timestamp', 'Status'];
 
 
@@ -287,15 +287,13 @@ function saveLicenseExamRecord(recordData) {
 
     let evidenceFileId = null;
 
-    // --- ส่วนจัดการไฟล์ที่เพิ่มเข้ามา ---
     if (recordData.file) {
       const decodedImage = Utilities.base64Decode(recordData.file.base64);
       const blob = Utilities.newBlob(decodedImage, recordData.file.mimeType, recordData.file.fileName);
       const folder = DriveApp.getFolderById(EVIDENCE_FOLDER_ID);
       const file = folder.createFile(blob);
-      evidenceFileId = file.getId(); // เก็บ ID ของไฟล์ที่อัปโหลด
+      evidenceFileId = file.getId();
     }
-    // --- จบส่วนจัดการไฟล์ ---
 
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (!sheet) throw new Error("ไม่พบชีต License_Exam_Records");
@@ -310,15 +308,26 @@ function saveLicenseExamRecord(recordData) {
       }
     }
     if (!userId) throw new Error("ไม่พบ UserID สำหรับอีเมลนี้");
+    
+    // ----- จุดที่แก้ไข: เพิ่มการสร้าง RecordID ที่นี่ -----
+    const recordId = "LID-" + new Date().getTime(); 
 
     const newRecordRow = [
-      userId, email,
-      recordData.examRound, recordData.examSession, recordData.examYear,
-      recordData.Subject1_Maternity, recordData.Subject2_Pediatric,
-      recordData.Subject3_Adult, recordData.Subject4_Geriatric,
-      recordData.Subject5_Psychiatric, recordData.Subject6_Community,
-      recordData.Subject7_Law, recordData.Subject8_Surgical,
-      evidenceFileId // บันทึก ID ของไฟล์ลงในคอลัมน์สุดท้าย
+      recordId, // เพิ่ม RecordID เข้าไปเป็นค่าแรกของแถว
+      userId, 
+      email,
+      recordData.examRound, 
+      recordData.examSession, 
+      recordData.examYear,
+      recordData.Subject1_Maternity, 
+      recordData.Subject2_Pediatric,
+      recordData.Subject3_Adult, 
+      recordData.Subject4_Geriatric,
+      recordData.Subject5_Psychiatric, 
+      recordData.Subject6_Community,
+      recordData.Subject7_Law, 
+      recordData.Subject8_Surgical,
+      evidenceFileId
     ];
 
     sheet.appendRow(newRecordRow);
@@ -362,25 +371,95 @@ function getLicenseExamHistory(email) {
     if (!email) return [];
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (!sheet || sheet.getLastRow() < 2) return [];
+    
     const data = sheet.getDataRange().getValues();
     const headers = data.shift();
     const history = [];
+    const emailIndex = headers.indexOf('Email');
+
+    if(emailIndex === -1) return [];
+
     for (const row of data) {
-      const record = {};
-      const rowEmail = row[headers.indexOf('Email')];
-      if (rowEmail === email) {
+      if (row[emailIndex] === email) {
+        const record = {};
         headers.forEach((header, index) => {
           record[header] = row[index];
         });
         history.push(record);
       }
     }
-    return history;
+    return history.sort((a, b) => b.ExamYear - a.ExamYear || b.ExamRound - a.ExamRound);
+
   } catch(e) {
     Logger.log("Error in getLicenseExamHistory: " + e.message);
     return [];
   }
 }
+
+function updateLicenseExamRecord(recordData) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
+    if (!sheet) throw new Error("ไม่พบชีต License_Exam_Records");
+
+    const recordIds = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().flat();
+    const rowIndex = recordIds.indexOf(recordData.recordId);
+
+    if (rowIndex === -1) {
+      return { success: false, message: 'ไม่พบข้อมูลการสอบที่ต้องการแก้ไข' };
+    }
+    
+    const rowToUpdate = rowIndex + 2;
+    // [RecordID, UserID, Email, ExamRound, ExamSession, ExamYear, Subject1, ...]
+    const updatedRowData = [
+      recordData.recordId,
+      recordData.userId, // ต้องแน่ใจว่าส่ง UserID มาด้วย
+      recordData.email,   // ต้องแน่ใจว่าส่ง Email มาด้วย
+      recordData.examRound,
+      recordData.examSession,
+      recordData.examYear,
+      recordData.Subject1_Maternity,
+      recordData.Subject2_Pediatric,
+      recordData.Subject3_Adult,
+      recordData.Subject4_Geriatric,
+      recordData.Subject5_Psychiatric,
+      recordData.Subject6_Community,
+      recordData.Subject7_Law,
+      recordData.Subject8_Surgical
+      // ไม่รวมการอัปเดตไฟล์หลักฐานในเวอร์ชันนี้เพื่อความง่าย
+    ];
+    
+    // อัปเดตข้อมูล 14 คอลัมน์ (ไม่รวม file ID)
+    sheet.getRange(rowToUpdate, 1, 1, 14).setValues([updatedRowData]);
+
+    return { success: true, message: 'อัปเดตข้อมูลการสอบสำเร็จ!' };
+  } catch (e) {
+    Logger.log("Error in updateLicenseExamRecord: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+// ******** ฟังก์ชันใหม่สำหรับลบข้อมูล ********
+function deleteLicenseExamRecord(recordId) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
+    if (!sheet) throw new Error("ไม่พบชีต License_Exam_Records");
+
+    const recordIds = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().flat();
+    const rowIndex = recordIds.indexOf(recordId);
+
+    if (rowIndex === -1) {
+      return { success: false, message: 'ไม่พบข้อมูลการสอบที่ต้องการลบ' };
+    }
+
+    sheet.deleteRow(rowIndex + 2);
+    
+    return { success: true, message: 'ลบข้อมูลการสอบสำเร็จ!' };
+  } catch (e) {
+    Logger.log("Error in deleteLicenseExamRecord: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
 
 // =================================================================
 // ส่วนที่ 7: ฟังก์ชันสำหรับ Admin (ADMIN FUNCTIONS)
@@ -415,47 +494,58 @@ function addExamYear(year) {
 }
 
 /**
- * ค้นหาผู้ใช้จากชื่อ, นามสกุล, หรืออีเมล
- * @param {string} searchText - คำที่ใช้ค้นหา
- * @returns {object[]} อาร์เรย์ของข้อมูลผู้ใช้ที่ค้นเจอ
+ * ฟังก์ชันที่แก้ไขใหม่: รวมการค้นหาและดึงข้อมูลผู้ใช้ทั้งหมด พร้อมรองรับการแบ่งหน้า
+ * @param {number} pageNumber - หมายเลขหน้าที่ต้องการ (เริ่มต้นที่ 1)
+ * @param {string} searchText - คำที่ใช้ค้นหา (ถ้ามี)
+ * @returns {object} อ็อบเจกต์ที่ประกอบด้วย { users: [...], totalUsers: ... }
  */
-function searchUsers(searchText) {
+function getUsers(pageNumber = 1, searchText = '') {
+  const PAGE_SIZE = 10; // กำหนดจำนวนผู้ใช้ต่อหน้า
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
-    if (!sheet || sheet.getLastRow() < 2) return [];
+    if (!sheet || sheet.getLastRow() < 2) return { users: [], totalUsers: 0 };
 
-    const lowerCaseSearch = searchText.toLowerCase();
-    const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, COLS_DB.LAST_NAME).getValues();
+    const allData = sheet.getRange(2, 1, sheet.getLastRow() - 1, COLS_DB.LAST_NAME).getValues();
+    let filteredResults = [];
+    const lowerCaseSearch = searchText.toLowerCase().trim();
 
-    const results = [];
-    data.forEach(row => {
-      const firstName = row[COLS_DB.FIRST_NAME - 1].toLowerCase();
-      const lastName = row[COLS_DB.LAST_NAME - 1].toLowerCase();
-      const email = row[COLS_DB.EMAIL - 1].toLowerCase();
+    // ส่วนของการกรองข้อมูล (ค้นหา)
+    if (lowerCaseSearch) {
+      filteredResults = allData.filter(row => {
+        const firstName = row[COLS_DB.FIRST_NAME - 1].toLowerCase();
+        const lastName = row[COLS_DB.LAST_NAME - 1].toLowerCase();
+        const email = row[COLS_DB.EMAIL - 1].toLowerCase();
+        return firstName.includes(lowerCaseSearch) || lastName.includes(lowerCaseSearch) || email.includes(lowerCaseSearch);
+      });
+    } else {
+      filteredResults = allData;
+    }
 
-      if (firstName.includes(lowerCaseSearch) || lastName.includes(lowerCaseSearch) || email.includes(lowerCaseSearch)) {
-        results.push({
-          userId: row[COLS_DB.USER_ID - 1],
-          firstName: row[COLS_DB.FIRST_NAME - 1],
-          lastName: row[COLS_DB.LAST_NAME - 1],
-          email: row[COLS_DB.EMAIL - 1],
-          role: row[COLS_DB.ROLE - 1]
-        });
-      }
-    });
-    return results;
+    // แปลงข้อมูลให้อยู่ในรูปแบบ object
+    const mappedResults = filteredResults.map(row => ({
+      userId: row[COLS_DB.USER_ID - 1],
+      firstName: row[COLS_DB.FIRST_NAME - 1],
+      lastName: row[COLS_DB.LAST_NAME - 1],
+      email: row[COLS_DB.EMAIL - 1],
+      role: row[COLS_DB.ROLE - 1]
+    }));
+
+    // เรียงตามชื่อ A-Z
+    mappedResults.sort((a, b) => a.firstName.localeCompare(b.firstName));
+    
+    const totalUsers = mappedResults.length;
+    const startIndex = (pageNumber - 1) * PAGE_SIZE;
+    const paginatedUsers = mappedResults.slice(startIndex, startIndex + PAGE_SIZE);
+
+    return { users: paginatedUsers, totalUsers: totalUsers };
   } catch(e) {
-    Logger.log("Error in searchUsers: " + e.message);
-    return [];
+    Logger.log("Error in getUsers: " + e.message);
+    return { users: [], totalUsers: 0 };
   }
 }
 
-// ในไฟล์ Code.gs (ส่วนที่ 7)
-
-// ในไฟล์ Code.gs (ส่วนที่ 7)
-
 /**
- * คำนวณและดึงข้อมูลสรุปสำหรับหน้าแดชบอร์ด
+ * คำนวณและดึงข้อมูลสรุปสำหรับหน้าแดชบอร์ด (ฉบับแก้ไข)
  * @returns {object} อ็อบเจกต์ข้อมูลสถิติ
  */
 function getDashboardStats() {
@@ -465,30 +555,59 @@ function getDashboardStats() {
 
     if (!dbSheet) throw new Error("ไม่พบชีต User_Database");
 
-    // ดึงข้อมูล Role ทั้งหมดออกมา
+    // --- คำนวณจำนวนผู้ใช้ทั้งหมด ---
     const roles = dbSheet.getRange(2, COLS_DB.ROLE, dbSheet.getLastRow() - 1, 1).getValues().flat();
-    
-    // นับจำนวนศิษย์เก่า
     const alumniCount = roles.filter(role => role === 'Alumni').length;
-    // นับจำนวนนักศึกษาปัจจุบัน
     const studentCount = roles.filter(role => role === 'Student').length;
-    
-    // --- ↓↓↓ แก้ไขส่วนนี้ครับ ↓↓↓ ---
-    // "ผู้ใช้ทั้งหมด" จะเท่ากับผลรวมของศิษย์เก่าและนักศึกษาปัจจุบันเท่านั้น
     const totalUsers = alumniCount + studentCount;
-    // --- ↑↑↑ จบส่วนที่แก้ไข ↑↑↑ ---
 
-    const totalExamRecords = licenseSheet ? licenseSheet.getLastRow() - 1 : 0;
+    // --- ตรรกะสำหรับนับจำนวนผู้ที่สอบผ่านครบทุกวิชา ---
+    let passedAllCount = 0;
+    if (licenseSheet && licenseSheet.getLastRow() > 1) {
+      const licenseData = licenseSheet.getDataRange().getValues();
+      const headers = licenseData.shift();
+      const emailIndex = headers.indexOf('Email');
+      const subjectKeys = ['Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical'];
+      const subjectIndices = subjectKeys.map(key => headers.indexOf(key));
+      const userPassStatus = {};
+
+      licenseData.forEach(row => {
+        const email = row[emailIndex];
+        if (!email) return;
+        if (!userPassStatus[email]) {
+          userPassStatus[email] = {};
+        }
+        subjectIndices.forEach((subjIndex, i) => {
+          if (row[subjIndex] === 'ผ่าน') {
+            userPassStatus[email][subjectKeys[i]] = true;
+          }
+        });
+      });
+
+      for (const email in userPassStatus) {
+        const subjectsPassedCount = Object.values(userPassStatus[email]).filter(status => status === true).length;
+        if (subjectsPassedCount === 8) {
+          passedAllCount++;
+        }
+      }
+    }
+    
+    // --- ส่วนที่เพิ่มเข้ามา: คำนวณอัตราการสอบผ่าน ---
+    let passRate = 0;
+    if (totalUsers > 0) {
+      passRate = Math.round((passedAllCount / totalUsers) * 100);
+    }
 
     return {
       totalUsers: totalUsers,
       alumniCount: alumniCount,
       studentCount: studentCount,
-      totalExamRecords: totalExamRecords > 0 ? totalExamRecords : 0
+      passedAllCount: passedAllCount, // เปลี่ยนชื่อ Key เพื่อความชัดเจน
+      passRate: passRate // เพิ่ม Key ใหม่สำหรับอัตราผ่าน
     };
   } catch (e) {
     Logger.log("Error in getDashboardStats: " + e.message);
-    return { totalUsers: 0, alumniCount: 0, studentCount: 0, totalExamRecords: 0 };
+    return { totalUsers: 0, alumniCount: 0, studentCount: 0, passedAllCount: 0, passRate: 0 };
   }
 }
 
@@ -525,6 +644,7 @@ function saveDonationRecord(donationData) {
       donationData.message,
       donationData.donorName,
       donationData.donorAddress,
+      donationData.donorTaxId,
       slipFileId,
       new Date(), // Timestamp
       "Pending Verification" // Status
@@ -538,7 +658,116 @@ function saveDonationRecord(donationData) {
   }
 }
 
-// ในไฟล์ Code.gs (ส่วนที่ 7)
+/**
+ * ดึงข้อมูลประวัติการบริจาคของผู้ใช้ (ฉบับแก้ไข)
+ * @param {string} email - อีเมลของผู้ใช้ที่ต้องการดึงข้อมูล
+ * @returns {object[]} อาร์เรย์ของข้อมูลการบริจาค
+ */
+function getDonationHistory(email) {
+  try {
+    if (!email) return [];
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
+    if (!sheet || sheet.getLastRow() < 2) return [];
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    const history = [];
+    
+    // หา Index ของคอลัมน์ทั้งหมดที่เราต้องการ
+    const emailIndex = headers.indexOf('Email');
+    if (emailIndex === -1) return []; // ถ้าไม่พบคอลัมน์ Email ให้หยุดทำงาน
+
+    for (const row of data) {
+      if (row[emailIndex] === email) {
+        const record = {};
+        headers.forEach((header, index) => {
+          // แปลงวันที่ให้เป็น ISO string เพื่อให้จัดการง่ายในฝั่ง Client
+          record[header] = row[index] instanceof Date ? row[index].toISOString() : row[index];
+        });
+        history.push(record);
+      }
+    }
+    // เรียงลำดับจากล่าสุดไปเก่าสุด
+    return history.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+  } catch(e) {
+    Logger.log("Error in getDonationHistory: " + e.message);
+    return [];
+  }
+}
+
+
+/**
+ * ฟังก์ชันใหม่: อัปเดตข้อมูลการบริจาค
+ * @param {object} data - ข้อมูลการบริจาคที่ต้องการอัปเดต
+ */
+function updateDonationRecord(data) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
+    if (!sheet) throw new Error("ไม่พบชีต Donations_Log");
+
+    const dataValues = sheet.getDataRange().getValues();
+    const headers = dataValues.shift();
+    const idColumnIndex = headers.indexOf('DonationID');
+
+    let rowIndex = -1;
+    for (let i = 0; i < dataValues.length; i++) {
+      if (dataValues[i][idColumnIndex] === data.DonationID) {
+        rowIndex = i + 2; // +2 เพราะแถวเริ่มที่ 1 และเราข้าม header ไป 1 แถว
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      return { success: false, message: 'ไม่พบข้อมูลการบริจาคที่ต้องการแก้ไข' };
+    }
+
+    // อัปเดตค่าในแต่ละคอลัมน์
+    headers.forEach((header, index) => {
+      if (data[header] !== undefined) {
+        sheet.getRange(rowIndex, index + 1).setValue(data[header]);
+      }
+    });
+
+    return { success: true, message: 'อัปเดตข้อมูลการบริจาคสำเร็จ!' };
+  } catch (e) {
+    Logger.log("Error in updateDonationRecord: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+/**
+ * ฟังก์ชันใหม่: ลบข้อมูลการบริจาค
+ * @param {string} donationId - ID ของการบริจาคที่ต้องการลบ
+ */
+function deleteDonationRecord(donationId) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
+    if (!sheet) throw new Error("ไม่พบชีต Donations_Log");
+
+    const dataValues = sheet.getDataRange().getValues();
+    const headers = dataValues.shift();
+    const idColumnIndex = headers.indexOf('DonationID');
+
+    let rowIndex = -1;
+    for (let i = 0; i < dataValues.length; i++) {
+      if (dataValues[i][idColumnIndex] === donationId) {
+        rowIndex = i + 2;
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      return { success: false, message: 'ไม่พบข้อมูลการบริจาคที่ต้องการลบ' };
+    }
+
+    sheet.deleteRow(rowIndex);
+    
+    return { success: true, message: 'ลบข้อมูลการบริจาคสำเร็จ!' };
+  } catch (e) {
+    Logger.log("Error in deleteDonationRecord: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
 
 /**
  * ดึงข้อมูลการกระจายตัวตามเพศจากชีต User_Profiles
@@ -570,6 +799,108 @@ function getGenderDistribution() {
     return distribution;
   } catch (e) {
     Logger.log("Error in getGenderDistribution: " + e.message);
+    return {};
+  }
+}
+
+/**
+ * ฟังก์ชันใหม่: ดึงข้อมูลการกระจายตัวตามอายุจากชีต User_Profiles
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนผู้ใช้ในแต่ละช่วงอายุ
+ */
+function getAgeDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+
+    // กำหนดช่วงอายุที่ต้องการ
+    const ageGroups = {
+      'ต่ำกว่า 20': 0,
+      '20-25 ปี': 0,
+      '26-30 ปี': 0,
+      '31-40 ปี': 0,
+      '41-50 ปี': 0,
+      'มากกว่า 50': 0
+    };
+
+    const dobData = sheet.getRange(2, COLS_PROFILE.DOB, sheet.getLastRow() - 1, 1).getValues().flat();
+    const currentYear = new Date().getFullYear();
+
+    dobData.forEach(dob => {
+      if (dob instanceof Date) {
+        const birthYear = dob.getFullYear();
+        const age = currentYear - birthYear;
+
+        if (age < 20) ageGroups['ต่ำกว่า 20']++;
+        else if (age >= 20 && age <= 25) ageGroups['20-25 ปี']++;
+        else if (age >= 26 && age <= 30) ageGroups['26-30 ปี']++;
+        else if (age >= 31 && age <= 40) ageGroups['31-40 ปี']++;
+        else if (age >= 41 && age <= 50) ageGroups['41-50 ปี']++;
+        else ageGroups['มากกว่า 50']++;
+      }
+    });
+
+    return ageGroups;
+  } catch (e) {
+    Logger.log("Error in getAgeDistribution: " + e.message);
+    return {};
+  }
+}
+
+/**
+ * ฟังก์ชันใหม่: ดึงข้อมูลการกระจายตัวตามสัญชาติ
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนผู้ใช้ในแต่ละสัญชาติ
+ */
+function getNationalityDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+
+    const distribution = {};
+    const nationalityData = sheet.getRange(2, COLS_PROFILE.NATIONALITY, sheet.getLastRow() - 1, 1).getValues().flat();
+
+    nationalityData.forEach(nationality => {
+      if (nationality) { // ตรวจสอบว่าค่าไม่เป็นค่าว่าง
+        if (distribution[nationality]) {
+          distribution[nationality]++;
+        } else {
+          distribution[nationality] = 1;
+        }
+      }
+    });
+
+    return distribution;
+  } catch (e) {
+    Logger.log("Error in getNationalityDistribution: " + e.message);
+    return {};
+  }
+}
+
+/**
+ * ฟังก์ชันใหม่: ดึงข้อมูลการกระจายตัวตามรุ่นที่จบ
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนผู้ใช้ในแต่ละรุ่น
+ */
+function getClassDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+
+    const distribution = {};
+    const classData = sheet.getRange(2, COLS_PROFILE.GRAD_CLASS, sheet.getLastRow() - 1, 1).getValues().flat();
+
+    classData.forEach(gradClass => {
+      if (gradClass) { // ตรวจสอบว่าค่าไม่เป็นค่าว่าง
+        const className = String(gradClass).trim(); // Trim whitespace and convert to string
+        if (distribution[className]) {
+          distribution[className]++;
+        } else {
+          distribution[className] = 1;
+        }
+      }
+    });
+
+    return distribution;
+  } catch (e) {
+    Logger.log("Error in getClassDistribution: " + e.message);
     return {};
   }
 }

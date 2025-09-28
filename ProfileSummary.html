@@ -1,26 +1,43 @@
 <style>
-    .profile-summary-card {
-        background-color: white;
-        border-radius: 0.75rem; /* 12px */
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    /* --- CSS ใหม่สำหรับครอบเนื้อหาทั้งหมด --- */
+    .summary-wrapper {
         max-width: 800px;
         margin: auto;
-        overflow: hidden;
     }
+
+    /* --- CSS ที่ปรับปรุง --- */
+    .profile-summary-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        overflow: hidden;
+        /* max-width และ margin: auto ถูกย้ายไปที่ .summary-wrapper แล้ว */
+    }
+
+    .history-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        margin-top: 2rem; /* เหลือแค่ระยะห่างด้านบน */
+        padding: 1.5rem;
+        /* max-width และ margin: auto ถูกย้ายไปที่ .summary-wrapper แล้ว */
+    }
+
+    /* --- CSS เดิม (ไม่มีการเปลี่ยนแปลง) --- */
     .summary-header {
         display: flex;
         align-items: center;
-        gap: 1.5rem; /* 24px */
-        padding: 1.5rem; /* 24px */
+        gap: 1.5rem;
+        padding: 1.5rem;
         border-bottom: 1px solid #e5e7eb;
     }
     .avatar-display {
         width: 80px;
         height: 80px;
-        border-radius: 9999px; /* full circle */
-        background-color: #dbeafe; /* light blue */
-        color: #1e40af; /* dark blue */
-        font-size: 2.25rem; /* 36px */
+        border-radius: 9999px;
+        background-color: #dbeafe;
+        color: #1e40af;
+        font-size: 2.25rem;
         font-weight: 700;
         display: flex;
         justify-content: center;
@@ -30,7 +47,7 @@
         background-position: center;
     }
     .summary-info h2 {
-        font-size: 1.5rem; /* 24px */
+        font-size: 1.5rem;
         font-weight: 700;
         color: #111827;
         margin: 0;
@@ -45,18 +62,14 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1rem 2rem;
     }
-    .summary-item {
-        font-size: 0.875rem; /* 14px */
-    }
+    .summary-item { font-size: 0.875rem; }
     .summary-item .label {
         font-weight: 700;
         color: #4b5563;
         display: block;
         margin-bottom: 0.25rem;
     }
-    .summary-item .value {
-        color: #1f2937;
-    }
+    .summary-item .value { color: #1f2937; }
     .summary-actions {
         padding: 1rem 1.5rem;
         background-color: #f9fafb;
@@ -67,84 +80,248 @@
         color: white;
         font-weight: 700;
         padding: 0.5rem 1.5rem;
-        border-radius: 0.375rem; /* 6px */
+        border-radius: 0.375rem;
         border: none;
         cursor: pointer;
         transition: background-color 0.2s;
     }
-    .edit-btn:hover {
-        background-color: #2563eb;
+    .edit-btn:hover { background-color: #2563eb; }
+    .history-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-top: 0;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
     }
+    .donation-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .donation-table th, .donation-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .donation-table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+        color: #4b5563;
+        font-size: 0.875rem;
+    }
+    .donation-table td {
+        font-size: 0.875rem;
+        color: #374151;
+    }
+    .status-pending { color: #f59e0b; font-weight: 600; }
+    .status-verified { color: #10b981; font-weight: 600; }
+    .no-history-msg { text-align: center; color: #6b7280; padding: 2rem; }
+
+    /* --- CSS ใหม่สำหรับปุ่มแก้ไข/ลบ และ Modal --- */
+    .action-buttons button { border: none; background: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .action-buttons .edit-btn-icon { color: #3b82f6; } .action-buttons .edit-btn-icon:hover { background-color: #e0e7ff; }
+    .action-buttons .delete-btn-icon { color: #ef4444; } .action-buttons .delete-btn-icon:hover { background-color: #fee2e2; }
+    
+    .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:2000}.modal-content{background-color:#fff;padding:2rem;border-radius:.5rem;max-width:600px;width:90%;max-height:90vh;overflow-y:auto}.modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding-bottom:1rem;margin-bottom:1.5rem}.modal-header h3{margin:0;font-size:1.25rem}.close-modal-btn{background:0 0;border:none;font-size:1.5rem;cursor:pointer}.form-group{margin-bottom:1rem}.form-group label{display:block;font-weight:600;color:#374151;margin-bottom:.5rem;font-size:.875rem}.form-group input,.form-group select,.form-group textarea{width:100%;padding:.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:1rem;box-sizing:border-box}
 </style>
 
-<div class="profile-summary-card">
-    <div class="summary-header">
-        <div id="summaryAvatar" class="avatar-display"></div>
-        <div class="summary-info">
-            <h2 id="summaryFullName"></h2>
-            <p id="summaryStudentId"></p>
-            <p id="summaryEmail"></p>
+<div class="summary-wrapper">
+    <div class="profile-summary-card">
+        <div class="summary-header">
+            <div id="summaryAvatar" class="avatar-display"></div>
+            <div class="summary-info">
+                <h2 id="summaryFullName"></h2>
+                <p id="summaryStudentId"></p>
+                <p id="summaryEmail"></p>
+            </div>
+        </div>
+        <div class="summary-body">
+            <div class="summary-item"><span class="label">บทบาท:</span><span id="summaryRole" class="value"></span></div>
+            <div class="summary-item"><span class="label">รุ่นที่จบ:</span><span id="summaryGradClass" class="value"></span></div>
+            <div class="summary-item"><span class="label">GPAX:</span><span id="summaryGpa" class="value"></span></div>
+            <div class="summary-item"><span class="label">อาจารย์ที่ปรึกษา:</span><span id="summaryAdvisor" class="value"></span></div>
+        </div>
+        <div class="summary-actions">
+            <button class="edit-btn" onclick="loadContent('profile')">แก้ไขข้อมูล</button>
         </div>
     </div>
-    <div class="summary-body">
-        <div class="summary-item">
-            <span class="label">บทบาท:</span>
-            <span id="summaryRole" class="value"></span>
-        </div>
-        <div class="summary-item">
-            <span class="label">รุ่นที่จบ:</span>
-            <span id="summaryGradClass" class="value"></span>
-        </div>
-        <div class="summary-item">
-            <span class="label">GPAX:</span>
-            <span id="summaryGpa" class="value"></span>
-        </div>
-        <div class="summary-item">
-            <span class="label">อาจารย์ที่ปรึกษา:</span>
-            <span id="summaryAdvisor" class="value"></span>
-        </div>
-    </div>
-    <div class="summary-actions">
-        <button class="edit-btn" onclick="loadContent('profile')">แก้ไขข้อมูล</button>
+
+    <div id="donationHistoryCard" class="history-card" style="display: none;">
+        <h3>ประวัติการบริจาค</h3>
+        <div id="donationHistoryContainer"></div>
     </div>
 </div>
 
+<div id="editDonationModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>แก้ไขข้อมูลการบริจาค</h3>
+            <button class="close-modal-btn" onclick="closeDonationEditModal()">×</button>
+        </div>
+        <form id="editDonationForm">
+            <input type="hidden" id="editDonationID">
+            <div class="form-group">
+                <label for="editAmount">จำนวนเงิน</label>
+                <input type="number" id="editAmount" required />
+            </div>
+            <div class="form-group">
+                <label for="editPurpose">วัตถุประสงค์</label>
+                <select id="editPurpose" required>
+                    <option value="education_fund">ทุนการศึกษา</option>
+                    <option value="equipment_fund">อุปกรณ์การเรียนการสอน</option>
+                    <option value="building_fund">พัฒนาอาคารสถานที่</option>
+                    <option value="research_fund">สนับสนุนการวิจัย</option>
+                    <option value="general_activities_fund">กิจกรรมทั่วไป</option>
+                    <option value="other">อื่นๆ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editMessage">ข้อความเพิ่มเติม</label>
+                <textarea id="editMessage"></textarea>
+            </div>
+             <div class="form-group">
+              <label for="editDonorName">ชื่อ-นามสกุล/ชื่อบริษัท</label>
+              <input type="text" id="editDonorName" />
+            </div>
+            <div class="form-group">
+              <label for="editDonorTaxid">เลขประจำตัวผู้เสียภาษี</label>
+              <input type="text" id="editDonorTaxid" />
+            </div>
+            <div class="form-group">
+              <label for="editDonorAddress">ที่อยู่ผู้บริจาค</label>
+              <textarea id="editDonorAddress"></textarea>
+            </div>
+            <button type="submit" id="updateDonationBtn" class="edit-btn" style="width:100%; padding: .75rem;">บันทึกการเปลี่ยนแปลง</button>
+        </form>
+    </div>
+</div>
+
+
 <script>
+    let currentDonationHistory = []; // ตัวแปรสำหรับเก็บประวัติการบริจาค
+
     function displayProfileSummary() {
-        const userDataString = sessionStorage.getItem('loggedInUser');
         const userEmail = sessionStorage.getItem('userEmail');
-        
-        // ดึงข้อมูลโปรไฟล์ทั้งหมดมาแสดง
-        if (userEmail) {
-            google.script.run.withSuccessHandler(profileData => {
-                if (userDataString && profileData) {
-                    const user = JSON.parse(userDataString);
+        if (!userEmail) return;
 
-                    // --- ส่วน Header ---
-                    document.getElementById('summaryFullName').textContent = `${profileData.Prefix || ''} ${user.firstName} ${user.lastName}`;
-                    document.getElementById('summaryStudentId').textContent = `รหัสนักศึกษา: ${profileData.StudentID || 'N/A'}`;
-                    document.getElementById('summaryEmail').textContent = userEmail;
-                    
-                    // --- ส่วน Avatar ---
-                    const avatarDiv = document.getElementById('summaryAvatar');
-                    if (profileData.profilePictureUrl) {
-                        avatarDiv.style.backgroundImage = `url('${profileData.profilePictureUrl}')`;
-                        avatarDiv.textContent = ''; // ลบตัวอักษรออกถ้ามีรูป
-                    } else {
-                        avatarDiv.style.backgroundImage = '';
-                        avatarDiv.textContent = user.firstName ? user.firstName.charAt(0).toUpperCase() : '?';
-                    }
-
-                    // --- ส่วน Body ---
-                    document.getElementById('summaryRole').textContent = user.role || 'N/A';
-                    document.getElementById('summaryGradClass').textContent = profileData.GraduationClass || 'N/A';
-                    document.getElementById('summaryGpa').textContent = profileData.GPAX || 'N/A';
-                    document.getElementById('summaryAdvisor').textContent = profileData.Advisor || 'N/A';
+        google.script.run.withSuccessHandler(profileData => {
+            const userDataString = sessionStorage.getItem('loggedInUser');
+            if (userDataString && profileData) {
+                const user = JSON.parse(userDataString);
+                document.getElementById('summaryFullName').textContent = `${profileData.Prefix || ''} ${user.firstName} ${user.lastName}`;
+                document.getElementById('summaryStudentId').textContent = `รหัสนักศึกษา: ${profileData.StudentID || 'N/A'}`;
+                document.getElementById('summaryEmail').textContent = userEmail;
+                const avatarDiv = document.getElementById('summaryAvatar');
+                if (profileData.profilePictureUrl) {
+                    avatarDiv.style.backgroundImage = `url('${profileData.profilePictureUrl}')`;
+                    avatarDiv.textContent = '';
+                } else {
+                    avatarDiv.style.backgroundImage = '';
+                    avatarDiv.textContent = user.firstName ? user.firstName.charAt(0).toUpperCase() : '?';
                 }
-            }).getUserProfile(userEmail);
+                document.getElementById('summaryRole').textContent = user.role || 'N/A';
+                document.getElementById('summaryGradClass').textContent = profileData.GraduationClass || 'N/A';
+                document.getElementById('summaryGpa').textContent = profileData.GPAX || 'N/A';
+                document.getElementById('summaryAdvisor').textContent = profileData.Advisor || 'N/A';
+            }
+        }).getUserProfile(userEmail);
+
+        google.script.run.withSuccessHandler(populateDonationHistory).getDonationHistory(userEmail);
+    }
+
+    function populateDonationHistory(history) {
+        currentDonationHistory = history; // เก็บข้อมูลไว้ใช้ตอนแก้ไข
+        const container = document.getElementById('donationHistoryContainer');
+        const card = document.getElementById('donationHistoryCard');
+        if (!container || !card) return;
+
+        if (history && history.length > 0) {
+            let tableHTML = `<table class="donation-table"><thead><tr><th>วันที่</th><th>จำนวนเงิน</th><th>วัตถุประสงค์</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>`;
+            history.forEach(record => {
+                const date = new Date(record.Timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                const amount = Number(record.Amount).toLocaleString('th-TH', { style: 'currency', currency: 'THB' });
+                const statusClass = record.Status === 'Pending Verification' ? 'status-pending' : 'status-verified';
+                // ผู้ใช้จะแก้ไขได้ก็ต่อเมื่อสถานะยังเป็น Pending เท่านั้น
+                const actionButtons = record.Status === 'Pending Verification' ?
+                    `<td class="action-buttons">
+                        <button class="edit-btn-icon" onclick="openDonationEditModal('${record.DonationID}')" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn-icon" onclick="handleDeleteDonation('${record.DonationID}')" title="ลบ"><i class="fas fa-trash"></i></button>
+                    </td>` : '<td>-</td>';
+
+                tableHTML += `<tr>
+                    <td>${date}</td>
+                    <td>${amount}</td>
+                    <td>${record.Purpose || 'N/A'}</td>
+                    <td><span class="${statusClass}">${record.Status}</span></td>
+                    ${actionButtons}
+                </tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    }
+    
+    // --- ฟังก์ชันใหม่ทั้งหมดสำหรับจัดการ Modal ---
+    window.openDonationEditModal = function(donationId) {
+        const record = currentDonationHistory.find(r => r.DonationID === donationId);
+        if (!record) return;
+
+        document.getElementById('editDonationID').value = record.DonationID;
+        document.getElementById('editAmount').value = record.Amount;
+        document.getElementById('editPurpose').value = record.Purpose;
+        document.getElementById('editMessage').value = record.Message;
+        document.getElementById('editDonorName').value = record.DonorName;
+        document.getElementById('editDonorTaxid').value = record.donorTaxid;
+        document.getElementById('editDonorAddress').value = record.DonorAddress;
+
+        document.getElementById('editDonationModal').style.display = 'flex';
+    }
+
+    window.closeDonationEditModal = function() {
+        document.getElementById('editDonationModal').style.display = 'none';
+    }
+
+    document.getElementById('editDonationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const updateBtn = document.getElementById('updateDonationBtn');
+        updateBtn.disabled = true;
+        updateBtn.textContent = 'กำลังบันทึก...';
+
+        const updatedData = {
+            DonationID: document.getElementById('editDonationID').value,
+            Amount: document.getElementById('editAmount').value,
+            Purpose: document.getElementById('editPurpose').value,
+            Message: document.getElementById('editMessage').value,
+            DonorName: document.getElementById('editDonorName').value,
+            donorTaxid: document.getElementById('editDonorTaxid').value,
+            DonorAddress: document.getElementById('editDonorAddress').value,
+        };
+
+        google.script.run.withSuccessHandler(response => {
+            alert(response.message);
+            updateBtn.disabled = false;
+            updateBtn.textContent = 'บันทึกการเปลี่ยนแปลง';
+            if (response.success) {
+                closeDonationEditModal();
+                displayProfileSummary(); // โหลดข้อมูลทั้งหมดใหม่
+            }
+        }).updateDonationRecord(updatedData);
+    });
+
+    window.handleDeleteDonation = function(donationId) {
+        if (confirm('คุณต้องการลบข้อมูลการบริจาคนี้ใช่หรือไม่?')) {
+            google.script.run.withSuccessHandler(response => {
+                alert(response.message);
+                if (response.success) {
+                    displayProfileSummary(); // โหลดข้อมูลทั้งหมดใหม่
+                }
+            }).deleteDonationRecord(donationId);
         }
     }
 
-    // เรียกฟังก์ชันให้ทำงานทันทีที่ Script นี้ถูกโหลด
     displayProfileSummary();
 </script>
