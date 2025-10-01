@@ -51,6 +51,16 @@
             <div class="form-group"><label for="email">อีเมล</label><input type="email" id="email" readonly style="background-color:#e9ecef;"></div>
             <div class="form-group"><label for="phone">เบอร์โทรศัพท์</label><input type="tel" id="phone"></div>
             <div class="form-group"><label for="gpax">เกรดเฉลี่ยสะสม (GPAX)</label><input type="number" id="gpax" step="0.01" min="0" max="4"></div>
+            <div class="form-group">
+                <label for="employmentStatus">สถานะการทำงาน</label>
+                <select id="employmentStatus">
+                    <option value="">-- เลือก --</option>
+                    <option>ทำงานแล้ว</option>
+                    <option>กำลังหางาน</option>
+                    <option>ศึกษาต่อ</option>
+                    <option>อื่นๆ</option>
+                </select>
+            </div>
             <div class="form-group" style="grid-column: 1 / -1;"><label for="address">ที่อยู่ปัจจุบัน</label><textarea id="address"></textarea></div>
 
             <div class="section-header">ข้อมูลผู้ติดต่อกรณีฉุกเฉิน</div>
@@ -68,7 +78,7 @@
 
         <div class="form-actions">
             <button type="button" class="btn back-btn" onclick="loadContent('profileSummary')">⬅️ ย้อนกลับ</button>
-            <button type="submit" id="saveButton" class="save-btn">💾 บันทึกข้อมูล</button>
+            <button type="submit" id="saveButton" class="btn save-btn">💾 บันทึกข้อมูล</button>
         </div>
     </form>
 </div>
@@ -114,6 +124,7 @@
             race: document.getElementById('race').value,
             phone: document.getElementById('phone').value,
             gpax: document.getElementById('gpax').value,
+            employmentStatus: document.getElementById('employmentStatus').value,
             address: document.getElementById('address').value,
             emergencyName: document.getElementById('emergencyName').value,
             emergencyRelation: document.getElementById('emergencyRelation').value,
@@ -180,6 +191,7 @@
         setValue('email', data.Email);
         setValue('phone', data.PhoneNumber);
         setValue('gpax', data.GPAX);
+        setValue('employmentStatus', data.EmploymentStatus);
         setValue('address', data.CurrentAddress);
         setValue('emergencyName', data.EmergencyContactName);
         setValue('emergencyRelation', data.EmergencyContactRelation);

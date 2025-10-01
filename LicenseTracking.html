@@ -297,6 +297,41 @@
             document.getElementById('saveExamBtn').textContent = '➕ เพิ่มข้อมูลการสอบ';
             return;
         }
+
+        // --- เพิ่มโค้ดส่วนนี้เพื่อตรวจสอบและอัปเดตบทบาท ---
+        const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+        if (loggedInUser.role === 'Student') {
+            const confirmChange = confirm('คุณเป็นนักศึกษาอยู่ หากต้องการบันทึกข้อมูลใบประกอบวิชาชีพ ระบบจะเปลี่ยนสถานะของคุณเป็นศิษย์เก่าโดยอัตโนมัติ ยืนยันหรือไม่?');
+            
+            if (!confirmChange) {
+                document.getElementById('saveExamBtn').disabled = false;
+                document.getElementById('saveExamBtn').textContent = '➕ เพิ่มข้อมูลการสอบ';
+                return;
+            }
+
+            // ถ้าผู้ใช้ยืนยัน ให้เรียกฟังก์ชันเพื่ออัปเดตบทบาท
+            google.script.run
+                .withSuccessHandler(response => {
+                    if (response.success) {
+                        // อัปเดต sessionStorage ด้วยบทบาทใหม่
+                        loggedInUser.role = 'Alumni';
+                        sessionStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                        // ดำเนินการบันทึกข้อมูลการสอบต่อ
+                        proceedToSaveExamRecord(userEmail, fileData);
+                    } else {
+                        alert(response.message);
+                        document.getElementById('saveExamBtn').disabled = false;
+                        document.getElementById('saveExamBtn').textContent = '➕ เพิ่มข้อมูลการสอบ';
+                    }
+                })
+                .updateUserRole(userEmail);
+        } else {
+            // ถ้าเป็น Alumni อยู่แล้ว ให้บันทึกได้เลย
+            proceedToSaveExamRecord(userEmail, fileData);
+        }
+    }
+    
+    function proceedToSaveExamRecord(userEmail, fileData) {
         const recordData = { userEmail: userEmail, file: fileData };
         ['examRound', 'examSession', 'examYear', ...subjectKeys].forEach(id => {
             recordData[id] = document.getElementById(id).value;

@@ -8,15 +8,15 @@ const EVIDENCE_FOLDER_ID = "1JZBj33PHAtRcPsMi_URIB0s9Y4VDPFeI";
 const DONATION_SLIPS_FOLDER_ID = "1okFXJVYbVAwrQviGcStjEsElsGuFOknK";
 
 const COLS_DB = {
-  USER_ID: 1, EMAIL: 2, PASSWORD: 3, ROLE: 4, FIRST_NAME: 5, LAST_NAME: 6,
-  REG_DATE: 7, LAST_LOGIN: 8, IS_ACTIVE: 9, RESET_TOKEN: 10, TOKEN_EXPIRY: 11
+  USER_ID: 1, EMAIL: 2, PASSWORD: 3, ROLE: 4,REG_DATE: 5, LAST_LOGIN: 6, IS_ACTIVE: 7, RESET_TOKEN: 8, TOKEN_EXPIRY: 9
 };
 const COLS_PROFILE = {
   USER_ID: 1, EMAIL: 2, PICTURE_ID: 3, PREFIX: 4, STUDENT_ID: 5, FNAME_TH: 6, LNAME_TH: 7,
   FNAME_EN: 8, LNAME_EN: 9, GRAD_CLASS: 10, ADVISOR: 11, DOB: 12, GENDER: 13,
   BIRTH_COUNTRY: 14, NATIONALITY: 15, RACE: 16, PHONE: 17, GPAX: 18, ADDRESS: 19,
   EMERGENCY_NAME: 20, EMERGENCY_RELATION: 21, EMERGENCY_PHONE: 22, AWARDS: 23,
-  FUTURE_PLAN: 24, EDUCATION_PLAN: 25, INTERNATIONAL_PLAN: 26, THAI_LICENSE: 27
+  FUTURE_PLAN: 24, EDUCATION_PLAN: 25, INTERNATIONAL_PLAN: 26, THAI_LICENSE: 27,
+  EMPLOYMENT_STATUS: 28
 };
 
 // =================================================================
@@ -25,8 +25,8 @@ const COLS_PROFILE = {
 function setupProjectSheets() {
   try {
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    const userDbHeaders = ['UserID', 'Email', 'Password', 'Role', 'FirstNameTH', 'LastNameTH', 'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'];
-    const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'];
+    const userDbHeaders = ['UserID', 'Email', 'Password', 'Role', 'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'];
+    const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX','EmploymentStatus', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'];
     const licenseExamHeaders = ['RecordID', 'UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical', 'EvidenceFileID'];
     const donationLogHeaders = ['DonationID', 'UserID', 'Email', 'Amount', 'Purpose', 'Message', 'DonorName', 'DonorAddress', 'donorTaxid','SlipFileID', 'Timestamp', 'Status'];
 
@@ -205,6 +205,48 @@ function updatePassword(token, newPassword) {
   }
 }
 
+/**
+ * ฟังก์ชันใหม่: อัปเดตบทบาทผู้ใช้
+ * @param {string} email - อีเมลของผู้ใช้ที่ต้องการอัปเดต
+ * @returns {object} ผลลัพธ์การดำเนินการ
+ */
+function updateUserRole(email) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+    if (!sheet) {
+      throw new Error("ไม่พบชีต 'User_Database'");
+    }
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    const emailIndex = headers.indexOf('Email');
+    const roleIndex = headers.indexOf('Role');
+    
+    if (emailIndex === -1 || roleIndex === -1) {
+      throw new Error("ไม่พบคอลัมน์ที่จำเป็นในชีต User_Database");
+    }
+
+    let userRow = -1;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][emailIndex] === email) {
+        userRow = i + 2; // +2 เพราะแถวเริ่มที่ 1 และข้าม header
+        break;
+      }
+    }
+
+    if (userRow === -1) {
+      return { success: false, message: 'ไม่พบอีเมลผู้ใช้ในระบบ' };
+    }
+
+    sheet.getRange(userRow, roleIndex + 1).setValue('Alumni');
+    
+    return { success: true, message: 'เปลี่ยนสถานะเป็นศิษย์เก่าสำเร็จ' };
+
+  } catch (e) {
+    Logger.log("Error in updateUserRole: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตบทบาท: ' + e.message };
+  }
+}
+
 // =================================================================
 // ส่วนที่ 5: ฟังก์ชันเกี่ยวกับข้อมูลโปรไฟล์ผู้ใช้ (USER PROFILE)
 // =================================================================
@@ -262,7 +304,7 @@ function saveUserProfile(profileData) {
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         pictureFileId = file.getId();
     }
-    const profileRowData = [userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,profileData.race,profileData.phone,profileData.gpax,profileData.address,profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,profileData.willTakeThaiLicense];
+    const profileRowData = [userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,profileData.race,profileData.phone,profileData.gpax,profileData.employmentStatus,profileData.address,profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,profileData.willTakeThaiLicense];
     const profileUserIds = profileSheet.getRange(2, COLS_PROFILE.USER_ID, profileSheet.getLastRow(), 1).getValues().flat();
     const rowIndex = profileUserIds.indexOf(userId);
     if (rowIndex !== -1) {
