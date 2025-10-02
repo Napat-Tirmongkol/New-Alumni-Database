@@ -684,6 +684,48 @@ function getUsers(page = 1, searchText = '') {
 }
 
 /**
+ * Deletes a user and all their associated data from all sheets.
+ * @param {string} email The email of the user to delete.
+ * @return {object} An object indicating the success of the operation.
+ */
+function deleteUser(email) {
+  try {
+    if (!email) {
+      throw new Error("ไม่ระบุอีเมลผู้ใช้ที่ต้องการลบ");
+    }
+
+    const sheetsToDeleteFrom = [
+      'User_Database', 
+      'User_Profiles', 
+      'License_Exam_Records', 
+      'Donations_Log'
+    ];
+
+    sheetsToDeleteFrom.forEach(sheetName => {
+      const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(sheetName);
+      if (sheet) {
+        const data = sheet.getDataRange().getValues();
+        const emailColumnIndex = data[0].indexOf('Email');
+        
+        if (emailColumnIndex !== -1) {
+          // Iterate backwards to avoid issues with changing row indices
+          for (let i = data.length - 1; i >= 1; i--) {
+            if (data[i][emailColumnIndex] === email) {
+              sheet.deleteRow(i + 1);
+            }
+          }
+        }
+      }
+    });
+
+    return { success: true, message: 'ลบผู้ใช้สำเร็จ' };
+  } catch (e) {
+    Logger.log("Error in deleteUser: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาดในการลบผู้ใช้: ' + e.message };
+  }
+}
+
+/**
  * Fetches the Profile.html template and a specific user's profile data.
  * @param {string} email The email of the user to fetch.
  * @return {object} An object with the HTML template and the user's profile data.

@@ -240,18 +240,21 @@
         fetchUsers(currentPage); // รีโหลดตารางเมื่อปิด Modal
     }
 
-    window.handleDeleteUser = function(email) {
-        if (confirm('คุณต้องการลบผู้ใช้คนนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
-            // ยังไม่มีฟังก์ชัน deleteUser() ที่สมบูรณ์
-            alert('ฟังก์ชันลบผู้ใช้ยังไม่พร้อมใช้งาน');
-            // google.script.run.withSuccessHandler(response => {
-            //     alert(response.message);
-            //     if (response.success) {
-            //         fetchUsers(currentPage);
-            //     }
-            // }).deleteUser(email);
-        }
+   window.handleDeleteUser = function(email) {
+    if (confirm('คุณต้องการลบผู้ใช้คนนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
+        google.script.run
+            .withSuccessHandler(response => {
+                alert(response.message);
+                if (response.success) {
+                    fetchUsers(currentPage);
+                }
+            })
+            .withFailureHandler(error => {
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+            })
+            .deleteUser(email);
     }
+}
 
     // Event Listeners
     searchBtn.addEventListener('click', () => {
