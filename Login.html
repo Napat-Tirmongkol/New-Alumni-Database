@@ -49,60 +49,58 @@
     </div>
 
     <script>
-        // สร้างตัวแปรสำหรับเก็บ URL ของเว็บแอปไว้ล่วงหน้า
-        let webAppUrl = '';
+    // สร้างตัวแปรสำหรับเก็บ URL ของเว็บแอปไว้ล่วงหน้า
+    let webAppUrl = '';
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const loginButton = document.getElementById('loginButton');
-            const errorMessageDiv = document.getElementById('error-message');
-            loginButton.disabled = true;
-            loginButton.textContent = 'กำลังตรวจสอบ...';
-            errorMessageDiv.style.display = 'none';
-            const credentials = { email: this.email.value, password: this.password.value };
-            
-            google.script.run
-                .withSuccessHandler(result => {
-                    loginButton.disabled = false;
-                    loginButton.textContent = 'เข้าสู่ระบบ';
-                    if (result.success) {
-                        const email = document.getElementById('email').value;
-                        sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
-                        sessionStorage.setItem('userEmail', email);
-                        loginButton.textContent = 'สำเร็จ! กำลังเปลี่ยนหน้า...';
-                        
-                        if (result.user.role === 'Admin') {
-                            window.top.location.href = webAppUrl + '?page=admindashboard';
-                        } else {
-                            window.top.location.href = webAppUrl + '?page=dashboard';
-                        }
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const loginButton = document.getElementById('loginButton');
+        const errorMessageDiv = document.getElementById('error-message');
+        loginButton.disabled = true;
+        loginButton.textContent = 'กำลังตรวจสอบ...';
+        errorMessageDiv.style.display = 'none';
+        const credentials = { email: this.email.value, password: this.password.value };
+
+        google.script.run
+            .withSuccessHandler(result => {
+                loginButton.disabled = false;
+                loginButton.textContent = 'เข้าสู่ระบบ';
+                if (result.success) {
+                    const email = document.getElementById('email').value;
+                    sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
+                    sessionStorage.setItem('userEmail', email);
+                    loginButton.textContent = 'สำเร็จ! กำลังเปลี่ยนหน้า...';
+                    
+                    if (result.user.role === 'Admin') {
+                        window.top.location.href = webAppUrl + '?page=admindashboard';
                     } else {
-                        const errorMessageDiv = document.getElementById('error-message');
-                        errorMessageDiv.textContent = result.message;
-                        errorMessageDiv.style.display = 'block';
+                        window.top.location.href = webAppUrl + '?page=dashboard';
                     }
-                })
-                .withFailureHandler(error => {
-                    const errorMessageDiv = document.getElementById('error-message');
-                    errorMessageDiv.textContent = 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message;
+                } else {
+                    errorMessageDiv.textContent = result.message;
                     errorMessageDiv.style.display = 'block';
-                    loginButton.disabled = false;
-                    loginButton.textContent = 'เข้าสู่ระบบ';
-                })
-                .validateLogin(credentials);
-        });
+                }
+            })
+            .withFailureHandler(error => {
+                errorMessageDiv.textContent = 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message;
+                errorMessageDiv.style.display = 'block';
+                loginButton.disabled = false;
+                loginButton.textContent = 'เข้าสู่ระบบ';
+            })
+            .validateLogin(credentials);
+    });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const registerLink = document.getElementById('registerLink');
-            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    document.addEventListener('DOMContentLoaded', function() {
+        const registerLink = document.getElementById('registerLink');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
-            // ดึง URL มาเก็บไว้ในตัวแปร webAppUrl ตอนโหลดหน้าเว็บ
-            google.script.run.withSuccessHandler(function(url) {
-                webAppUrl = url;
-                registerLink.href = url + '?page=register';
-                forgotPasswordLink.href = url + '?page=forgotpassword';
-            }).getWebAppUrl();
-        });
+        // ดึง URL มาเก็บไว้ในตัวแปร webAppUrl ตอนโหลดหน้าเว็บ
+        google.script.run.withSuccessHandler(function(url) {
+            webAppUrl = url;
+            registerLink.href = url + '?page=register';
+            forgotPasswordLink.href = url + '?page=forgotpassword';
+        }).getWebAppUrl();
+    });
 </script>
 </body>
 </html>
