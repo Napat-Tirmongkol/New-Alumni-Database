@@ -275,7 +275,7 @@
         }
     }
 
-    // --- ฟังก์ชันใหม่: จัดการการ Submit ฟอร์ม ---
+// --- ฟังก์ชันใหม่: จัดการการ Submit ฟอร์ม ---
     function handleProfileFormSubmit(e) {
         e.preventDefault();
         const saveButton = document.getElementById('saveButton');
@@ -323,11 +323,22 @@
 
             google.script.run
             .withSuccessHandler(function(result) {
-                alert(result);
-                closeModal();
+                // --- จุดที่แก้ไข ---
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: result,
+                    icon: 'success'
+                }).then(() => {
+                    closeModal();
+                });
             })
             .withFailureHandler(function(error) {
-                alert('เกิดข้อผิดพลาด: ' + error.message);
+                // --- จุดที่แก้ไข ---
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: error.message,
+                    icon: 'error'
+                });
                 console.error('การบันทึกล้มเหลว:', error);
                 saveButton.disabled = false;
                 saveButton.textContent = '💾 บันทึกข้อมูล';
@@ -335,7 +346,11 @@
             .saveUserProfile(profileData);
 
         } catch (error) {
-            alert('เกิดข้อผิดพลาดฝั่ง Client: ' + error.message);
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด (Client)',
+                text: error.message,
+                icon: 'error'
+            });
             console.error('Client-side error:', error);
             saveButton.disabled = false;
             saveButton.textContent = '💾 บันทึกข้อมูล';
