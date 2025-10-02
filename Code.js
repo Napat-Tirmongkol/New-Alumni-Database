@@ -354,11 +354,15 @@ function saveUserProfile(profileData) {
   try {
     const userEmail = profileData.email;
     if (!userEmail) throw new Error("ไม่สามารถระบุตัวตนผู้ใช้ได้ (Email not provided)");
+
     const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!profileSheet) throw new Error("ไม่พบชีต 'User_Profiles'");
+    
     const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     if (!dbSheet) throw new Error("ไม่พบชีต 'User_Database'");
-    const dbData = dbSheet.getRange(2, COLS_DB.USER_ID, dbSheet.getLastRow(), 2).getValues();
+    
+    // ค้นหา UserID จากชีต User_Database
+    const dbData = dbSheet.getRange(2, COLS_DB.USER_ID, dbSheet.getLastRow() - 1, 2).getValues();
     let userId = null;
     for (const row of dbData) {
       if (row[1] === userEmail) {
@@ -367,6 +371,7 @@ function saveUserProfile(profileData) {
       }
     }
     if (!userId) throw new Error(`ไม่พบ UserID สำหรับอีเมล: ${userEmail}`);
+
     let pictureFileId = profileData.existingPictureId || null;
     if (profileData.profilePicture && profileData.mimeType) {
         const decodedImage = Utilities.base64Decode(profileData.profilePicture);
@@ -378,14 +383,22 @@ function saveUserProfile(profileData) {
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         pictureFileId = file.getId();
     }
+    
+    // สร้างข้อมูลแถวใหม่สำหรับ User_Profiles
     const profileRowData = [userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,profileData.race,profileData.phone,profileData.gpax,profileData.employmentStatus,profileData.address,profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,profileData.willTakeThaiLicense];
-    const profileUserIds = profileSheet.getRange(2, COLS_PROFILE.USER_ID, profileSheet.getLastRow(), 1).getValues().flat();
+
+    // ค้นหาแถวที่ต้องอัปเดต
+    const profileUserIds = profileSheet.getRange(2, COLS_PROFILE.USER_ID, profileSheet.getLastRow() - 1, 1).getValues().flat();
     const rowIndex = profileUserIds.indexOf(userId);
+
     if (rowIndex !== -1) {
+        // ถ้าพบ ให้อัปเดตข้อมูลในแถวนั้น
         profileSheet.getRange(rowIndex + 2, 1, 1, profileRowData.length).setValues([profileRowData]);
     } else {
+        // ถ้าไม่พบ ให้เพิ่มแถวใหม่
         profileSheet.appendRow(profileRowData);
     }
+    
     return "บันทึกข้อมูลส่วนตัวสำเร็จ!";
   } catch (e) {
     Logger.log("เกิดข้อผิดพลาดใน saveUserProfile: " + e.message);
