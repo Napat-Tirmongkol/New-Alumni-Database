@@ -222,6 +222,9 @@
     }
 
     window.openModal = function(email, fullName) {
+        // --- จุดที่แก้ไข: เพิ่มการเก็บ email ลง sessionStorage ---
+        sessionStorage.setItem('selectedUserEmail', email); 
+        
         selectedUserEmail = email;
         modalTitle.textContent = `กำลังแก้ไขข้อมูล: ${fullName}`;
         profileFormContainer.innerHTML = '<h3>กำลังโหลดฟอร์ม...</h3>';
@@ -237,6 +240,10 @@
     window.closeModal = function() {
         editProfileModal.style.display = 'none';
         selectedUserEmail = '';
+        
+        // --- จุดที่แก้ไข: ลบ email ออกจาก sessionStorage เมื่อปิด Modal ---
+        sessionStorage.removeItem('selectedUserEmail');
+        
         fetchUsers(currentPage); // รีโหลดตารางเมื่อปิด Modal
     }
 
