@@ -378,7 +378,17 @@ function saveUserProfile(profileData) {
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         pictureFileId = file.getId();
     }
-    const profileRowData = [userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,profileData.race,profileData.phone,profileData.gpax,profileData.employmentStatus,profileData.address,profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,profileData.willTakeThaiLicense];
+    const profileRowData = [
+    userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,
+    profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,
+    profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,
+    profileData.race,profileData.phone,profileData.gpax,
+    profileData.employmentStatus,
+    profileData.address,
+    profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,
+    profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,
+    profileData.willTakeThaiLicense
+];
     const profileUserIds = profileSheet.getRange(2, COLS_PROFILE.USER_ID, profileSheet.getLastRow(), 1).getValues().flat();
     const rowIndex = profileUserIds.indexOf(userId);
     if (rowIndex !== -1) {
