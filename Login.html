@@ -60,43 +60,37 @@
             loginButton.textContent = 'กำลังตรวจสอบ...';
             errorMessageDiv.style.display = 'none';
             const credentials = { email: this.email.value, password: this.password.value };
+            
             google.script.run
-                .withSuccessHandler(onLoginSuccess)
-                .withFailureHandler(onLoginFailure) // <--- เพิ่มบรรทัดนี้
+                .withSuccessHandler(result => {
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'เข้าสู่ระบบ';
+                    if (result.success) {
+                        const email = document.getElementById('email').value;
+                        sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
+                        sessionStorage.setItem('userEmail', email);
+                        loginButton.textContent = 'สำเร็จ! กำลังเปลี่ยนหน้า...';
+                        
+                        if (result.user.role === 'Admin') {
+                            window.top.location.href = webAppUrl + '?page=admindashboard';
+                        } else {
+                            window.top.location.href = webAppUrl + '?page=dashboard';
+                        }
+                    } else {
+                        const errorMessageDiv = document.getElementById('error-message');
+                        errorMessageDiv.textContent = result.message;
+                        errorMessageDiv.style.display = 'block';
+                    }
+                })
+                .withFailureHandler(error => {
+                    const errorMessageDiv = document.getElementById('error-message');
+                    errorMessageDiv.textContent = 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message;
+                    errorMessageDiv.style.display = 'block';
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'เข้าสู่ระบบ';
+                })
                 .validateLogin(credentials);
         });
-
-        function onLoginSuccess(result) {
-            const loginButton = document.getElementById('loginButton');
-            if (result.success) {
-                const email = document.getElementById('email').value;
-                sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
-                sessionStorage.setItem('userEmail', email);
-                loginButton.textContent = 'สำเร็จ! กำลังเปลี่ยนหน้า...';
-                
-                // --- ส่วนที่แก้ไข: จัดการการเปลี่ยนหน้าตามบทบาท ---
-                if (result.user.role === 'Admin') {
-                    window.top.location.href = webAppUrl + '?page=admindashboard';
-                } else {
-                    window.top.location.href = webAppUrl + '?page=dashboard';
-                }
-                // --- จบส่วนที่แก้ไข ---
-            } else {
-                const errorMessageDiv = document.getElementById('error-message');
-                errorMessageDiv.textContent = result.message;
-                errorMessageDiv.style.display = 'block';
-                loginButton.disabled = false;
-                loginButton.textContent = 'เข้าสู่ระบบ';
-            }
-        }
-
-        function onLoginFailure(error) {
-                const errorMessageDiv = document.getElementById('error-message');
-                errorMessageDiv.textContent = 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message;
-                errorMessageDiv.style.display = 'block';
-                loginButton.disabled = false;
-                loginButton.textContent = 'เข้าสู่ระบบ';
-            }
 
         document.addEventListener('DOMContentLoaded', function() {
             const registerLink = document.getElementById('registerLink');
@@ -109,6 +103,6 @@
                 forgotPasswordLink.href = url + '?page=forgotpassword';
             }).getWebAppUrl();
         });
-    </script>
+</script>
 </body>
 </html>
