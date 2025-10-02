@@ -74,12 +74,13 @@
                 sessionStorage.setItem('userEmail', email);
                 loginButton.textContent = 'สำเร็จ! กำลังเปลี่ยนหน้า...';
                 
-                // ใช้ URL ที่เก็บไว้แล้ว ไม่ต้องเรียก google.script.run ซ้ำ
+                // --- ส่วนที่แก้ไข: จัดการการเปลี่ยนหน้าตามบทบาท ---
                 if (result.user.role === 'Admin') {
                     window.top.location.href = webAppUrl + '?page=admindashboard';
                 } else {
                     window.top.location.href = webAppUrl + '?page=dashboard';
                 }
+                // --- จบส่วนที่แก้ไข ---
             } else {
                 const errorMessageDiv = document.getElementById('error-message');
                 errorMessageDiv.textContent = result.message;
