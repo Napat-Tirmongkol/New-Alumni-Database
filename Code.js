@@ -8,15 +8,15 @@ const EVIDENCE_FOLDER_ID = "1JZBj33PHAtRcPsMi_URIB0s9Y4VDPFeI";
 const DONATION_SLIPS_FOLDER_ID = "1okFXJVYbVAwrQviGcStjEsElsGuFOknK";
 
 const COLS_DB = {
-  USER_ID: 1, EMAIL: 2, PASSWORD: 3, ROLE: 4,REG_DATE: 5, LAST_LOGIN: 6, IS_ACTIVE: 7, RESET_TOKEN: 8, TOKEN_EXPIRY: 9
+  USER_ID: 1, EMAIL: 2, PASSWORD: 3, ROLE: 4, FIRST_NAME: 5, LAST_NAME: 6,
+  REG_DATE: 7, LAST_LOGIN: 8, IS_ACTIVE: 9, RESET_TOKEN: 10, TOKEN_EXPIRY: 11
 };
 const COLS_PROFILE = {
   USER_ID: 1, EMAIL: 2, PICTURE_ID: 3, PREFIX: 4, STUDENT_ID: 5, FNAME_TH: 6, LNAME_TH: 7,
   FNAME_EN: 8, LNAME_EN: 9, GRAD_CLASS: 10, ADVISOR: 11, DOB: 12, GENDER: 13,
-  BIRTH_COUNTRY: 14, NATIONALITY: 15, RACE: 16, PHONE: 17, GPAX: 18, ADDRESS: 19,
-  EMERGENCY_NAME: 20, EMERGENCY_RELATION: 21, EMERGENCY_PHONE: 22, AWARDS: 23,
-  FUTURE_PLAN: 24, EDUCATION_PLAN: 25, INTERNATIONAL_PLAN: 26, THAI_LICENSE: 27,
-  EMPLOYMENT_STATUS: 28
+  BIRTH_COUNTRY: 14, NATIONALITY: 15, RACE: 16, PHONE: 17, GPAX: 18, EMPLOYMENT_STATUS: 19,
+  ADDRESS: 20, EMERGENCY_NAME: 21, EMERGENCY_RELATION: 22, EMERGENCY_PHONE: 23, AWARDS: 24,
+  FUTURE_PLAN: 25, EDUCATION_PLAN: 26, INTERNATIONAL_PLAN: 27, THAI_LICENSE: 28
 };
 
 // =================================================================
@@ -104,17 +104,42 @@ function validateLogin(credentials) {
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     if (!sheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
-    const data = sheet.getRange(2, 1, sheet.getLastRow(), COLS_DB.IS_ACTIVE).getValues();
+
+    // ดึงข้อมูลตามโครงสร้างชีตใหม่
+    const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+
     for (let i = 0; i < data.length; i++) {
       const rowData = data[i];
-      const email = rowData[COLS_DB.EMAIL - 1];
-      const password = String(rowData[COLS_DB.PASSWORD - 1]);
-      const isActive = rowData[COLS_DB.IS_ACTIVE - 1];
+      // ตรวจสอบเพื่อป้องกันการเข้าถึงแถวว่างเปล่า
+      if (!rowData || rowData.length < 4) {
+        continue;
+      }
+      const email = rowData[1]; // คอลัมน์ B
+      const password = String(rowData[2]); // คอลัมน์ C
+      const role = rowData[3]; // คอลัมน์ D
+      const isActive = rowData[6]; // คอลัมน์ G
+
       if (email === credentials.email && password === credentials.password) {
         if (isActive === false) { return { success: false, message: 'บัญชีของคุณถูกระงับการใช้งาน' }; }
+
         const userRow = i + 2;
-        sheet.getRange(userRow, COLS_DB.LAST_LOGIN).setValue(new Date());
-        const user = {firstName:rowData[COLS_DB.FIRST_NAME-1],lastName:rowData[COLS_DB.LAST_NAME-1],role:rowData[COLS_DB.ROLE-1]};
+        sheet.getRange(userRow, 6).setValue(new Date()); // อัปเดต LastLogin ในคอลัมน์ F
+
+        // ดึงชื่อ-นามสกุลจากชีต User_Profiles แทน
+        const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+        const profileData = profileSheet.getRange(2, 1, profileSheet.getLastRow() - 1, profileSheet.getLastColumn()).getValues();
+        const profileRow = profileData.find(row => row[1] === email);
+
+        if (!profileRow) {
+          throw new Error("ไม่พบข้อมูลโปรไฟล์สำหรับผู้ใช้นี้");
+        }
+
+        const user = {
+          firstName: profileRow[5], // Index 5 คือ FirstNameTH ในชีต User_Profiles
+          lastName: profileRow[6],  // Index 6 คือ LastNameTH ในชีต User_Profiles
+          role: role
+        };
+
         return { success: true, user: user }; 
       }
     }
@@ -130,19 +155,45 @@ function registerUser(userData) {
     if (!dbSheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
     const emails = dbSheet.getRange(2, COLS_DB.EMAIL, dbSheet.getLastRow(), 1).getValues().flat();
     if (emails.includes(userData.email)) { return { success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' }; }
+    
     const newUserId = "UID-" + new Date().getTime();
-    const newUserDbRow = [newUserId,userData.email,userData.password,userData.userType,userData.firstName,userData.lastName,new Date(),null,true,null,null];
+
+    // สร้างแถวข้อมูลสำหรับชีต User_Database
+    const newUserDbRow = [
+      newUserId, 
+      userData.email, 
+      userData.password, 
+      userData.userType,
+      new Date(), // RegistrationDate
+      null,      // LastLogin
+      true,      // IsActive
+      null,      // ResetToken
+      null       // TokenExpiry
+    ];
     dbSheet.appendRow(newUserDbRow);
+
+    // สร้างแถวข้อมูลสำหรับชีต User_Profiles
     const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (profileSheet) {
-      const newUserProfileRow = [newUserId,userData.email,'','',userData.firstName,userData.lastName];
+      const newUserProfileRow = [
+        newUserId,
+        userData.email,
+        '', // ProfilePictureID
+        '', // Prefix (จาก Register.html ไม่มีฟิลด์นี้)
+        '', // StudentID (จาก Register.html ไม่มีฟิลด์นี้)
+        userData.firstName, // FirstNameTH
+        userData.lastName,  // LastNameTH
+      ];
       profileSheet.appendRow(newUserProfileRow);
     }
+    
+    // สร้างแถวข้อมูลสำหรับชีต License_Exam_Records
     const licenseSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (licenseSheet) {
       const newLicenseRow = [newUserId, userData.email];
       licenseSheet.appendRow(newLicenseRow);
     }
+    
     return { success: true, message: 'สมัครสมาชิกสำเร็จ!' };
   } catch(error) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + error.message };
@@ -153,14 +204,24 @@ function processForgotPassword(email) {
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     if (!sheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
-    const data = sheet.getRange(2, 1, sheet.getLastRow(), COLS_DB.EMAIL).getValues();
-    let userRow = -1;
-    for (let i = 0; i < data.length; i++) {
-      if (data[i][COLS_DB.EMAIL - 1] === email) {
-        userRow = i + 2;
-        break;
-      }
-    }
+    const data = sheet.getRange(2, 1, sheet.getLastRow(), COLS_DB.IS_ACTIVE).getValues();
+for (let i = 0; i < data.length; i++) {
+  const rowData = data[i];
+  // เพิ่มการตรวจสอบความยาวของแถวข้อมูล
+  if (rowData.length < COLS_DB.FIRST_NAME) {
+    continue; // ถ้าแถวสั้นเกินไป (เป็นแถวเปล่า) ให้ข้ามไป
+  }
+  const email = rowData[COLS_DB.EMAIL - 1];
+  const password = String(rowData[COLS_DB.PASSWORD - 1]);
+  const isActive = rowData[COLS_DB.IS_ACTIVE - 1];
+  if (email === credentials.email && password === credentials.password) {
+    if (isActive === false) { return { success: false, message: 'บัญชีของคุณถูกระงับการใช้งาน' }; }
+    const userRow = i + 2;
+    sheet.getRange(userRow, COLS_DB.LAST_LOGIN).setValue(new Date());
+    const user = {firstName:rowData[COLS_DB.FIRST_NAME-1],lastName:rowData[COLS_DB.LAST_NAME-1],role:rowData[COLS_DB.ROLE-1]};
+    return { success: true, user: user }; 
+  }
+}
     if (userRow === -1) { return { success: false, message: 'ไม่พบอีเมลนี้ในระบบ' }; }
     const token = Utilities.getUuid();
     const expiryDate = new Date(new Date().getTime() + 15 * 60 * 1000);
@@ -250,21 +311,34 @@ function updateUserRole(email) {
 // =================================================================
 // ส่วนที่ 5: ฟังก์ชันเกี่ยวกับข้อมูลโปรไฟล์ผู้ใช้ (USER PROFILE)
 // =================================================================
+function getProfilePageAndData(email) {
+  const html = include('Profile.html');
+  const profileData = getUserProfile(email);
+  return { html: html, profileData: profileData };
+}
+
+// และแก้ไขฟังก์ชัน getUserProfile ให้เป็นแบบนี้
 function getUserProfile(email) {
-  if (!email) return null;
+  if (!email) {
+    return null;
+  }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
-    if (!sheet || sheet.getLastRow() < 2) return null;
+    if (!sheet || sheet.getLastRow() < 2) {
+      return null;
+    }
     const data = sheet.getDataRange().getValues();
     const headers = data.shift();
+
     for (const row of data) {
-      if (row[COLS_PROFILE.EMAIL - 1] === email) {
+      const sheetEmail = row[COLS_PROFILE.EMAIL - 1] ? String(row[COLS_PROFILE.EMAIL - 1]).trim() : '';
+      if (sheetEmail === email.trim()) {
         const profile = {};
         headers.forEach((header, index) => {
           profile[header] = (row[index] instanceof Date) ? row[index].toISOString() : row[index];
         });
         if (profile.ProfilePictureID) {
-          profile.profilePictureUrl = `https://lh3.googleusercontent.com/d/${profile.ProfilePictureID}`;
+          profile.profilePictureUrl = `https://lh3.googleusercontent.com/u/0/d/${profile.ProfilePictureID}`;
         }
         return profile;
       }
@@ -536,48 +610,71 @@ function addExamYear(year) {
 }
 
 /**
- * ฟังก์ชันที่แก้ไขใหม่: รวมการค้นหาและดึงข้อมูลผู้ใช้ทั้งหมด พร้อมรองรับการแบ่งหน้า
+ * ฟังก์ชันที่แก้ไข: ดึงข้อมูลผู้ใช้จากทั้งสองชีต (User_Database และ User_Profiles)
  * @param {number} pageNumber - หมายเลขหน้าที่ต้องการ (เริ่มต้นที่ 1)
  * @param {string} searchText - คำที่ใช้ค้นหา (ถ้ามี)
  * @returns {object} อ็อบเจกต์ที่ประกอบด้วย { users: [...], totalUsers: ... }
  */
 function getUsers(pageNumber = 1, searchText = '') {
-  const PAGE_SIZE = 10; // กำหนดจำนวนผู้ใช้ต่อหน้า
+  const PAGE_SIZE = 10;
   try {
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
-    if (!sheet || sheet.getLastRow() < 2) return { users: [], totalUsers: 0 };
+    const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+    const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
 
-    const allData = sheet.getRange(2, 1, sheet.getLastRow() - 1, COLS_DB.LAST_NAME).getValues();
-    let filteredResults = [];
-    const lowerCaseSearch = searchText.toLowerCase().trim();
-
-    // ส่วนของการกรองข้อมูล (ค้นหา)
-    if (lowerCaseSearch) {
-      filteredResults = allData.filter(row => {
-        const firstName = row[COLS_DB.FIRST_NAME - 1].toLowerCase();
-        const lastName = row[COLS_DB.LAST_NAME - 1].toLowerCase();
-        const email = row[COLS_DB.EMAIL - 1].toLowerCase();
-        return firstName.includes(lowerCaseSearch) || lastName.includes(lowerCaseSearch) || email.includes(lowerCaseSearch);
-      });
-    } else {
-      filteredResults = allData;
+    if (!dbSheet || dbSheet.getLastRow() < 2 || !profileSheet || profileSheet.getLastRow() < 2) {
+      return { users: [], totalUsers: 0 };
     }
 
-    // แปลงข้อมูลให้อยู่ในรูปแบบ object
-    const mappedResults = filteredResults.map(row => ({
-      userId: row[COLS_DB.USER_ID - 1],
-      firstName: row[COLS_DB.FIRST_NAME - 1],
-      lastName: row[COLS_DB.LAST_NAME - 1],
-      email: row[COLS_DB.EMAIL - 1],
-      role: row[COLS_DB.ROLE - 1]
-    }));
+    // ดึงข้อมูลทั้งหมดจาก User_Database
+    const dbData = dbSheet.getDataRange().getValues();
+    const dbHeaders = dbData.shift();
+    const dbEmailIndex = dbHeaders.indexOf('Email');
+    const dbRoleIndex = dbHeaders.indexOf('Role');
 
-    // เรียงตามชื่อ A-Z
-    mappedResults.sort((a, b) => a.firstName.localeCompare(b.firstName));
+    // ดึงข้อมูลโปรไฟล์จาก User_Profiles
+    const profileData = profileSheet.getDataRange().getValues();
+    const profileHeaders = profileData.shift();
+    const profileEmailIndex = profileHeaders.indexOf('Email');
+    const profileFnameIndex = profileHeaders.indexOf('FirstNameTH');
+    const profileLnameIndex = profileHeaders.indexOf('LastNameTH');
     
-    const totalUsers = mappedResults.length;
+    if (dbEmailIndex === -1 || dbRoleIndex === -1 || profileEmailIndex === -1 || profileFnameIndex === -1 || profileLnameIndex === -1) {
+      Logger.log('Required headers not found in sheets.');
+      return { users: [], totalUsers: 0 };
+    }
+
+    const allUsers = [];
+    dbData.forEach(dbRow => {
+      const email = dbRow[dbEmailIndex];
+      if (email) {
+        const profileRow = profileData.find(pRow => pRow[profileEmailIndex] === email);
+        const firstName = profileRow ? profileRow[profileFnameIndex] : 'N/A';
+        const lastName = profileRow ? profileRow[profileLnameIndex] : 'N/A';
+
+        allUsers.push({
+          email: email,
+          role: dbRow[dbRoleIndex],
+          firstName: firstName,
+          lastName: lastName
+        });
+      }
+    });
+
+    let filteredUsers = allUsers;
+    const lowerCaseSearch = searchText.toLowerCase().trim();
+    if (lowerCaseSearch) {
+      filteredUsers = allUsers.filter(user =>
+        user.firstName.toLowerCase().includes(lowerCaseSearch) ||
+        user.lastName.toLowerCase().includes(lowerCaseSearch) ||
+        user.email.toLowerCase().includes(lowerCaseSearch)
+      );
+    }
+
+    filteredUsers.sort((a, b) => a.firstName.localeCompare(b.firstName));
+
+    const totalUsers = filteredUsers.length;
     const startIndex = (pageNumber - 1) * PAGE_SIZE;
-    const paginatedUsers = mappedResults.slice(startIndex, startIndex + PAGE_SIZE);
+    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + PAGE_SIZE);
 
     return { users: paginatedUsers, totalUsers: totalUsers };
   } catch(e) {

@@ -62,7 +62,7 @@
             const credentials = { email: this.email.value, password: this.password.value };
             google.script.run
                 .withSuccessHandler(onLoginSuccess)
-                .withFailureHandler(onLoginFailure)
+                .withFailureHandler(onLoginFailure) // <--- เพิ่มบรรทัดนี้
                 .validateLogin(credentials);
         });
 
@@ -90,13 +90,13 @@
         }
 
         function onLoginFailure(error) {
-            const errorMessageDiv = document.getElementById('error-message');
-            errorMessageDiv.textContent = 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message;
-            errorMessageDiv.style.display = 'block';
-            const loginButton = document.getElementById('loginButton');
-            loginButton.disabled = false;
-            loginButton.textContent = 'เข้าสู่ระบบ';
-        }
+                const errorMessageDiv = document.getElementById('error-message');
+                errorMessageDiv.textContent = 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message;
+                errorMessageDiv.style.display = 'block';
+                const loginButton = document.getElementById('loginButton');
+                loginButton.disabled = false;
+                loginButton.textContent = 'เข้าสู่ระบบ';
+            }
 
         document.addEventListener('DOMContentLoaded', function() {
             const registerLink = document.getElementById('registerLink');
