@@ -432,8 +432,9 @@
         </div>
       </div>
     </div>
+
     <script>
-      document
+    document
         .getElementById("slipFile")
         .addEventListener("change", function (event) {
           const file = event.target.files[0];
@@ -457,20 +458,29 @@
             }
           }
         });
-      document
+
+    document
         .getElementById("donationForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
           const submitBtn = document.getElementById("submitBtn");
-          submitBtn.disabled = true;
-          submitBtn.textContent = "กำลังส่งข้อมูล...";
+          
           const file = document.getElementById("slipFile").files[0];
           if (!file) {
-            alert("กรุณาอัปโหลดสลิปการโอนเงิน");
-            submitBtn.disabled = false;
-            submitBtn.textContent = "ยืนยันการบริจาค";
+            // --- SweetAlert2 Warning ---
+            Swal.fire('โปรดทราบ', 'กรุณาอัปโหลดสลิปการโอนเงิน', 'warning');
             return;
           }
+          
+          submitBtn.disabled = true;
+          // --- SweetAlert2 Loading ---
+           Swal.fire({
+                title: 'กำลังส่งข้อมูล...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading() }
+            });
+
           const reader = new FileReader();
           reader.onload = function (event) {
             const fileData = {
@@ -482,7 +492,8 @@
           };
           reader.readAsDataURL(file);
         });
-      function sendDataToServer(fileData) {
+
+    function sendDataToServer(fileData) {
         const userEmail = sessionStorage.getItem("userEmail");
         const donationData = {
           userEmail: userEmail,
@@ -496,21 +507,31 @@
         };
         google.script.run
           .withSuccessHandler(onSaveSuccess)
+          .withFailureHandler(onSaveFailure)
           .saveDonationRecord(donationData);
-      }
-      function onSaveSuccess(result) {
-        alert(result.message);
+    }
+
+    function onSaveSuccess(result) {
         const submitBtn = document.getElementById("submitBtn");
         submitBtn.disabled = false;
-        submitBtn.textContent = "ยืนยันการบริจาค";
+        
         if (result.success) {
-          document.getElementById("donationForm").reset();
-          document.getElementById("uploadArea").classList.remove("hidden");
-          document.getElementById("uploadPreview").classList.add("hidden");
-          document.getElementById("slipPreview").src = "";
-          document.getElementById("fileName").textContent = "";
+            Swal.fire('สำเร็จ!', result.message, 'success');
+            document.getElementById("donationForm").reset();
+            document.getElementById("uploadArea").classList.remove("hidden");
+            document.getElementById("uploadPreview").classList.add("hidden");
+            document.getElementById("slipPreview").src = "";
+            document.getElementById("fileName").textContent = "";
+        } else {
+             Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
         }
-      }
-    </script>
+    }
+    
+    function onSaveFailure(error) {
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = false;
+        Swal.fire('เกิดข้อผิดพลาดร้ายแรง', error.message, 'error');
+    }
+</script>
   </body>
 </html>

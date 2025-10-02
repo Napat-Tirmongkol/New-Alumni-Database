@@ -352,15 +352,38 @@
     }
 
     window.handleDeleteUser = function(email) {
-        if (confirm('คุณต้องการลบผู้ใช้คนนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
-            google.script.run
-                .withSuccessHandler(response => {
-                    alert(response.message);
-                    if (response.success) { fetchUsers(currentPage); }
-                })
-                .withFailureHandler(error => { alert('เกิดข้อผิดพลาด: ' + error.message); })
-                .deleteUser(email);
-        }
+        Swal.fire({
+            title: 'คุณแน่ใจหรือไม่?',
+            text: "ข้อมูลทั้งหมดของผู้ใช้นี้จะถูกลบอย่างถาวร!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'กำลังลบผู้ใช้...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading() }
+                });
+
+                google.script.run
+                    .withSuccessHandler(response => {
+                        if (response.success) {
+                            Swal.fire('ลบสำเร็จ!', response.message, 'success');
+                            fetchUsers(currentPage);
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด', response.message, 'error');
+                        }
+                    })
+                    .withFailureHandler(error => {
+                        Swal.fire('เกิดข้อผิดพลาดร้ายแรง', error.message, 'error');
+                    })
+                    .deleteUser(email);
+            }
+        });
     }
 
     // --- เปลี่ยนชื่อ populateForm เพื่อป้องกันการซ้ำซ้อน ---

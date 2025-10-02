@@ -197,9 +197,8 @@
     </div>
 </div>
 
-
 <script>
-    let currentDonationHistory = []; // ตัวแปรสำหรับเก็บประวัติการบริจาค
+    let currentDonationHistory = []; 
 
     function displayProfileSummary() {
         const userEmail = sessionStorage.getItem('userEmail');
@@ -231,7 +230,7 @@
     }
 
     function populateDonationHistory(history) {
-        currentDonationHistory = history; // เก็บข้อมูลไว้ใช้ตอนแก้ไข
+        currentDonationHistory = history; 
         const container = document.getElementById('donationHistoryContainer');
         const card = document.getElementById('donationHistoryCard');
         if (!container || !card) return;
@@ -242,7 +241,6 @@
                 const date = new Date(record.Timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
                 const amount = Number(record.Amount).toLocaleString('th-TH', { style: 'currency', currency: 'THB' });
                 const statusClass = record.Status === 'Pending Verification' ? 'status-pending' : 'status-verified';
-                // ผู้ใช้จะแก้ไขได้ก็ต่อเมื่อสถานะยังเป็น Pending เท่านั้น
                 const actionButtons = record.Status === 'Pending Verification' ?
                     `<td class="action-buttons">
                         <button class="edit-btn-icon" onclick="openDonationEditModal('${record.DonationID}')" title="แก้ไข"><i class="fas fa-edit"></i></button>
@@ -265,7 +263,6 @@
         }
     }
     
-    // --- ฟังก์ชันใหม่ทั้งหมดสำหรับจัดการ Modal ---
     window.openDonationEditModal = function(donationId) {
         const record = currentDonationHistory.find(r => r.DonationID === donationId);
         if (!record) return;
@@ -290,6 +287,14 @@
         const updateBtn = document.getElementById('updateDonationBtn');
         updateBtn.disabled = true;
         updateBtn.textContent = 'กำลังบันทึก...';
+        
+        // --- SweetAlert2 Loading ---
+        Swal.fire({
+            title: 'กำลังบันทึกข้อมูล...',
+            text: 'กรุณารอสักครู่',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading() }
+        });
 
         const updatedData = {
             DonationID: document.getElementById('editDonationID').value,
@@ -302,25 +307,49 @@
         };
 
         google.script.run.withSuccessHandler(response => {
-            alert(response.message);
             updateBtn.disabled = false;
             updateBtn.textContent = 'บันทึกการเปลี่ยนแปลง';
+            
             if (response.success) {
+                Swal.fire('สำเร็จ!', response.message, 'success');
                 closeDonationEditModal();
-                displayProfileSummary(); // โหลดข้อมูลทั้งหมดใหม่
+                displayProfileSummary(); 
+            } else {
+                Swal.fire('เกิดข้อผิดพลาด', response.message, 'error');
             }
         }).updateDonationRecord(updatedData);
     });
 
     window.handleDeleteDonation = function(donationId) {
-        if (confirm('คุณต้องการลบข้อมูลการบริจาคนี้ใช่หรือไม่?')) {
-            google.script.run.withSuccessHandler(response => {
-                alert(response.message);
-                if (response.success) {
-                    displayProfileSummary(); // โหลดข้อมูลทั้งหมดใหม่
-                }
-            }).deleteDonationRecord(donationId);
-        }
+        // --- SweetAlert2 Confirmation ---
+        Swal.fire({
+            title: 'ยืนยันการลบ',
+            text: "คุณต้องการลบข้อมูลการบริจาคนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // --- SweetAlert2 Loading ---
+                Swal.fire({
+                    title: 'กำลังลบ...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading() }
+                });
+                
+                google.script.run.withSuccessHandler(response => {
+                    if (response.success) {
+                        Swal.fire('ลบสำเร็จ!', response.message, 'success');
+                        displayProfileSummary();
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด', response.message, 'error');
+                    }
+                }).deleteDonationRecord(donationId);
+            }
+        });
     }
 
     displayProfileSummary();
