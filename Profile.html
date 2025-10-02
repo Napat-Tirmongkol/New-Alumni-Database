@@ -139,7 +139,6 @@
             existingPictureId: existingPictureId
         };
         
-        // --- ส่วนที่แก้ไข: เพิ่มการดึงอีเมลมาใส่ในอ็อบเจกต์ profileData ---
         const userEmailForSave = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
         profileData.email = userEmailForSave;
 
@@ -152,11 +151,7 @@
         
         google.script.run
         .withSuccessHandler(function(result) {
-            alert(result); // แสดงข้อความ "บันทึกข้อมูลสำเร็จ!"
-            // --- จุดที่แก้ไข: เรียกใช้ฟังก์ชันปิด Modal ที่อยู่ในหน้าหลัก ---
-            if (result === "บันทึกข้อมูลส่วนตัวสำเร็จ!") {
-                closeModal();
-            }
+            alert(result);
         })
         .withFailureHandler(function(error) {
             alert('เกิดข้อผิดพลาด: ' + error.message);
@@ -215,7 +210,7 @@
         setValue('awards', data.Awards);
         setValue('futurePlan', data.FutureWorkPlan);
         setValue('educationPlan', data.EducationPlan);
-        setValue('internationalPlan', data.InternationalWorkPlan);
+        setValue('internationalPlan', data.InternationalPlan);
 
         const thaiLicenseCheckbox = document.getElementById('willTakeThaiLicense');
         if (thaiLicenseCheckbox) {

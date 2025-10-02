@@ -165,7 +165,11 @@
 
     let currentPage = 1;
     const pageSize = 10;
-    let selectedUserEmail = '';
+    
+    // --- ตัวแปรสำหรับจัดการข้อมูลในฟอร์ม Modal ---
+    let profilePictureBase64 = null;
+    let profilePictureMimeType = null;
+    let existingPictureId = null;
 
     function fetchUsers(page) {
         const searchText = searchInput.value.trim();
@@ -222,87 +226,183 @@
     }
 
     window.openModal = function(email, fullName) {
-        // --- จุดที่แก้ไข: เพิ่มการเก็บ email ลง sessionStorage ---
-        sessionStorage.setItem('selectedUserEmail', email); 
-        
-        selectedUserEmail = email;
+        sessionStorage.setItem('selectedUserEmail', email);
         modalTitle.textContent = `กำลังแก้ไขข้อมูล: ${fullName}`;
         profileFormContainer.innerHTML = '<h3>กำลังโหลดฟอร์ม...</h3>';
         editProfileModal.style.display = 'flex';
+        
         google.script.run.withSuccessHandler(response => {
             profileFormContainer.innerHTML = response.html;
+            
             if (response.profileData) {
-                populateForm(response.profileData);
+                populateAdminModalForm(response.profileData);
             }
+            
+            // เพิ่ม Event Listener ทั้งหมดหลังจากที่โหลดฟอร์มลงในหน้าแล้ว
+            attachFormEventListeners();
+
         }).getProfilePageAndData(email);
+    }
+    
+    // --- ฟังก์ชันใหม่: เพิ่ม Event Listener ให้กับฟอร์มใน Modal ---
+    function attachFormEventListeners() {
+        const pictureUpload = document.getElementById('profilePictureUpload');
+        if(pictureUpload) {
+            pictureUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('avatarPreview').style.backgroundImage = `url('${event.target.result}')`;
+                        const result = event.target.result;
+                        profilePictureMimeType = result.split(';')[0].split(':')[1];
+                        profilePictureBase64 = result.split(',')[1];
+                        existingPictureId = null; // รูปใหม่จะแทนที่รูปเก่าเสมอ
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        const profileForm = document.getElementById('profileForm');
+        if(profileForm) {
+            profileForm.addEventListener('submit', handleProfileFormSubmit);
+        }
+
+        const backButton = document.getElementById('modalBackButton');
+        if(backButton) {
+            backButton.addEventListener('click', closeModal);
+        }
+    }
+
+    // --- ฟังก์ชันใหม่: จัดการการ Submit ฟอร์ม ---
+    function handleProfileFormSubmit(e) {
+        e.preventDefault();
+        const saveButton = document.getElementById('saveButton');
+        saveButton.disabled = true;
+        saveButton.textContent = 'กำลังบันทึก...';
+        
+        try {
+            const profileData = {
+                prefix: document.getElementById('prefix').value,
+                studentId: document.getElementById('studentId').value,
+                firstNameTH: document.getElementById('firstNameTH').value,
+                lastNameTH: document.getElementById('lastNameTH').value,
+                firstNameEN: document.getElementById('firstNameEN').value,
+                lastNameEN: document.getElementById('lastNameEN').value,
+                gradClass: document.getElementById('gradClass').value,
+                advisor: document.getElementById('advisor').value,
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                birthCountry: document.getElementById('birthCountry').value,
+                nationality: document.getElementById('nationality').value,
+                race: document.getElementById('race').value,
+                phone: document.getElementById('phone').value,
+                gpax: document.getElementById('gpax').value,
+                employmentStatus: document.getElementById('employmentStatus').value,
+                address: document.getElementById('address').value,
+                emergencyName: document.getElementById('emergencyName').value,
+                emergencyRelation: document.getElementById('emergencyRelation').value,
+                emergencyPhone: document.getElementById('emergencyPhone').value,
+                awards: document.getElementById('awards').value,
+                futurePlan: document.getElementById('futurePlan').value,
+                educationPlan: document.getElementById('educationPlan').value,
+                internationalPlan: document.getElementById('internationalPlan').value,
+                willTakeThaiLicense: document.getElementById('willTakeThaiLicense').checked,
+                profilePicture: profilePictureBase64,
+                mimeType: profilePictureMimeType,
+                existingPictureId: existingPictureId,
+                email: sessionStorage.getItem('selectedUserEmail')
+            };
+
+            if (!profileData.email) {
+                throw new Error('ไม่สามารถระบุอีเมลผู้ใช้ได้');
+            }
+
+            console.log("กำลังส่งข้อมูลโปรไฟล์:", profileData);
+
+            google.script.run
+            .withSuccessHandler(function(result) {
+                alert(result);
+                closeModal();
+            })
+            .withFailureHandler(function(error) {
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+                console.error('การบันทึกล้มเหลว:', error);
+                saveButton.disabled = false;
+                saveButton.textContent = '💾 บันทึกข้อมูล';
+            })
+            .saveUserProfile(profileData);
+
+        } catch (error) {
+            alert('เกิดข้อผิดพลาดฝั่ง Client: ' + error.message);
+            console.error('Client-side error:', error);
+            saveButton.disabled = false;
+            saveButton.textContent = '💾 บันทึกข้อมูล';
+        }
     }
 
     window.closeModal = function() {
         editProfileModal.style.display = 'none';
-        selectedUserEmail = '';
-        
-        // --- จุดที่แก้ไข: ลบ email ออกจาก sessionStorage เมื่อปิด Modal ---
         sessionStorage.removeItem('selectedUserEmail');
-        
-        fetchUsers(currentPage); // รีโหลดตารางเมื่อปิด Modal
-    }
-
-   window.handleDeleteUser = function(email) {
-    if (confirm('คุณต้องการลบผู้ใช้คนนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
-        google.script.run
-            .withSuccessHandler(response => {
-                alert(response.message);
-                if (response.success) {
-                    fetchUsers(currentPage);
-                }
-            })
-            .withFailureHandler(error => {
-                alert('เกิดข้อผิดพลาด: ' + error.message);
-            })
-            .deleteUser(email);
-    }
-}
-
-    // Event Listeners
-    searchBtn.addEventListener('click', () => {
-        currentPage = 1;
+        profilePictureBase64 = null;
+        profilePictureMimeType = null;
+        existingPictureId = null;
         fetchUsers(currentPage);
-    });
-    searchInput.addEventListener('keyup', (event) => {
-        if (event.key === 'Enter') {
-            currentPage = 1;
-            fetchUsers(currentPage);
+    }
+
+    window.handleDeleteUser = function(email) {
+        if (confirm('คุณต้องการลบผู้ใช้คนนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
+            google.script.run
+                .withSuccessHandler(response => {
+                    alert(response.message);
+                    if (response.success) { fetchUsers(currentPage); }
+                })
+                .withFailureHandler(error => { alert('เกิดข้อผิดพลาด: ' + error.message); })
+                .deleteUser(email);
         }
-    });
+    }
 
-    // Initial load
-    fetchUsers(1);
-
-    // ฟังก์ชัน populateForm ที่ถูกย้ายมาอยู่ที่นี่เพื่อให้ Modal เข้าถึงได้
-    function populateForm(data) {
-        if (!data) {
-            document.getElementById('email').value = selectedUserEmail || '';
-            return;
-        };
+    // --- เปลี่ยนชื่อ populateForm เพื่อป้องกันการซ้ำซ้อน ---
+    function populateAdminModalForm(data) {
+        if (!data) return;
+        
         const setValue = (id, value) => {
             const element = document.getElementById(id);
             if (element) {
-                element.value = value || '';
+                if (id === 'dob' && value) {
+                    try { element.value = new Date(value).toISOString().split('T')[0]; } catch (e) {}
+                } else {
+                    element.value = value || '';
+                }
             }
         };
-        setValue('prefix', data.Prefix); setValue('studentId', data.StudentID); setValue('firstNameTH', data.FirstNameTH); setValue('lastNameTH', data.LastNameTH);
-        setValue('firstNameEN', data.FirstNameEN); setValue('lastNameEN', data.LastNameEN); setValue('gradClass', data.GraduationClass); setValue('advisor', data.Advisor);
-        if (data.DateOfBirth) { try { setValue('dob', new Date(data.DateOfBirth).toISOString().split('T')[0]); } catch (e) {} }
-        setValue('gender', data.Gender); setValue('birthCountry', data.BirthCountry); setValue('nationality', data.Nationality); setValue('race', data.Race);
-        setValue('email', data.Email); setValue('phone', data.PhoneNumber); setValue('gpax', data.GPAX); setValue('employmentStatus', data.EmploymentStatus);
-        setValue('address', data.CurrentAddress); setValue('emergencyName', data.EmergencyContactName); setValue('emergencyRelation', data.EmergencyContactRelation);
+        
+        setValue('prefix', data.Prefix); setValue('studentId', data.StudentID); setValue('firstNameTH', data.FirstNameTH);
+        setValue('lastNameTH', data.LastNameTH); setValue('firstNameEN', data.FirstNameEN); setValue('lastNameEN', data.LastNameEN);
+        setValue('gradClass', data.GraduationClass); setValue('advisor', data.Advisor); setValue('dob', data.DateOfBirth);
+        setValue('gender', data.Gender); setValue('birthCountry', data.BirthCountry); setValue('nationality', data.Nationality);
+        setValue('race', data.Race); setValue('email', data.Email); setValue('phone', data.PhoneNumber);
+        setValue('gpax', data.GPAX); setValue('employmentStatus', data.EmploymentStatus); setValue('address', data.CurrentAddress);
+        setValue('emergencyName', data.EmergencyContactName); setValue('emergencyRelation', data.EmergencyContactRelation);
         setValue('emergencyPhone', data.EmergencyContactPhone); setValue('awards', data.Awards); setValue('futurePlan', data.FutureWorkPlan);
         setValue('educationPlan', data.EducationPlan); setValue('internationalPlan', data.InternationalWorkPlan);
+
         const thaiLicenseCheckbox = document.getElementById('willTakeThaiLicense');
         if (thaiLicenseCheckbox) { thaiLicenseCheckbox.checked = data.WillTakeThaiLicense === true; }
+        
         if (data.profilePictureUrl) {
             document.getElementById('avatarPreview').style.backgroundImage = `url('${data.profilePictureUrl}')`;
             existingPictureId = data.ProfilePictureID;
+        } else {
+            existingPictureId = null;
         }
     }
+
+    // Event Listeners
+    searchBtn.addEventListener('click', () => { currentPage = 1; fetchUsers(currentPage); });
+    searchInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') { currentPage = 1; fetchUsers(currentPage); } });
+
+    // Initial load
+    fetchUsers(1);
 </script>
