@@ -640,20 +640,22 @@ function getUsers(page = 1, searchText = '') {
         const profileData = profileSheet.getRange(2, 1, profileSheet.getLastRow() - 1, profileSheet.getLastColumn()).getValues();
 
         const usersWithProfile = dbData.map(dbRow => {
-            const profileRow = profileData.find(pRow => pRow[COLS_PROFILE.USER_ID - 1] === dbRow[COLS_DB.USER_ID - 1]);
+            const userEmail = dbRow[COLS_DB.EMAIL - 1];
+            const profileRow = profileData.find(pRow => pRow[COLS_PROFILE.EMAIL - 1] === userEmail);
+            
             const profile = profileRow ? {
-                firstName: profileRow[COLS_PROFILE.FIRST_NAME_TH - 1],
-                lastName: profileRow[COLS_PROFILE.LAST_NAME_TH - 1],
+                firstName: profileRow[COLS_PROFILE.FNAME_TH - 1],
+                lastName: profileRow[COLS_PROFILE.LNAME_TH - 1],
                 email: profileRow[COLS_PROFILE.EMAIL - 1]
             } : {
                 firstName: '',
                 lastName: '',
-                email: dbRow[COLS_DB.EMAIL - 1]
+                email: userEmail
             };
 
             return {
                 id: dbRow[COLS_DB.USER_ID - 1],
-                email: dbRow[COLS_DB.EMAIL - 1],
+                email: userEmail,
                 role: dbRow[COLS_DB.ROLE - 1],
                 firstName: profile.firstName,
                 lastName: profile.lastName,
