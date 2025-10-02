@@ -623,77 +623,79 @@ function addExamYear(year) {
 }
 
 /**
- * ฟังก์ชันที่แก้ไข: ดึงข้อมูลผู้ใช้จากทั้งสองชีต (User_Database และ User_Profiles)
- * @param {number} pageNumber - หมายเลขหน้าที่ต้องการ (เริ่มต้นที่ 1)
- * @param {string} searchText - คำที่ใช้ค้นหา (ถ้ามี)
- * @returns {object} อ็อบเจกต์ที่ประกอบด้วย { users: [...], totalUsers: ... }
+ * Retrieves a list of users for the admin dashboard with pagination and search.
+ * @param {number} page The page number to retrieve.
+ * @param {string} searchText The text to search for.
+ * @return {object} An object containing the list of users and the total count.
  */
-function getUsers(pageNumber = 1, searchText = '') {
-  const PAGE_SIZE = 10;
-  try {
-    const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
-    const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+function getUsers(page = 1, searchText = '') {
+    try {
+        const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+        if (!dbSheet) throw new Error("ไม่พบชีต 'User_Database'");
 
-    if (!dbSheet || dbSheet.getLastRow() < 2 || !profileSheet || profileSheet.getLastRow() < 2) {
-      return { users: [], totalUsers: 0 };
-    }
+        const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+        if (!profileSheet) throw new Error("ไม่พบชีต 'User_Profiles'");
 
-    // ดึงข้อมูลทั้งหมดจาก User_Database
-    const dbData = dbSheet.getDataRange().getValues();
-    const dbHeaders = dbData.shift();
-    const dbEmailIndex = dbHeaders.indexOf('Email');
-    const dbRoleIndex = dbHeaders.indexOf('Role');
+        const dbData = dbSheet.getRange(2, 1, dbSheet.getLastRow() - 1, dbSheet.getLastColumn()).getValues();
+        const profileData = profileSheet.getRange(2, 1, profileSheet.getLastRow() - 1, profileSheet.getLastColumn()).getValues();
 
-    // ดึงข้อมูลโปรไฟล์จาก User_Profiles
-    const profileData = profileSheet.getDataRange().getValues();
-    const profileHeaders = profileData.shift();
-    const profileEmailIndex = profileHeaders.indexOf('Email');
-    const profileFnameIndex = profileHeaders.indexOf('FirstNameTH');
-    const profileLnameIndex = profileHeaders.indexOf('LastNameTH');
-    
-    if (dbEmailIndex === -1 || dbRoleIndex === -1 || profileEmailIndex === -1 || profileFnameIndex === -1 || profileLnameIndex === -1) {
-      Logger.log('Required headers not found in sheets.');
-      return { users: [], totalUsers: 0 };
-    }
+        const usersWithProfile = dbData.map(dbRow => {
+            const profileRow = profileData.find(pRow => pRow[COLS_PROFILE.USER_ID - 1] === dbRow[COLS_DB.USER_ID - 1]);
+            const profile = profileRow ? {
+                firstName: profileRow[COLS_PROFILE.FIRST_NAME_TH - 1],
+                lastName: profileRow[COLS_PROFILE.LAST_NAME_TH - 1],
+                email: profileRow[COLS_PROFILE.EMAIL - 1]
+            } : {
+                firstName: '',
+                lastName: '',
+                email: dbRow[COLS_DB.EMAIL - 1]
+            };
 
-    const allUsers = [];
-    dbData.forEach(dbRow => {
-      const email = dbRow[dbEmailIndex];
-      if (email) {
-        const profileRow = profileData.find(pRow => pRow[profileEmailIndex] === email);
-        const firstName = profileRow ? profileRow[profileFnameIndex] : 'N/A';
-        const lastName = profileRow ? profileRow[profileLnameIndex] : 'N/A';
-
-        allUsers.push({
-          email: email,
-          role: dbRow[dbRoleIndex],
-          firstName: firstName,
-          lastName: lastName
+            return {
+                id: dbRow[COLS_DB.USER_ID - 1],
+                email: dbRow[COLS_DB.EMAIL - 1],
+                role: dbRow[COLS_DB.ROLE - 1],
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+            };
         });
-      }
-    });
 
-    let filteredUsers = allUsers;
-    const lowerCaseSearch = searchText.toLowerCase().trim();
-    if (lowerCaseSearch) {
-      filteredUsers = allUsers.filter(user =>
-        user.firstName.toLowerCase().includes(lowerCaseSearch) ||
-        user.lastName.toLowerCase().includes(lowerCaseSearch) ||
-        user.email.toLowerCase().includes(lowerCaseSearch)
-      );
+        const filteredUsers = searchText
+            ? usersWithProfile.filter(user =>
+                user.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchText.toLowerCase())
+            )
+            : usersWithProfile;
+
+        const pageSize = 10;
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        const paginatedUsers = filteredUsers.slice(start, end);
+
+        return {
+            users: paginatedUsers,
+            totalUsers: filteredUsers.length
+        };
+    } catch (e) {
+        Logger.log("Error in getUsers: " + e.message);
+        return { users: [], totalUsers: 0 };
     }
+}
 
-    filteredUsers.sort((a, b) => a.firstName.localeCompare(b.firstName));
-
-    const totalUsers = filteredUsers.length;
-    const startIndex = (pageNumber - 1) * PAGE_SIZE;
-    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + PAGE_SIZE);
-
-    return { users: paginatedUsers, totalUsers: totalUsers };
-  } catch(e) {
-    Logger.log("Error in getUsers: " + e.message);
-    return { users: [], totalUsers: 0 };
-  }
+/**
+ * Fetches the Profile.html template and a specific user's profile data.
+ * @param {string} email The email of the user to fetch.
+ * @return {object} An object with the HTML template and the user's profile data.
+ */
+function getProfilePageAndData(email) {
+    const htmlTemplate = HtmlService.createTemplateFromFile('Profile');
+    const profileData = getUserProfile(email);
+    
+    return {
+        html: htmlTemplate.evaluate().getContent(),
+        profileData: profileData
+    };
 }
 
 /**

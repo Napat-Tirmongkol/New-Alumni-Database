@@ -1,115 +1,263 @@
 <style>
-    .search-container { padding: 1rem; background-color: white; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .search-bar { display: flex; gap: 10px; }
-    .search-bar input { flex-grow: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
-    .search-bar button { padding: 10px 20px; font-size: 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    #resultsContainer { margin-top: 1rem; }
-    .user-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #f9fafb; border-radius: 4px; margin-bottom: 5px; }
-    .user-item button { background-color: #16a34a; color: white; border:none; padding: 5px 10px; border-radius: 4px; cursor: pointer;}
-    #editorContainer { margin-top: 1.5rem; border-top: 2px solid #ddd; padding-top: 1.5rem; }
-    .editor-section { margin-bottom: 2rem; }
+    /* New styles for the user management table */
+    .user-table-card {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    }
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .user-table th, .user-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.875rem;
+    }
+    .user-table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+        color: #4b5563;
+    }
+    .user-table td {
+        color: #374151;
+    }
+    .user-table-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .user-table-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        color: #3b82f6;
+    }
+    .user-table-actions .delete-btn {
+        color: #ef4444;
+    }
+    .search-container {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .search-container input {
+        flex-grow: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .search-container button {
+        padding: 10px 20px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .pagination-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        font-size: 0.875rem;
+    }
+    .pagination-controls button {
+        background-color: #e5e7eb;
+        border: 1px solid #d1d5db;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .pagination-controls button:disabled {
+        background-color: #f3f4f6;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
     
-    .pagination-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; font-size: 0.875rem; }
-    .pagination-controls button { background-color: #e5e7eb; border: 1px solid #d1d5db; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-    .pagination-controls button:disabled { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+    /* Modal styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        max-width: 90%;
+        width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    .close-modal-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
 </style>
 
-<div class="search-container">
-    <h2>จัดการข้อมูลผู้ใช้</h2>
-    <div class="search-bar">
+<div class="user-table-card">
+    <h2 style="margin-top:0;">จัดการข้อมูลผู้ใช้</h2>
+    <div class="search-container">
         <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ, นามสกุล, หรืออีเมลเพื่อค้นหา...">
         <button id="searchBtn">ค้นหา</button>
     </div>
-    <div id="resultsContainer"><p>กำลังโหลดรายชื่อผู้ใช้...</p></div>
+
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>ชื่อ-นามสกุล</th>
+                <th>อีเมล</th>
+                <th>บทบาท</th>
+                <th>จัดการ</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <tr><td colspan="4" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>
+        </tbody>
+    </table>
+
     <div id="paginationContainer"></div>
 </div>
 
-<div id="editorContainer" style="display: none;">
-    <h2 id="editingUserName" style="text-align: center; margin-bottom: 1rem;"></h2>
-    <div id="profileEditor" class="editor-section"></div>
-    <hr style="margin: 2rem 0;">
-    <div id="licenseEditor" class="editor-section"></div>
+<div id="editProfileModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">กำลังแก้ไข...</h3>
+            <button class="close-modal-btn" onclick="closeModal()">×</button>
+        </div>
+        <div id="profileFormContainer"></div>
+    </div>
 </div>
 
 <script>
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
-    const resultsContainer = document.getElementById('resultsContainer');
+    const userTableBody = document.getElementById('userTableBody');
     const paginationContainer = document.getElementById('paginationContainer');
-    const editorContainer = document.getElementById('editorContainer');
+    const editProfileModal = document.getElementById('editProfileModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const profileFormContainer = document.getElementById('profileFormContainer');
 
     let currentPage = 1;
-    let totalUsers = 0;
     const pageSize = 10;
+    let selectedUserEmail = '';
 
-    /**
-     * ฟังก์ชันหลักสำหรับเรียกข้อมูลผู้ใช้จาก Server
-     */
     function fetchUsers(page) {
         const searchText = searchInput.value.trim();
-        resultsContainer.innerHTML = '<p>กำลังโหลดข้อมูล...</p>';
-        paginationContainer.innerHTML = '';
-        editorContainer.style.display = 'none';
-        
+        userTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>';
         google.script.run.withSuccessHandler(displayResults).getUsers(page, searchText);
     }
 
-    /**
-     * ฟังก์ชันสำหรับแสดงผลข้อมูลและสร้างปุ่ม Pagination
-     */
     function displayResults(response) {
-        resultsContainer.innerHTML = '';
+        userTableBody.innerHTML = '';
         const { users, totalUsers: count } = response;
-        totalUsers = count;
-        
         if (users && users.length > 0) {
             users.forEach(user => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-item';
-                userDiv.innerHTML = `
-                    <div><strong>${user.firstName} ${user.lastName}</strong> (${user.role})<br><small>${user.email}</small></div>
-                    <button onclick="loadUserEditor('${user.email}', '${user.firstName} ${user.lastName}')">จัดการข้อมูล</button>
+                const row = `
+                    <tr>
+                        <td>${user.firstName} ${user.lastName}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role}</td>
+                        <td>
+                            <div class="user-table-actions">
+                                <button onclick="openModal('${user.email}', '${user.firstName} ${user.lastName}')" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                                <button onclick="handleDeleteUser('${user.email}')" class="delete-btn" title="ลบ"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
-                resultsContainer.appendChild(userDiv);
+                userTableBody.innerHTML += row;
             });
         } else {
-            resultsContainer.innerHTML = '<p>ไม่พบผู้ใช้งาน</p>';
+            userTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">ไม่พบผู้ใช้งาน</td></tr>';
         }
 
-        const totalPages = Math.ceil(totalUsers / pageSize);
+        const totalPages = Math.ceil(count / pageSize);
+        paginationContainer.innerHTML = '';
         if (totalPages > 1) {
             const startItem = (currentPage - 1) * pageSize + 1;
-            const endItem = Math.min(startItem + pageSize - 1, totalUsers);
+            const endItem = Math.min(startItem + pageSize - 1, count);
             
             paginationContainer.innerHTML = `
                 <div class="pagination-controls">
                     <button id="prevBtn" onclick="changePage(-1)">ก่อนหน้า</button>
-                    <span>แสดง ${startItem} - ${endItem} จาก ${totalUsers}</span>
+                    <span>แสดง ${startItem} - ${endItem} จาก ${count}</span>
                     <button id="nextBtn" onclick="changePage(1)">ถัดไป</button>
                 </div>
             `;
             
             document.getElementById('prevBtn').disabled = currentPage === 1;
             document.getElementById('nextBtn').disabled = currentPage === totalPages;
-        } else {
-             paginationContainer.innerHTML = '';
         }
     }
 
-    /**
-     * ฟังก์ชันสำหรับเปลี่ยนหน้า
-     */
     window.changePage = function(direction) {
         currentPage += direction;
         fetchUsers(currentPage);
     }
 
-    // --- Event Listeners ---
+    window.openModal = function(email, fullName) {
+        selectedUserEmail = email;
+        modalTitle.textContent = `กำลังแก้ไขข้อมูล: ${fullName}`;
+        profileFormContainer.innerHTML = '<h3>กำลังโหลดฟอร์ม...</h3>';
+        editProfileModal.style.display = 'flex';
+        google.script.run.withSuccessHandler(response => {
+            profileFormContainer.innerHTML = response.html;
+            if (response.profileData) {
+                populateForm(response.profileData);
+            }
+        }).getProfilePageAndData(email);
+    }
+
+    window.closeModal = function() {
+        editProfileModal.style.display = 'none';
+        selectedUserEmail = '';
+        fetchUsers(currentPage); // รีโหลดตารางเมื่อปิด Modal
+    }
+
+    window.handleDeleteUser = function(email) {
+        if (confirm('คุณต้องการลบผู้ใช้คนนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
+            // ยังไม่มีฟังก์ชัน deleteUser() ที่สมบูรณ์
+            alert('ฟังก์ชันลบผู้ใช้ยังไม่พร้อมใช้งาน');
+            // google.script.run.withSuccessHandler(response => {
+            //     alert(response.message);
+            //     if (response.success) {
+            //         fetchUsers(currentPage);
+            //     }
+            // }).deleteUser(email);
+        }
+    }
+
+    // Event Listeners
     searchBtn.addEventListener('click', () => {
         currentPage = 1;
         fetchUsers(currentPage);
     });
-
     searchInput.addEventListener('keyup', (event) => {
         if (event.key === 'Enter') {
             currentPage = 1;
@@ -117,79 +265,34 @@
         }
     });
 
-window.loadUserEditor = function(email, fullName) {
-    sessionStorage.setItem('selectedUserEmail', email);
-    editorContainer.style.display = 'block';
-    document.getElementById('editingUserName').textContent = `กำลังจัดการข้อมูล: ${fullName}`;
-    
-    // โค้ดที่แก้ไข: ดึงข้อมูลและ HTML ในครั้งเดียว
-    profileEditor.innerHTML = '<h3>กำลังโหลดฟอร์มโปรไฟล์...</h3>';
-    google.script.run
-        .withSuccessHandler(response => {
-            profileEditor.innerHTML = response.html;
-            // เรียกใช้ populateForm พร้อมข้อมูลที่ได้มา
-            if (response.profileData) {
-                populateForm(response.profileData);
-            }
-        })
-        .getProfilePageAndData(email);
-
-    licenseEditor.innerHTML = '<h3>กำลังโหลดฟอร์มใบประกอบ...</h3>';
-    google.script.run.withSuccessHandler(html => { licenseEditor.innerHTML = html; }).getPageContent('licenseForAdmin');
-}
-
-// ฟังก์ชันนี้จะถูกเรียกจากด้านบน
-function populateForm(data) {
-    if (!data) {
-        const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-        document.getElementById('email').value = userEmail || '';
-        return;
-    };
-    
-    const setValue = (id, value) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.value = value || '';
-        }
-    };
-
-    setValue('prefix', data.Prefix);
-    setValue('studentId', data.StudentID);
-    setValue('firstNameTH', data.FirstNameTH);
-    setValue('lastNameTH', data.LastNameTH);
-    setValue('firstNameEN', data.FirstNameEN);
-    setValue('lastNameEN', data.LastNameEN);
-    setValue('gradClass', data.GraduationClass);
-    setValue('advisor', data.Advisor);
-    if (data.DateOfBirth) {
-        try { setValue('dob', new Date(data.DateOfBirth).toISOString().split('T')[0]); } catch (e) {}
-    }
-    setValue('gender', data.Gender);
-    setValue('birthCountry', data.BirthCountry);
-    setValue('nationality', data.Nationality);
-    setValue('race', data.Race);
-    setValue('email', data.Email);
-    setValue('phone', data.PhoneNumber);
-    setValue('gpax', data.GPAX);
-    setValue('employmentStatus', data.EmploymentStatus);
-    setValue('address', data.CurrentAddress);
-    setValue('emergencyName', data.EmergencyContactName);
-    setValue('emergencyRelation', data.EmergencyContactRelation);
-    setValue('emergencyPhone', data.EmergencyContactPhone);
-    setValue('awards', data.Awards);
-    setValue('futurePlan', data.FutureWorkPlan);
-    setValue('educationPlan', data.EducationPlan);
-    setValue('internationalPlan', data.InternationalWorkPlan);
-
-    const thaiLicenseCheckbox = document.getElementById('willTakeThaiLicense');
-    if (thaiLicenseCheckbox) {
-        thaiLicenseCheckbox.checked = data.WillTakeThaiLicense === true;
-    }
-    if (data.profilePictureUrl) {
-        document.getElementById('avatarPreview').style.backgroundImage = `url('${data.profilePictureUrl}')`;
-        existingPictureId = data.ProfilePictureID;
-    }
-}
-    
+    // Initial load
     fetchUsers(1);
+
+    // ฟังก์ชัน populateForm ที่ถูกย้ายมาอยู่ที่นี่เพื่อให้ Modal เข้าถึงได้
+    function populateForm(data) {
+        if (!data) {
+            document.getElementById('email').value = selectedUserEmail || '';
+            return;
+        };
+        const setValue = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = value || '';
+            }
+        };
+        setValue('prefix', data.Prefix); setValue('studentId', data.StudentID); setValue('firstNameTH', data.FirstNameTH); setValue('lastNameTH', data.LastNameTH);
+        setValue('firstNameEN', data.FirstNameEN); setValue('lastNameEN', data.LastNameEN); setValue('gradClass', data.GraduationClass); setValue('advisor', data.Advisor);
+        if (data.DateOfBirth) { try { setValue('dob', new Date(data.DateOfBirth).toISOString().split('T')[0]); } catch (e) {} }
+        setValue('gender', data.Gender); setValue('birthCountry', data.BirthCountry); setValue('nationality', data.Nationality); setValue('race', data.Race);
+        setValue('email', data.Email); setValue('phone', data.PhoneNumber); setValue('gpax', data.GPAX); setValue('employmentStatus', data.EmploymentStatus);
+        setValue('address', data.CurrentAddress); setValue('emergencyName', data.EmergencyContactName); setValue('emergencyRelation', data.EmergencyContactRelation);
+        setValue('emergencyPhone', data.EmergencyContactPhone); setValue('awards', data.Awards); setValue('futurePlan', data.FutureWorkPlan);
+        setValue('educationPlan', data.EducationPlan); setValue('internationalPlan', data.InternationalWorkPlan);
+        const thaiLicenseCheckbox = document.getElementById('willTakeThaiLicense');
+        if (thaiLicenseCheckbox) { thaiLicenseCheckbox.checked = data.WillTakeThaiLicense === true; }
+        if (data.profilePictureUrl) {
+            document.getElementById('avatarPreview').style.backgroundImage = `url('${data.profilePictureUrl}')`;
+            existingPictureId = data.ProfilePictureID;
+        }
+    }
 </script>
