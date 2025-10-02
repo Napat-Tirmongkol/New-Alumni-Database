@@ -29,39 +29,49 @@
     <main class="main-content" id="mainContentArea">
         </main>
     
-    <script>
-        /**
-         * ฟังก์ชันหลักสำหรับโหลดเนื้อหาแบบไดนามิก
-         * @param {string} pageName - ชื่อย่อของหน้าที่ต้องการโหลด
-         */
-        function loadContent(pageName) {
-            const contentArea = document.getElementById('mainContentArea');
-            if (!contentArea) return;
+<script>
+    /**
+     * ฟังก์ชันหลักสำหรับโหลดเนื้อหาแบบไดนามิก
+     * @param {string} pageName - ชื่อย่อของหน้าที่ต้องการโหลด
+     */
+    function loadContent(pageName) {
+        const contentArea = document.getElementById('mainContentArea');
+        if (!contentArea) return;
 
-            contentArea.innerHTML = '<div style="text-align:center; padding:50px;"><h2>กำลังโหลด...</h2></div>';
-            
-            google.script.run
-                .withSuccessHandler(html => {
-                    contentArea.innerHTML = html;
-                    const scripts = contentArea.getElementsByTagName('script');
-                    for (let i = 0; i < scripts.length; i++) {
-                        // ใช้ eval() เพื่อให้ JavaScript ที่อยู่ในไฟล์ที่โหลดมาทำงานได้
-                        eval(scripts[i].innerText);
-                    }
-                })
-                .getPageContent(pageName);
-        }
+        contentArea.innerHTML = '<div style="text-align:center; padding:50px;"><h2>กำลังโหลด...</h2></div>';
+        
+        google.script.run
+            .withSuccessHandler(html => {
+                contentArea.innerHTML = html;
+                const scripts = contentArea.getElementsByTagName('script');
+                for (let i = 0; i < scripts.length; i++) {
+                    // ใช้ eval() เพื่อให้ JavaScript ที่อยู่ในไฟล์ที่โหลดมาทำงานได้
+                    eval(scripts[i].innerText);
+                }
+                
+                // --- เพิ่มส่วนนี้: เรียกใช้ฟังก์ชันโหลดข้อมูลเฉพาะหน้าที่ต้องการ ---
+                if (pageName === 'profile') {
+                    loadProfileData();
+                } else if (pageName === 'profileSummary') {
+                    displayProfileSummary();
+                } else if (pageName === 'license') {
+                    loadLicensePageData();
+                }
+                // --- จบส่วนที่เพิ่ม ---
+            })
+            .getPageContent(pageName);
+    }
 
-        /**
-         * Event Listener ที่จะทำงานเมื่อหน้าเว็บโหลดเสร็จ
-         * ทำหน้าที่ตรวจสอบการล็อกอิน และเรียกโหลดเนื้อหาเริ่มต้น
-         */
-        document.addEventListener('DOMContentLoaded', () => {
+    /**
+     * Event Listener ที่จะทำงานเมื่อหน้าเว็บโหลดเสร็จ
+     * ทำหน้าที่ตรวจสอบการล็อกอิน และเรียกโหลดเนื้อหาเริ่มต้น
+     */
+    document.addEventListener('DOMContentLoaded', () => {
     const userDataString = sessionStorage.getItem('loggedInUser');
 
     if (userDataString) {
         // ถ้าล็อกอินแล้ว: โหลดหน้าข้อมูลสรุปเป็นหน้าเริ่มต้น
-        loadContent('profileSummary'); // <-- แก้ไขเป็น profileSummary
+        loadContent('profileSummary');
             } else {
                 // ถ้ายังไม่ได้ล็อกอิน: แสดงข้อความแจ้งเตือนพร้อมลิงก์ให้กลับไปหน้า Login
                 const contentArea = document.getElementById('mainContentArea');
@@ -80,6 +90,6 @@
                 }
             }
         });
-    </script>
+</script>
 </body>
 </html>
