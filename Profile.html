@@ -139,26 +139,31 @@
             existingPictureId: existingPictureId
         };
         
-        google.script.run
-        .withSuccessHandler(function(result) {
-            alert(result); // แสดงข้อความ "บันทึกข้อมูลส่วนตัวสำเร็จ!"
+        // --- ส่วนที่แก้ไข: เพิ่มการดึงอีเมลมาใส่ในอ็อบเจกต์ profileData ---
+        const userEmailForSave = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
+        profileData.email = userEmailForSave;
+
+        if (!profileData.email) {
+            alert('ไม่สามารถระบุอีเมลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
             saveButton.disabled = false;
             saveButton.textContent = '💾 บันทึกข้อมูล';
+            return;
+        }
+        // --- จบส่วนที่แก้ไข ---
+        
+        google.script.run
+        .withSuccessHandler(function(result) {
+            alert(result);
         })
         .withFailureHandler(function(error) {
             alert('เกิดข้อผิดพลาด: ' + error.message);
+        })
+        .saveUserProfile(profileData)
+        .finally(() => {
             saveButton.disabled = false;
             saveButton.textContent = '💾 บันทึกข้อมูล';
-        })
-        .saveUserProfile(profileData);
-});
-
-    function onSaveSuccess(message) {
-        alert(message);
-        const saveButton = document.getElementById('saveButton');
-        saveButton.disabled = false;
-        saveButton.textContent = '💾 บันทึกข้อมูล';
-    }
+        });
+    });
 
     function loadProfileData() {
         const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
