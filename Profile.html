@@ -142,11 +142,21 @@
         const userEmailForSave = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
         profileData.email = userEmailForSave;
 
-        google.script.run.withSuccessHandler(onSaveSuccess).saveUserProfile(profileData);
+        google.script.run
+            .withSuccessHandler(onSaveSuccess)
+            .withFailureHandler(onSaveFailure) // เพิ่มการจัดการข้อผิดพลาด
+            .saveUserProfile(profileData);
     });
 
     function onSaveSuccess(message) {
         alert(message);
+        const saveButton = document.getElementById('saveButton');
+        saveButton.disabled = false;
+        saveButton.textContent = '💾 บันทึกข้อมูล';
+    }
+
+    function onSaveFailure(error) {
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + error.message);
         const saveButton = document.getElementById('saveButton');
         saveButton.disabled = false;
         saveButton.textContent = '💾 บันทึกข้อมูล';
