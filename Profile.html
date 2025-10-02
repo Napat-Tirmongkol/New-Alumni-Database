@@ -139,11 +139,19 @@
             existingPictureId: existingPictureId
         };
         
-        const userEmailForSave = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-        profileData.email = userEmailForSave;
-
-        google.script.run.withSuccessHandler(onSaveSuccess).saveUserProfile(profileData);
-    });
+        google.script.run
+        .withSuccessHandler(function(result) {
+            alert(result); // แสดงข้อความ "บันทึกข้อมูลส่วนตัวสำเร็จ!"
+            saveButton.disabled = false;
+            saveButton.textContent = '💾 บันทึกข้อมูล';
+        })
+        .withFailureHandler(function(error) {
+            alert('เกิดข้อผิดพลาด: ' + error.message);
+            saveButton.disabled = false;
+            saveButton.textContent = '💾 บันทึกข้อมูล';
+        })
+        .saveUserProfile(profileData);
+});
 
     function onSaveSuccess(message) {
         alert(message);
