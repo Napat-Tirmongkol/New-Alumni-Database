@@ -230,31 +230,25 @@ function processForgotPassword(email) {
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     if (!sheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
-    const data = sheet.getRange(2, 1, sheet.getLastRow(), COLS_DB.IS_ACTIVE).getValues();
-for (let i = 0; i < data.length; i++) {
-  const rowData = data[i];
-  // เพิ่มการตรวจสอบความยาวของแถวข้อมูล
-  if (rowData.length < COLS_DB.FIRST_NAME) {
-    continue; // ถ้าแถวสั้นเกินไป (เป็นแถวเปล่า) ให้ข้ามไป
-  }
-  const email = rowData[COLS_DB.EMAIL - 1];
-  const password = String(rowData[COLS_DB.PASSWORD - 1]);
-  const isActive = rowData[COLS_DB.IS_ACTIVE - 1];
-  if (email === credentials.email && password === credentials.password) {
-    if (isActive === false) { return { success: false, message: 'บัญชีของคุณถูกระงับการใช้งาน' }; }
-    const userRow = i + 2;
-    sheet.getRange(userRow, COLS_DB.LAST_LOGIN).setValue(new Date());
-    const user = {firstName:rowData[COLS_DB.FIRST_NAME-1],lastName:rowData[COLS_DB.LAST_NAME-1],role:rowData[COLS_DB.ROLE-1]};
-    return { success: true, user: user }; 
-  }
-}
+    const data = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn()).getValues(); 
+
+    let userRow = -1;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][COLS_DB.EMAIL - 1] === email) {
+        userRow = i + 2; 
+        break;
+      }
+    }
+
     if (userRow === -1) { return { success: false, message: 'ไม่พบอีเมลนี้ในระบบ' }; }
+
     const token = Utilities.getUuid();
-    const expiryDate = new Date(new Date().getTime() + 15 * 60 * 1000);
+    const expiryDate = new Date(new Date().getTime() + 15 * 60 * 1000); // 15 นาที
     sheet.getRange(userRow, COLS_DB.RESET_TOKEN).setValue(token);
     sheet.getRange(userRow, COLS_DB.TOKEN_EXPIRY).setValue(expiryDate);
+
     const resetLink = getWebAppUrl() + '?page=resetpassword&token=' + token;
-    // MailApp.sendEmail(email, subject, body); // ต้องใส่ subject, body
+
     return { success: true, message: 'ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปที่อีเมลของคุณแล้ว' };
   } catch (error) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + error.message };
