@@ -128,7 +128,9 @@
         sessionStorage.removeItem("userEmail");
         google.script.run
           .withSuccessHandler((url) => {
-            window.top.location.href = url;
+            // --- แก้ไขตรงนี้ ---
+            // ใช้ window.open(url, '_top') แทน ซึ่งปลอดภัยกว่าสำหรับ sandbox
+            window.open(url, '_top');
           })
           .getWebAppUrl();
       });
