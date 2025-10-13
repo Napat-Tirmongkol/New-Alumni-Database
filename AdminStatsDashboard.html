@@ -1,328 +1,723 @@
 <style>
-    .page-header { font-size: 1.875rem; font-weight: 700; color: #1f2937; margin-bottom: 1.5rem; }
-     .stats-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-        gap: 1.5rem; 
+  .page-header {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+  .page-header {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+  .stat-card-info .title {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0 0 0.25rem 0;
+  }
+  .stat-card-info .value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+  }
+  .stat-card-icon {
+    font-size: 1.5rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+  .stat-card.users {
+    border-left-color: #ef4444;
+  }
+  .stat-card.alumni {
+    border-left-color: #f97316;
+  }
+  .stat-card.students {
+    border-left-color: #3b82f6;
+  }
+  .stat-card.passed {
+    border-left-color: #16a34a;
+  }
+  .stat-card.rate {
+    border-left-color: #8b5cf6;
+  }
+  .icon-users {
+    background-color: #ef4444;
+  }
+  .icon-alumni {
+    background-color: #f97316;
+  }
+  .icon-students {
+    background-color: #3b82f6;
+  }
+  .icon-passed {
+    background-color: #16a34a;
+  }
+  .icon-rate {
+    background-color: #8b5cf6;
+  }
+
+  .tabs-container {
+    border-bottom: 2px solid #e5e7eb;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .tab-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+  .tab-button.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+  }
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+  }
+  .chart-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  }
+  .chart-card h3 {
+    margin-top: 0;
+    font-size: 1.125rem;
+    color: #374151;
+  }
+  .chart-placeholder {
+    min-height: 280px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #9ca3af;
+    background-color: #f9fafb;
+    border-radius: 8px;
+  }
+  .page-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .page-header {
+    margin-bottom: 0; /* เอา margin เดิมออก */
+  }
+  .refresh-btn {
+    background-color: #ea580c; /* สีส้ม */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem; /* ปรับขนาดฟอนต์เล็กน้อย */
+    font-weight: 500;
+  }
+  .refresh-btn:hover {
+    background-color: #c2410c; /* สีส้มเข้มขึ้นเมื่อ hover */
+  }
+  .refresh-btn .fas {
+    margin-right: 8px;
+  }
+  /* เพิ่ม animation หมุนๆ ให้ไอคอน */
+  .fa-spin {
+    animation: fa-spin 1s infinite linear;
+  }
+  @keyframes fa-spin {
+    0% {
+      transform: rotate(0deg);
     }
-    .page-header { font-size: 1.875rem; font-weight: 700; color: #1f2937; margin-bottom: 1.5rem; }
-    .stat-card { background-color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; transition: all 0.3s ease; }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); }
-    .stat-card-info .title { color: #6b7280; font-size: 0.875rem; margin: 0 0 0.25rem 0; }
-    .stat-card-info .value { font-size: 2.25rem; font-weight: 700; color: #111827; margin: 0; }
-    .stat-card-icon { font-size: 1.5rem; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; }
-    .stat-card.users { border-left-color: #ef4444; }
-    .stat-card.alumni { border-left-color: #f97316; }
-    .stat-card.students { border-left-color: #3b82f6; }
-    .stat-card.passed { border-left-color: #16a34a; }
-    .stat-card.rate { border-left-color: #8b5cf6; } /* สีใหม่ */
-    .icon-users { background-color: #ef4444; }
-    .icon-alumni { background-color: #f97316; }
-    .icon-students { background-color: #3b82f6; }
-    .icon-passed { background-color: #16a34a; }
-    .icon-rate { background-color: #8b5cf6; } /* สีใหม่ */
-    
-    .tabs-container { border-bottom: 2px solid #e5e7eb; margin-top: 2.5rem; margin-bottom: 1.5rem; }
-    .tab-button { padding: 0.75rem 1.5rem; border: none; background-color: transparent; cursor: pointer; font-size: 1rem; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; margin-bottom: -2px; }
-    .tab-button.active { color: #3b82f6; border-bottom-color: #3b82f6; }
-    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
-    .chart-card { background-color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
-    .chart-card h3 { margin-top: 0; font-size: 1.125rem; color: #374151; }
-    .chart-placeholder { min-height: 280px; display: flex; justify-content: center; align-items: center; color: #9ca3af; background-color: #f9fafb; border-radius: 8px; }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 
-<h2 class="page-header">แดชบอร์ด</h2>
+<div class="page-title-container">
+  <h2 class="page-header">แดชบอร์ด</h2>
+  <button onclick="refreshDashboard()" class="refresh-btn">
+    <i class="fas fa-rotate-left"></i><span>รีเฟรช</span>
+  </button>
+</div>
 <div class="stats-grid">
-    <div class="stat-card users"><div class="stat-card-info"><p class="title">ผู้ใช้ทั้งหมด</p><p id="totalUsers" class="value">0</p></div><div class="stat-card-icon icon-users"><i class="fas fa-users"></i></div></div>
-    <div class="stat-card alumni"><div class="stat-card-info"><p class="title">ศิษย์เก่า</p><p id="alumniCount" class="value">0</p></div><div class="stat-card-icon icon-alumni"><i class="fas fa-graduation-cap"></i></div></div>
-    <div class="stat-card students"><div class="stat-card-info"><p class="title">นักศึกษาปัจจุบัน</p><p id="studentCount" class="value">0</p></div><div class="stat-card-icon icon-students"><i class="fas fa-user-graduate"></i></div></div>
-    <div class="stat-card passed"><div class="stat-card-info"><p class="title">ผู้ที่สอบผ่านทั้งหมด</p><p id="passedAllCount" class="value">0</p></div><div class="stat-card-icon icon-passed"><i class="fas fa-user-check"></i></div></div>
-    <div class="stat-card rate">
-        <div class="stat-card-info">
-            <p class="title">อัตราผ่าน</p>
-            <p id="passRate" class="value">0%</p>
-        </div>
-        <div class="stat-card-icon icon-rate">
-            <i class="fas fa-percentage"></i>
-        </div>
+  <div class="stat-card users">
+    <div class="stat-card-info">
+      <p class="title">ผู้ใช้ทั้งหมด</p>
+      <p id="totalUsers" class="value">0</p>
     </div>
+    <div class="stat-card-icon icon-users"><i class="fas fa-users"></i></div>
+  </div>
+  <div class="stat-card alumni">
+    <div class="stat-card-info">
+      <p class="title">ศิษย์เก่า</p>
+      <p id="alumniCount" class="value">0</p>
+    </div>
+    <div class="stat-card-icon icon-alumni">
+      <i class="fas fa-graduation-cap"></i>
+    </div>
+  </div>
+  <div class="stat-card students">
+    <div class="stat-card-info">
+      <p class="title">นักศึกษาปัจจุบัน</p>
+      <p id="studentCount" class="value">0</p>
+    </div>
+    <div class="stat-card-icon icon-students">
+      <i class="fas fa-user-graduate"></i>
+    </div>
+  </div>
+  <div class="stat-card passed">
+    <div class="stat-card-info">
+      <p class="title">ผู้ที่สอบผ่านทั้งหมด</p>
+      <p id="passedAllCount" class="value">0</p>
+    </div>
+    <div class="stat-card-icon icon-passed">
+      <i class="fas fa-user-check"></i>
+    </div>
+  </div>
+  <div class="stat-card rate">
+    <div class="stat-card-info">
+      <p class="title">อัตราผ่าน</p>
+      <p id="passRate" class="value">0%</p>
+    </div>
+    <div class="stat-card-icon icon-rate">
+      <i class="fas fa-percentage"></i>
+    </div>
+  </div>
 </div>
 
 <div class="tabs-container">
-    <button class="tab-button active" onclick="showTab(event, 'demographics')">ข้อมูลประชากร</button>
-    <button class="tab-button" onclick="showTab(event, 'employment')">การทำงาน</button>
-    <button class="tab-button" onclick="showTab(event, 'license')">ใบประกอบวิชาชีพ</button>
-    <button class="tab-button" onclick="showTab(event, 'donations')">การบริจาค</button>
+  <button class="tab-button active" onclick="showTab(event, 'demographics')">
+    ข้อมูลประชากร
+  </button>
+  <button class="tab-button" onclick="showTab(event, 'employment')">
+    การทำงาน
+  </button>
+  <button class="tab-button" onclick="showTab(event, 'license')">
+    ใบประกอบวิชาชีพ
+  </button>
+  <button class="tab-button" onclick="showTab(event, 'donations')">
+    การบริจาค
+  </button>
 </div>
 
 <div id="demographicsTabContent" class="charts-grid">
-    <div class="chart-card">
-        <h3>การกระจายตามเพศ</h3>
-        <div class="chart-placeholder">
-            <canvas id="genderChart"></canvas>
-        </div>
-    </div>
-    <div class="chart-card">
-        <h3>การกระจายตามอายุ</h3>
-        <div class="chart-placeholder">
-            <canvas id="ageChart"></canvas>
-        </div>
-    </div>
-    <div class="chart-card">
-        <h3>การกระจายตามสัญชาติ</h3>
-        <div class="chart-placeholder">
-            <canvas id="nationalityChart"></canvas>
-        </div>
-    </div>
-    <div class="chart-card">
-        <h3>การกระจายตามรุ่น</h3>
-        <div class="chart-placeholder">
-            <canvas id="classChart"></canvas>
-        </div>
-    </div>
+  <div class="chart-card">
+    <h3>การกระจายตามเพศ</h3>
+    <div class="chart-placeholder"><canvas id="genderChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>การกระจายตามอายุ</h3>
+    <div class="chart-placeholder"><canvas id="ageChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>การกระจายตามสัญชาติ</h3>
+    <div class="chart-placeholder"><canvas id="nationalityChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>การกระจายตามรุ่น</h3>
+    <div class="chart-placeholder"><canvas id="classChart"></canvas></div>
+  </div>
 </div>
 
-<div id="employmentTabContent" class="charts-grid" style="display: none;">
-    <div class="chart-card">
-        <h3>สถานะการทำงาน</h3>
-        <div class="chart-placeholder">
-            <canvas id="employmentStatusChart"></canvas>
-        </div>
+<div id="employmentTabContent" class="charts-grid" style="display: none">
+  <div class="chart-card">
+    <h3>สถานะการทำงาน</h3>
+    <div class="chart-placeholder">
+      <canvas id="employmentStatusChart"></canvas>
     </div>
-    <div class="chart-card">
-        <h3>การทำงานต่างประเทศ</h3>
-        <div class="chart-placeholder">
-            <canvas id="internationalWorkPlanChart"></canvas>
-        </div>
+  </div>
+  <div class="chart-card">
+    <h3>การทำงานต่างประเทศ</h3>
+    <div class="chart-placeholder">
+      <canvas id="internationalWorkPlanChart"></canvas>
     </div>
-    <div class="chart-card" style="grid-column: 1 / -1;">
-        <h3>ประเภทสถานที่ทำงาน</h3>
-        <div class="chart-placeholder" style="min-height: 300px;">
-            <canvas id="workplaceTypeChart"></canvas>
-        </div>
+  </div>
+  <div class="chart-card" style="grid-column: 1 / -1">
+    <h3>ประเภทสถานที่ทำงาน</h3>
+    <div class="chart-placeholder" style="min-height: 300px">
+      <canvas id="workplaceTypeChart"></canvas>
     </div>
+  </div>
+</div>
+
+<div id="licenseTabContent" class="charts-grid" style="display: none">
+  <div class="chart-card">
+    <h3>อัตราการสอบผ่านรวม</h3>
+    <div class="chart-placeholder">
+      <canvas id="overallPassRateChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <h3>อัตราการสอบผ่านแต่ละรายวิชา (%)</h3>
+    <div class="chart-placeholder">
+      <canvas id="subjectPassRateChart"></canvas>
+    </div>
+  </div>
 </div>
 
 <script>
-    function loadDashboardData() {
-        document.getElementById('totalUsers').textContent = '...';
-        document.getElementById('alumniCount').textContent = '...';
-        document.getElementById('studentCount').textContent = '...';
-        document.getElementById('passedAllCount').textContent = '...'; 
-        document.getElementById('passRate').textContent = '...';
+  function loadDashboardData() {
+    document.getElementById("totalUsers").textContent = "...";
+    document.getElementById("alumniCount").textContent = "...";
+    document.getElementById("studentCount").textContent = "...";
+    document.getElementById("passedAllCount").textContent = "...";
+    document.getElementById("passRate").textContent = "...";
 
-        google.script.run.withSuccessHandler(stats => {
-            document.getElementById('totalUsers').textContent = stats.totalUsers;
-            document.getElementById('alumniCount').textContent = stats.alumniCount;
-            document.getElementById('studentCount').textContent = stats.studentCount;
-            document.getElementById('passedAllCount').textContent = stats.passedAllCount;
-            document.getElementById('passRate').textContent = stats.passRate + '%';
-        }).getDashboardStats();
+    google.script.run
+      .withSuccessHandler((stats) => {
+        // อัปเดต Stat cards ด้านบน (เหมือนเดิม)
+        document.getElementById("totalUsers").textContent = stats.totalUsers;
+        document.getElementById("alumniCount").textContent = stats.alumniCount;
+        document.getElementById("studentCount").textContent =
+          stats.studentCount;
+        document.getElementById("passedAllCount").textContent =
+          stats.passedAllCount;
+        document.getElementById("passRate").textContent = stats.passRate + "%";
 
-        google.script.run.withSuccessHandler(renderGenderChart).getGenderDistribution();
-        google.script.run.withSuccessHandler(renderAgeChart).getAgeDistribution();
-        google.script.run.withSuccessHandler(renderNationalityChart).getNationalityDistribution();
-        google.script.run.withSuccessHandler(renderClassChart).getClassDistribution();
-        google.script.run.withSuccessHandler(renderEmploymentStatusChart).getEmploymentStatusDistribution();
-        google.script.run.withSuccessHandler(renderInternationalWorkPlanChart).getInternationalWorkPlanDistribution();
-        google.script.run.withSuccessHandler(renderWorkplaceTypeChart).getFutureWorkPlanDistribution();
-    }
-    
-    function renderWorkplaceTypeChart(data) {
-        const ctx = document.getElementById('workplaceTypeChart');
-        if (!ctx || !data || Object.keys(data).length === 0) return;
+        renderOverallPassRateChart(stats.passRate);
+      })
+      .getDashboardStats();
 
-        // Object สำหรับแปลง key เป็นชื่อภาษาไทย
-        const thaiLabels = {
-            'hospital_public': 'โรงพยาบาลรัฐ',
-            'hospital_private': 'โรงพยาบาลเอกชน',
-            'clinic': 'คลินิก',
-            'other': 'อื่นๆ',
-            'education': 'สถานศึกษา/อาจารย์',
-            'research': 'งานวิจัย',
-            'community_health': 'สาธารณสุขชุมชน',
-            // เพิ่ม key อื่นๆ จาก dropdown ของคุณที่นี่
-        };
+    google.script.run
+      .withSuccessHandler(renderGenderChart)
+      .getGenderDistribution();
+    google.script.run.withSuccessHandler(renderAgeChart).getAgeDistribution();
+    google.script.run
+      .withSuccessHandler(renderNationalityChart)
+      .getNationalityDistribution();
+    google.script.run
+      .withSuccessHandler(renderClassChart)
+      .getClassDistribution();
+    google.script.run
+      .withSuccessHandler(renderEmploymentStatusChart)
+      .getEmploymentStatusDistribution();
+    google.script.run
+      .withSuccessHandler(renderInternationalWorkPlanChart)
+      .getInternationalWorkPlanDistribution();
+    google.script.run
+      .withSuccessHandler(renderWorkplaceTypeChart)
+      .getFutureWorkPlanDistribution();
+    google.script.run
+      .withSuccessHandler(renderSubjectPassRateChart)
+      .getSubjectPassRates();
+  }
 
-              // 1. แปลง Object เป็น Array เพื่อเรียงลำดับ
-        const sortedArray = Object.entries(data).sort(([, a], [, b]) => b - a);
+  function renderWorkplaceTypeChart(data) {
+    const ctx = document.getElementById("workplaceTypeChart");
+    if (!ctx || !data || Object.keys(data).length === 0) return;
 
-        // 2. สร้าง Labels และ Data ที่เรียงลำดับแล้ว
-        const sortedLabels = sortedArray.map(([key]) => thaiLabels[key] || key);
-        const sortedDataValues = sortedArray.map(([, value]) => value);
+    // Object สำหรับแปลง key เป็นชื่อภาษาไทย
+    const thaiLabels = {
+      hospital_public: "โรงพยาบาลรัฐ",
+      hospital_private: "โรงพยาบาลเอกชน",
+      clinic: "คลินิก",
+      other: "อื่นๆ",
+      education: "สถานศึกษา/อาจารย์",
+      research: "งานวิจัย",
+      community_health: "สาธารณสุขชุมชน",
+      // เพิ่ม key อื่นๆ จาก dropdown ของคุณที่นี่
+    };
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: sortedLabels,
-                datasets: [{
-                    label: 'จำนวน',
-                    data: sortedDataValues,
-                    backgroundColor: 'rgba(249, 115, 22, 0.8)',
-                    borderColor: 'rgba(249, 115, 22, 1)',
-                    borderWidth: 1
-                }]
+    // 1. แปลง Object เป็น Array เพื่อเรียงลำดับ
+    const sortedArray = Object.entries(data).sort(([, a], [, b]) => b - a);
+
+    // 2. สร้าง Labels และ Data ที่เรียงลำดับแล้ว
+    const sortedLabels = sortedArray.map(([key]) => thaiLabels[key] || key);
+    const sortedDataValues = sortedArray.map(([, value]) => value);
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: sortedLabels,
+        datasets: [
+          {
+            label: "จำนวน",
+            data: sortedDataValues,
+            backgroundColor: "rgba(249, 115, 22, 0.8)",
+            borderColor: "rgba(249, 115, 22, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true },
+        },
+        plugins: {
+          legend: { display: false },
+        },
+      },
+    });
+  }
+
+  function renderEmploymentStatusChart(data) {
+    const ctx = document.getElementById("employmentStatusChart");
+    if (!ctx || !data) return;
+
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: Object.keys(data),
+        datasets: [
+          {
+            label: "จำนวน",
+            data: Object.values(data),
+            backgroundColor: ["#16a34a", "#f97316", "#8b5cf6", "#6b7280"],
+            hoverOffset: 4,
+          },
+        ],
+      },
+      // --- จุดที่แก้ไข ---
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom", // ย้ายคำอธิบายไปไว้ด้านล่าง
+            align: "center", // จัดชิดซ้าย
+          },
+        },
+      },
+    });
+  }
+
+  function renderInternationalWorkPlanChart(data) {
+    const ctx = document.getElementById("internationalWorkPlanChart");
+    if (!ctx || !data) return;
+
+    new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: Object.keys(data),
+        datasets: [
+          {
+            label: "จำนวน",
+            data: Object.values(data),
+            backgroundColor: ["#374151", "#ef4444"],
+            hoverOffset: 4,
+          },
+        ],
+      },
+      // --- จุดที่แก้ไข ---
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            align: "center",
+          },
+        },
+      },
+    });
+  }
+
+  function renderGenderChart(data) {
+    const ctx = document.getElementById("genderChart");
+    if (!ctx || !data) return;
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: ["ชาย", "หญิง", "ไม่ระบุ"],
+        datasets: [
+          {
+            label: "จำนวน",
+            data: [data.male, data.female, data.other],
+            backgroundColor: ["#3b82f6", "#ec4899", "#a8a29e"],
+            hoverOffset: 4,
+          },
+        ],
+      },
+      // --- จุดที่แก้ไข ---
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            align: "center",
+          },
+        },
+      },
+    });
+  }
+
+  function renderAgeChart(data) {
+    const ctx = document.getElementById("ageChart");
+    if (!ctx || !data) return;
+
+    // --- 1. กำหนดลำดับการเรียงที่ถูกต้อง ---
+    const sortedLabels = [
+      "ต่ำกว่า 20",
+      "20-25 ปี",
+      "26-30 ปี",
+      "31-40 ปี",
+      "41-50 ปี",
+      "มากกว่า 50",
+    ];
+
+    // --- 2. สร้างชุดข้อมูลใหม่โดยอิงตามลำดับที่กำหนด ---
+    const sortedDataValues = sortedLabels.map((label) => data[label] || 0);
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        // --- 3. ใช้ข้อมูลที่เรียงลำดับแล้ว ---
+        labels: sortedLabels,
+        datasets: [
+          {
+            label: "จำนวนผู้ใช้",
+            data: sortedDataValues,
+            backgroundColor: "rgba(249, 115, 22, 0.6)",
+            borderColor: "rgba(249, 115, 22, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } },
+        plugins: { legend: { display: false } },
+      },
+    });
+  }
+
+  function renderNationalityChart(data) {
+    const ctx = document.getElementById("nationalityChart");
+    if (!ctx || !data || Object.keys(data).length === 0) return;
+    const backgroundColors = Object.keys(data).map(
+      (_, i) => `hsl(${i * (360 / Object.keys(data).length)}, 70%, 60%)`
+    );
+    new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: Object.keys(data),
+        datasets: [
+          {
+            label: "จำนวน",
+            data: Object.values(data),
+            backgroundColor: backgroundColors,
+            hoverOffset: 4,
+          },
+        ],
+      },
+      // --- จุดที่แก้ไข ---
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            align: "center",
+          },
+        },
+      },
+    });
+  }
+
+  function renderClassChart(data) {
+    const ctx = document.getElementById("classChart");
+    if (!ctx || !data || Object.keys(data).length === 0) return;
+    const sortedData = Object.keys(data)
+      .sort()
+      .reduce((obj, key) => {
+        obj[key] = data[key];
+        return obj;
+      }, {});
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(sortedData),
+        datasets: [
+          {
+            label: "จำนวนศิษย์เก่า/นักศึกษา",
+            data: Object.values(sortedData),
+            backgroundColor: "rgba(22, 163, 74, 0.6)",
+            borderColor: "rgba(22, 163, 74, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        plugins: { legend: { display: false } },
+      },
+    });
+  }
+
+  function renderSubjectPassRateChart(data) {
+    const ctx = document.getElementById("subjectPassRateChart");
+    if (!ctx || !data || !data.labels || data.labels.length === 0) return;
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: data.labels,
+        datasets: [
+          {
+            label: "อัตราการสอบผ่าน (%)",
+            data: data.data,
+            backgroundColor: "rgba(139, 92, 246, 0.6)", // สีม่วง
+            borderColor: "rgba(139, 92, 246, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: function (value) {
+                return value + "%";
+              },
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-    
-    function renderEmploymentStatusChart(data) {
-        const ctx = document.getElementById('employmentStatusChart');
-        if (!ctx || !data) return;
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+        },
+      },
+    });
+  }
 
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(data),
-                datasets: [{
-                    label: 'จำนวน',
-                    data: Object.values(data),
-                    backgroundColor: ['#16a34a', '#f97316', '#8b5cf6', '#6b7280'],
-                    hoverOffset: 4
-                }]
-            },
-            // --- จุดที่แก้ไข ---
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom', // ย้ายคำอธิบายไปไว้ด้านล่าง
-                        align: 'center'      // จัดชิดซ้าย
-                    }
-                }
-            }
-        });
-    }
+function renderOverallPassRateChart(passRate = 0) {
+    const ctx = document.getElementById('overallPassRateChart');
+    if (!ctx) return;
 
-    function renderInternationalWorkPlanChart(data) {
-        const ctx = document.getElementById('internationalWorkPlanChart');
-        if (!ctx || !data) return;
-
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(data),
-                datasets: [{
-                    label: 'จำนวน',
-                    data: Object.values(data),
-                    backgroundColor: ['#374151', '#ef4444'],
-                    hoverOffset: 4
-                }]
-            },
-            // --- จุดที่แก้ไข ---
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        align: 'center'
-                    }
-                }
-            }
-        });
-    }
-
-    function renderGenderChart(data) {
-        const ctx = document.getElementById('genderChart'); if (!ctx || !data) return;
-        new Chart(ctx, { 
-            type: 'pie', 
-            data: { labels: ['ชาย', 'หญิง', 'ไม่ระบุ'], datasets: [{ label: 'จำนวน', data: [data.male, data.female, data.other], backgroundColor: ['#3b82f6', '#ec4899', '#a8a29e'], hoverOffset: 4 }] }, 
-            // --- จุดที่แก้ไข ---
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        align: 'center'
-                    }
-                }
-            } 
-        });
-    }
-
-    function renderAgeChart(data) {
-        const ctx = document.getElementById('ageChart');
-        if (!ctx || !data) return;
-
-        // --- 1. กำหนดลำดับการเรียงที่ถูกต้อง ---
-        const sortedLabels = ['ต่ำกว่า 20', '20-25 ปี', '26-30 ปี', '31-40 ปี', '41-50 ปี', 'มากกว่า 50'];
-
-        // --- 2. สร้างชุดข้อมูลใหม่โดยอิงตามลำดับที่กำหนด ---
-        const sortedDataValues = sortedLabels.map(label => data[label] || 0);
-
-        new Chart(ctx, { 
-            type: 'bar', 
-            data: { 
-                // --- 3. ใช้ข้อมูลที่เรียงลำดับแล้ว ---
-                labels: sortedLabels, 
-                datasets: [{ 
-                    label: 'จำนวนผู้ใช้', 
-                    data: sortedDataValues, 
-                    backgroundColor: 'rgba(249, 115, 22, 0.6)', 
-                    borderColor: 'rgba(249, 115, 22, 1)', 
-                    borderWidth: 1 
-                }] 
-            }, 
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                scales: { y: { beginAtZero: true } }, 
-                plugins: { legend: { display: false } } 
-            } 
-        });
-    }
-
-    function renderNationalityChart(data) {
-        const ctx = document.getElementById('nationalityChart'); if (!ctx || !data || Object.keys(data).length === 0) return;
-        const backgroundColors = Object.keys(data).map((_, i) => `hsl(${i * (360 / Object.keys(data).length)}, 70%, 60%)`);
-        new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { labels: Object.keys(data), datasets: [{ label: 'จำนวน', data: Object.values(data), backgroundColor: backgroundColors, hoverOffset: 4 }] }, 
-            // --- จุดที่แก้ไข ---
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { 
-                    legend: { 
-                        position: 'bottom',
-                        align: 'center'
-                    } 
-                } 
-            } 
-        });
-    }
-
-    function renderClassChart(data) {
-        const ctx = document.getElementById('classChart'); if (!ctx || !data || Object.keys(data).length === 0) return;
-        const sortedData = Object.keys(data).sort().reduce((obj, key) => { obj[key] = data[key]; return obj; }, {});
-        new Chart(ctx, { type: 'bar', data: { labels: Object.keys(sortedData), datasets: [{ label: 'จำนวนศิษย์เก่า/นักศึกษา', data: Object.values(sortedData), backgroundColor: 'rgba(22, 163, 74, 0.6)', borderColor: 'rgba(22, 163, 74, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } } });
-    }
-
-    window.showTab = function(evt, tabName) {
-        document.getElementById('demographicsTabContent').style.display = 'none';
-        document.getElementById('employmentTabContent').style.display = 'none';
-        const tabButtons = document.querySelectorAll('.tab-button');
-        tabButtons.forEach(button => button.classList.remove('active'));
-        if (tabName === 'demographics') {
-            document.getElementById('demographicsTabContent').style.display = 'grid';
-        } else if (tabName === 'employment') {
-            document.getElementById('employmentTabContent').style.display = 'grid';
+    const textCenterPlugin = {
+        id: 'textCenter',
+        beforeDraw(chart) {
+            const { ctx, chartArea } = chart;
+            if (!chartArea) { return; } 
+            
+            const text = chart.data.datasets[0].data[0] + '%';
+            
+            ctx.save();
+            ctx.font = 'bold 48px Sarabun, sans-serif';
+            ctx.fillStyle = '#16a34a';
+            ctx.textAlign = 'center';
+            
+            const centerX = (chartArea.left + chartArea.right) / 2;
+            const centerY = chartArea.bottom - 20; 
+            
+            ctx.fillText(text, centerX, centerY);
+            ctx.restore();
         }
-        evt.currentTarget.classList.add('active');
+    };
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['ผ่าน', 'ยังไม่ผ่าน'],
+            datasets: [{
+                data: [passRate, 100 - passRate],
+                backgroundColor: ['#16a34a', '#e5e7eb'],
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                circumference: 180,
+                rotation: -90,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        },
+        plugins: [textCenterPlugin]
+    });
+}
+
+  window.showTab = function (evt, tabName) {
+    document.getElementById("demographicsTabContent").style.display = "none";
+    document.getElementById("employmentTabContent").style.display = "none";
+    document.getElementById("licenseTabContent").style.display = "none";
+
+    const tabButtons = document.querySelectorAll(".tab-button");
+    tabButtons.forEach((button) => button.classList.remove("active"));
+
+    if (tabName === "demographics") {
+      document.getElementById("demographicsTabContent").style.display = "grid";
+    } else if (tabName === "employment") {
+      document.getElementById("employmentTabContent").style.display = "grid";
+    } else if (tabName === "license") {
+      document.getElementById("licenseTabContent").style.display = "grid";
     }
 
+    evt.currentTarget.classList.add("active");
+  };
+
+  function refreshDashboard() {
+    // ทำให้ไอคอนหมุนเพื่อบอกผู้ใช้ว่ากำลังโหลด
+    const refreshIcon = document.querySelector(".refresh-btn .fas");
+    if (refreshIcon) {
+      refreshIcon.classList.add("fa-spin");
+    }
+
+    // เรียกฟังก์ชันโหลดข้อมูลหลักอีกครั้ง
     loadDashboardData();
+
+    // หยุดหมุนหลังจากผ่านไป 1.5 วินาที (เพื่อให้แน่ใจว่าข้อมูลโหลดเสร็จ)
+    setTimeout(() => {
+      if (refreshIcon) {
+        refreshIcon.classList.remove("fa-spin");
+      }
+    }, 1500);
+  }
+  // เรียกฟังก์ชันโหลดข้อมูลเมื่อหน้าโหลดเสร็จ
+  loadDashboardData();
 </script>
