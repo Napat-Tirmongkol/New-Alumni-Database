@@ -192,99 +192,104 @@
     <?!= include('language.js.html'); ?>
 
     <script>
-      // สร้างตัวแปรสำหรับเก็บ URL ของเว็บแอปไว้ล่วงหน้า
-      let webAppUrl = "";
+    // สร้างตัวแปรสำหรับเก็บ URL ของเว็บแอปไว้ล่วงหน้า
+    let webAppUrl = "";
 
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const loginButton = document.getElementById("loginButton");
-          const errorMessageDiv = document.getElementById("error-message");
-          loginButton.disabled = true;
-          loginButton.textContent = "กำลังตรวจสอบ...";
-          errorMessageDiv.style.display = "none";
-          const credentials = {
+    // --- Event Listener สำหรับฟอร์มล็อกอิน ---
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const loginButton = document.getElementById("loginButton");
+        const errorMessageDiv = document.getElementById("error-message");
+        
+        loginButton.disabled = true;
+        loginButton.textContent = "กำลังตรวจสอบ...";
+        errorMessageDiv.style.display = "none";
+        
+        const credentials = {
             email: this.email.value,
             password: this.password.value,
-          };
+        };
 
-          google.script.run
+        google.script.run
             .withSuccessHandler((result) => {
-    const loginButton = document.getElementById("loginButton");
-    const errorMessageDiv = document.getElementById("error-message");
+                const loginContainer = document.querySelector(".login-container");
+                const loginButton = document.getElementById("loginButton");
+                const errorMessageDiv = document.getElementById("error-message");
 
-    loginButton.disabled = false;
-    loginButton.textContent = "เข้าสู่ระบบ"; // คืนค่าปุ่มเป็นปกติ
+                if (result.success) {
+                    // --- นี่คือส่วนที่แก้ไขใหม่ทั้งหมด ---
 
-    if (result.success) {
-        // --- ส่วนที่แก้ไข ---
+                    // 1. เก็บข้อมูลผู้ใช้
+                    const email = document.getElementById("email").value;
+                    sessionStorage.setItem("loggedInUser", JSON.stringify(result.user));
+                    sessionStorage.setItem("userEmail", email);
 
-        // 1. เก็บข้อมูลผู้ใช้ที่จำเป็น
-        const email = document.getElementById("email").value;
-        sessionStorage.setItem("loggedInUser", JSON.stringify(result.user));
-        sessionStorage.setItem("userEmail", email);
+                    // 2. กำหนด URL ปลายทาง
+                    const destinationUrl = result.user.role === "Admin"
+                        ? webAppUrl + "?page=admindashboard"
+                        : webAppUrl + "?page=dashboard";
 
-        // 2. ซ่อนฟอร์มล็อกอินและลิงก์อื่นๆ
-        document.getElementById("loginForm").style.display = "none";
-        document.querySelector(".links").style.display = "none";
+                    // 3. "แปลงร่าง" กล่องล็อกอินทั้งกล่อง ให้เป็นหน้าต้อนรับ
+                    loginContainer.innerHTML = `
+                        <div class="logo" style="background-color: #28a745;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"></path>
+                            </svg>
+                        </div>
+                        <h2 style="color: #28a745; margin-top: 20px;">เข้าสู่ระบบสำเร็จ!</h2>
+                        <p style="font-size: 16px;">ยินดีต้อนรับ, ${result.user.firstName || 'ผู้ใช้งาน'}</p>
+                        <a href="${destinationUrl}" target="_top" style="display:block; width: 100%; box-sizing: border-box; margin-top:20px; padding: 14px; background-color:#28a745; color:white; text-decoration:none; border-radius:8px; font-weight:bold; font-size: 16px; text-align: center;">
+                            ไปยังหน้าแดชบอร์ด
+                        </a>
+                    `;
+                    // กำหนดความสูงขั้นต่ำ ป้องกันกล่องหดตัว
+                    loginContainer.style.minHeight = '300px';
 
-        // 3. กำหนด URL ปลายทางตามบทบาท (Role) ของผู้ใช้
-        const destinationUrl = result.user.role === "Admin"
-            ? webAppUrl + "?page=admindashboard"
-            : webAppUrl + "?page=dashboard";
-
-        // 4. แสดงข้อความสำเร็จพร้อม "ปุ่มลิงก์" ให้ผู้ใช้กดไปต่อ
-        errorMessageDiv.style.color = "green"; // เปลี่ยนสีข้อความเป็นสีเขียว
-        errorMessageDiv.style.display = "block";
-        errorMessageDiv.innerHTML = `
-            <p style="font-weight: bold; font-size: 16px;">เข้าสู่ระบบสำเร็จ!</p>
-            <a href="${destinationUrl}" target="_top" style="display:inline-block; margin-top:15px; padding: 12px 25px; background-color:#28a745; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">
-                ไปยังหน้าแดชบอร์ด
-            </a>
-        `;
-
-    } else {
-        // ถ้าล็อกอินไม่สำเร็จ ให้แสดงข้อความผิดพลาด
-        errorMessageDiv.style.color = "red"; // ตรวจสอบให้แน่ใจว่าเป็นสีแดง
-        errorMessageDiv.textContent = result.message;
-        errorMessageDiv.style.display = "block";
-    }
-})
+                } else {
+                    // กรณีล็อกอินไม่สำเร็จ (เหมือนเดิม)
+                    loginButton.disabled = false;
+                    loginButton.textContent = "เข้าสู่ระบบ";
+                    errorMessageDiv.textContent = result.message;
+                    errorMessageDiv.style.display = "block";
+                }
+            })
             .withFailureHandler((error) => {
-              errorMessageDiv.textContent =
-                "เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: " + error.message;
-              errorMessageDiv.style.display = "block";
-              loginButton.disabled = false;
-              loginButton.textContent = "เข้าสู่ระบบ";
+                // กรณีเกิดข้อผิดพลาดร้ายแรง (เหมือนเดิม)
+                const loginButton = document.getElementById("loginButton");
+                const errorMessageDiv = document.getElementById("error-message");
+                errorMessageDiv.textContent = "เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: " + error.message;
+                errorMessageDiv.style.display = "block";
+                loginButton.disabled = false;
+                loginButton.textContent = "เข้าสู่ระบบ";
             })
             .validateLogin(credentials);
-        });
+    });
 
-      document.addEventListener("DOMContentLoaded", function () {
+    // --- Event Listener สำหรับโหลด URL ของเว็บแอป (เหมือนเดิม) ---
+    document.addEventListener("DOMContentLoaded", function () {
         const registerLink = document.getElementById("registerLink");
-        const forgotPasswordLink =
-          document.getElementById("forgotPasswordLink");
+        const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 
-        // ดึง URL มาเก็บไว้ในตัวแปร webAppUrl ตอนโหลดหน้าเว็บ
         google.script.run
-          .withSuccessHandler(function (url) {
-            webAppUrl = url;
-            registerLink.href = url + "?page=register";
-            forgotPasswordLink.href = url + "?page=forgotpassword";
-          })
-          .getWebAppUrl();
-      });
-      function setLanguage(lang) {
-        localStorage.setItem('userLanguage', lang);
-        document.querySelectorAll('[data-lang-key]').forEach(elem => {
-            const key = elem.getAttribute('data-lang-key');
+            .withSuccessHandler(function (url) {
+                webAppUrl = url;
+                if(registerLink) registerLink.href = url + "?page=register";
+                if(forgotPasswordLink) forgotPasswordLink.href = url + "?page=forgotpassword";
+            })
+            .getWebAppUrl();
+    });
+
+    // --- ฟังก์ชันสลับภาษา (เหมือนเดิม) ---
+    function setLanguage(lang) {
+        localStorage.setItem("userLanguage", lang);
+        document.querySelectorAll("[data-lang-key]").forEach((elem) => {
+            const key = elem.getAttribute("data-lang-key");
             if (langStrings[lang] && langStrings[lang][key]) {
                 elem.innerText = langStrings[lang][key];
             }
         });
-        document.querySelectorAll('[data-lang-key-placeholder]').forEach(elem => {
-            const key = elem.getAttribute('data-lang-key-placeholder');
+        document.querySelectorAll("[data-lang-key-placeholder]").forEach((elem) => {
+            const key = elem.getAttribute("data-lang-key-placeholder");
             if (langStrings[lang] && langStrings[lang][key]) {
                 elem.placeholder = langStrings[lang][key];
             }
@@ -293,21 +298,20 @@
     }
 
     function updateLangButtonUI(currentLang) {
-        const langButtons = document.querySelectorAll('.lang-toggle button');
-        langButtons.forEach(btn => {
+        const langButtons = document.querySelectorAll(".lang-toggle button");
+        langButtons.forEach((btn) => {
             if (btn.dataset.lang === currentLang) {
-                btn.classList.add('active');
+                btn.classList.add("active");
             } else {
-                btn.classList.remove('active');
+                btn.classList.remove("active");
             }
         });
     }
-
-    // เมื่อหน้าเว็บโหลด ให้ตั้งค่าภาษาเริ่มต้น
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedLang = localStorage.getItem('userLanguage') || 'th';
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedLang = localStorage.getItem("userLanguage") || "th";
         setLanguage(savedLang);
     });
-    </script>
+</script>
   </body>
 </html>
