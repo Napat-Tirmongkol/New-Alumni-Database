@@ -6,11 +6,11 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: fixed; /* ทำให้ส่วนหัวลอยอยู่ด้านบนสุด */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    box-sizing: border-box; /* ป้องกัน padding ทำให้ width เกิน */
+    box-sizing: border-box;
     z-index: 1000;
   }
   .header-left {
@@ -72,12 +72,19 @@
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s;
+    display: flex; /* เพิ่มเพื่อให้ไอคอนกับข้อความอยู่กลาง */
+    align-items: center;
   }
   .logout-btn-header:hover {
     background-color: #c62828;
   }
+  /* --- ส่วนที่เพิ่มเข้ามา --- */
+  .logout-btn-header .fas {
+    margin-right: 8px; /* เพิ่มระยะห่างด้านขวาของไอคอน */
+  }
 </style>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <header>
   <div class="header-left">
     <div class="logo">
@@ -101,7 +108,7 @@
     </div>
     <div class="user-info">สวัสดี, <span id="headerUserName"></span></div>
     <button id="headerLogoutButton" class="logout-btn-header">
-      🚪 ออกจากระบบ
+      <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
     </button>
   </div>
 </header>
@@ -128,27 +135,20 @@
         sessionStorage.removeItem("userEmail");
         google.script.run
           .withSuccessHandler((url) => {
-            // --- แก้ไขตรงนี้ ---
-            // ใช้ window.open(url, '_top') แทน ซึ่งปลอดภัยกว่าสำหรับ sandbox
-            window.open(url, '_top');
+            window.open(url, "_top");
           })
           .getWebAppUrl();
       });
     }
     // ฟังก์ชันสำหรับตั้งค่าภาษา
     function setLanguage(lang) {
-      // บันทึกภาษาที่เลือกลงในหน่วยความจำของเบราว์เซอร์
       localStorage.setItem("userLanguage", lang);
-
-      // หา element ทั้งหมดที่ต้องการแปลภาษา
       document.querySelectorAll("[data-lang-key]").forEach((elem) => {
         const key = elem.getAttribute("data-lang-key");
         if (langStrings[lang] && langStrings[lang][key]) {
           elem.innerText = langStrings[lang][key];
         }
       });
-
-      // สำหรับเปลี่ยน placeholder
       document
         .querySelectorAll("[data-lang-key-placeholder]")
         .forEach((elem) => {
@@ -157,12 +157,9 @@
             elem.placeholder = langStrings[lang][key];
           }
         });
-
-      // อัปเดต UI ของปุ่มสลับภาษา
       updateLangButtonUI(lang);
     }
 
-    // ฟังก์ชันสำหรับอัปเดตหน้าตาปุ่ม (ให้รู้ว่าปุ่มไหนถูกเลือก)
     function updateLangButtonUI(currentLang) {
       const langButtons = document.querySelectorAll(".lang-toggle button");
       langButtons.forEach((btn) => {
@@ -174,9 +171,8 @@
       });
     }
 
-    // เมื่อหน้าเว็บโหลดเสร็จ ให้ตรวจสอบว่าเคยตั้งค่าภาษาไว้หรือไม่
     document.addEventListener("DOMContentLoaded", () => {
-      const savedLang = localStorage.getItem("userLanguage") || "th"; // ถ้าไม่มี ให้ใช้ภาษาไทยเป็นค่าเริ่มต้น
+      const savedLang = localStorage.getItem("userLanguage") || "th";
       setLanguage(savedLang);
     });
   </script>
