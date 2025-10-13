@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <base target="_top" />
+<head>
+    <base target="_top">
     <style>
       /* --- CSS Styles --- */
       body {
@@ -93,21 +93,11 @@
         font-weight: bold;
         display: none;
       }
-        /* --- เพิ่ม CSS นี้เข้าไปใน <style> --- */
-    .or-separator { display: flex; align-items: center; text-align: center; color: #aaa; margin: 25px 0; }
-    .or-separator::before, .or-separator::after { content: ''; flex: 1; border-bottom: 1px solid #ddd; }
-    .or-separator:not(:empty)::before { margin-right: .25em; }
-    .or-separator:not(:empty)::after { margin-left: .25em; }
-    .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
-    .google-btn:hover { background-color: #357ae8; }
-    .google-btn svg { width: 20px; height: 20px; background-color: white; border-radius: 50%; padding: 2px; }
     </style>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
     <div class="login-container">
       <div class="logo">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -142,12 +132,6 @@
         </div>
         <button type="submit" class="btn" id="loginButton">เข้าสู่ระบบ</button>
         <div id="error-message"></div>
-        <div class="or-separator">หรือ</div>
-
-<button id="googleSignInButton" class="google-btn">
-    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.618-3.317-11.28-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.914,35.936,44,30.608,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
-    <span>เข้าสู่ระบบด้วย Google</span>
-</button>
       </form>
 
       <div class="links">
@@ -157,33 +141,70 @@
     </div>
 
     <script>
-        let webAppUrl = '';
+      // สร้างตัวแปรสำหรับเก็บ URL ของเว็บแอปไว้ล่วงหน้า
+      let webAppUrl = "";
 
-        // --- จัดการการ Login แบบ Email/Password ---
-        document.getElementById('loginForm').addEventListener('submit', function(e) { /* โค้ดส่วนนี้เหมือนเดิม */ });
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const loginButton = document.getElementById("loginButton");
+          const errorMessageDiv = document.getElementById("error-message");
+          loginButton.disabled = true;
+          loginButton.textContent = "กำลังตรวจสอบ...";
+          errorMessageDiv.style.display = "none";
+          const credentials = {
+            email: this.email.value,
+            password: this.password.value,
+          };
 
-        // --- จัดการการ Login ด้วย Google ---
-        document.getElementById('googleSignInButton').addEventListener('click', function() {
-            this.disabled = true;
-            this.textContent = 'กำลังเปลี่ยนเส้นทาง...';
-            // 1. ขอ URL สำหรับ Sign-In จาก Backend
-            google.script.run.withSuccessHandler(function(signInUrl) {
-                // 2. Redirect หน้าจอหลักไปที่ URL ของ Google
-                window.top.location.href = signInUrl;
-            }).getGoogleSignInUrl();
+          google.script.run
+            .withSuccessHandler((result) => {
+              loginButton.disabled = false;
+              loginButton.textContent = "เข้าสู่ระบบ";
+              if (result.success) {
+                const email = document.getElementById("email").value;
+                sessionStorage.setItem(
+                  "loggedInUser",
+                  JSON.stringify(result.user)
+                );
+                sessionStorage.setItem("userEmail", email);
+                loginButton.textContent = "สำเร็จ! กำลังเปลี่ยนหน้า...";
+
+                if (result.user.role === "Admin") {
+                  window.top.location.href = webAppUrl + "?page=admindashboard";
+                } else {
+                  window.top.location.href = webAppUrl + "?page=dashboard";
+                }
+              } else {
+                errorMessageDiv.textContent = result.message;
+                errorMessageDiv.style.display = "block";
+              }
+            })
+            .withFailureHandler((error) => {
+              errorMessageDiv.textContent =
+                "เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: " + error.message;
+              errorMessageDiv.style.display = "block";
+              loginButton.disabled = false;
+              loginButton.textContent = "เข้าสู่ระบบ";
+            })
+            .validateLogin(credentials);
         });
 
-        // --- โหลด URL ของเว็บแอปเมื่อหน้าเว็บพร้อมใช้งาน ---
-        document.addEventListener('DOMContentLoaded', function() {
-            const registerLink = document.getElementById('registerLink');
-            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+      document.addEventListener("DOMContentLoaded", function () {
+        const registerLink = document.getElementById("registerLink");
+        const forgotPasswordLink =
+          document.getElementById("forgotPasswordLink");
 
-            google.script.run.withSuccessHandler(function(url) {
-                webAppUrl = url;
-                registerLink.href = url + '?page=register';
-                forgotPasswordLink.href = url + '?page=forgotpassword';
-            }).getWebAppUrl();
-        });
+        // ดึง URL มาเก็บไว้ในตัวแปร webAppUrl ตอนโหลดหน้าเว็บ
+        google.script.run
+          .withSuccessHandler(function (url) {
+            webAppUrl = url;
+            registerLink.href = url + "?page=register";
+            forgotPasswordLink.href = url + "?page=forgotpassword";
+          })
+          .getWebAppUrl();
+      });
     </script>
   </body>
 </html>
