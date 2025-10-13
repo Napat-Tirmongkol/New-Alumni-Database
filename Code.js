@@ -1325,3 +1325,109 @@ function getPassRateByRound() {
     return { labels: [], data: [] };
   }
 }
+
+/**
+ * คำนวณสถิติเปรียบเทียบจำนวนครั้งที่เข้าสอบ
+ * @returns {object} อ็อบเจกต์ที่ประกอบด้วยจำนวนผู้ที่สอบครั้งแรก, สอบซ้ำ 1 ครั้ง, และสอบซ้ำ 2 ครั้งขึ้นไป
+ */
+function getExamAttemptStats() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return { firstTime: 0, retakeOnce: 0, retakeMultiple: 0 };
+    }
+
+    // ดึงข้อมูลเฉพาะคอลัมน์ Email (คอลัมน์ C) เพื่อประสิทธิภาพที่ดีขึ้น
+    const emailData = sheet.getRange(2, 3, sheet.getLastRow() - 1, 1).getValues().flat();
+
+    const userAttempts = {}; // object สำหรับนับจำนวนครั้งที่สอบของแต่ละ email
+    emailData.forEach(email => {
+      if (email) {
+        userAttempts[email] = (userAttempts[email] || 0) + 1;
+      }
+    });
+
+    const stats = {
+      firstTime: 0,
+      retakeOnce: 0,
+      retakeMultiple: 0
+    };
+
+    // วนลูปเพื่อจัดกลุ่มผู้ใช้ตามจำนวนครั้งที่สอบ
+    for (const email in userAttempts) {
+      const count = userAttempts[email];
+      if (count === 1) {
+        stats.firstTime++;
+      } else if (count === 2) {
+        stats.retakeOnce++;
+      } else { // count >= 3
+        stats.retakeMultiple++;
+      }
+    }
+
+    return stats;
+  } catch (e) {
+    Logger.log("Error in getExamAttemptStats: " + e.message);
+    return { firstTime: 0, retakeOnce: 0, retakeMultiple: 0 };
+  }
+}
+
+/**
+ * คำนวณข้อมูลสรุปสำหรับการบริจาคทั้งหมด
+ * @returns {object} อ็อบเจกต์ข้อมูลสรุป 4 ส่วน: ยอดรวม, จำนวนผู้บริจาค, วัตถุประสงค์, และแนวโน้มรายเดือน
+ */
+function getDonationDashboardStats() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return { totalAmount: 0, donorCount: 0, purposes: {}, monthlyTrend: { labels: [], data: [] } };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    const amountIndex = headers.indexOf('Amount');
+    const emailIndex = headers.indexOf('Email');
+    const purposeIndex = headers.indexOf('Purpose');
+    const timestampIndex = headers.indexOf('Timestamp');
+
+    let totalAmount = 0;
+    const donors = new Set();
+    const purposes = {};
+    const monthlyTrend = {};
+
+    data.forEach(row => {
+      const amount = parseFloat(row[amountIndex]) || 0;
+      const email = row[emailIndex];
+      const purpose = row[purposeIndex] || 'ไม่ระบุ';
+      const timestamp = new Date(row[timestampIndex]);
+
+      totalAmount += amount;
+      if (email) donors.add(email);
+      purposes[purpose] = (purposes[purpose] || 0) + 1; // นับจำนวนครั้งของการบริจาคในแต่ละวัตถุประสงค์
+
+      if (!isNaN(timestamp.getTime())) {
+        const monthKey = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}`;
+        monthlyTrend[monthKey] = (monthlyTrend[monthKey] || 0) + amount;
+      }
+    });
+
+    // ประมวลผลข้อมูลแนวโน้มรายเดือน
+    const sortedMonths = Object.keys(monthlyTrend).sort();
+    const trendLabels = sortedMonths.map(key => {
+      const [year, month] = key.split('-');
+      const date = new Date(year, month - 1, 1);
+      return date.toLocaleDateString('th-TH', { month: 'short', year: '2-digit' }); // ผลลัพธ์เช่น "ต.ค. 68"
+    });
+    const trendData = sortedMonths.map(key => monthlyTrend[key]);
+    
+    return {
+      totalAmount: totalAmount,
+      donorCount: donors.size,
+      purposes: purposes,
+      monthlyTrend: { labels: trendLabels, data: trendData }
+    };
+  } catch (e) {
+    Logger.log("Error in getDonationDashboardStats: " + e.message);
+    return { totalAmount: 0, donorCount: 0, purposes: {}, monthlyTrend: { labels: [], data: [] } };
+  }
+}

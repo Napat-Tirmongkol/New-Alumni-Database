@@ -206,6 +206,29 @@
       transform: rotate(360deg);
     }
   }
+
+    .summary-card {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    }
+    .summary-card h3 {
+        margin-top: 0;
+        font-size: 1.125rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+    .summary-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #16a34a; /* สีเขียว */
+    }
+    .summary-note {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
 </style>
 
 <div class="page-title-container">
@@ -334,6 +357,37 @@
             <canvas id="subjectPassRateChart"></canvas>
         </div>
     </div>
+    <div class="chart-card">
+        <h3>เปรียบเทียบสอบครั้งแรก vs สอบซ้ำ</h3>
+        <div class="chart-placeholder">
+            <canvas id="examAttemptChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="donationsTabContent" class="charts-grid" style="display: none;">
+    <div class="summary-card">
+        <h3>ยอดบริจาครวม</h3>
+        <p id="totalDonationAmount" class="summary-value">฿0</p>
+        <p class="summary-note">ข้อมูลล่าสุด ณ ปัจจุบัน</p>
+    </div>
+    <div class="summary-card">
+        <h3>จำนวนผู้บริจาค (ไม่ซ้ำกัน)</h3>
+        <p id="totalDonors" class="summary-value">0</p>
+        <p class="summary-note">นับจากอีเมลที่ไม่ซ้ำกัน</p>
+    </div>
+    <div class="chart-card">
+        <h3>วัตถุประสงค์การบริจาค</h3>
+        <div class="chart-placeholder">
+            <canvas id="donationPurposeChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-card">
+        <h3>แนวโน้มการบริจาครายเดือน</h3>
+        <div class="chart-placeholder">
+            <canvas id="donationTrendChart"></canvas>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -379,6 +433,8 @@
         google.script.run.withSuccessHandler(renderWorkplaceTypeChart).getFutureWorkPlanDistribution();
         google.script.run.withSuccessHandler(renderSubjectPassRateChart).getSubjectPassRates();
         google.script.run.withSuccessHandler(renderPassRateByRoundChart).getPassRateByRound();
+        google.script.run.withSuccessHandler(renderExamAttemptChart).getExamAttemptStats();
+        google.script.run.withSuccessHandler(populateDonationStats).getDonationDashboardStats();
     }
 
     function renderWorkplaceTypeChart(data) {
@@ -498,16 +554,117 @@
             }
         });
     }
-    
+
+ function renderExamAttemptChart(stats) {
+        const canvasId = 'examAttemptChart';
+        if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); }
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || !stats) return;
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['สอบครั้งแรก', 'สอบซ้ำ 1 ครั้ง', 'สอบซ้ำ 2+ ครั้ง'],
+                datasets: [{
+                    label: 'จำนวนผู้สอบ',
+                    data: [stats.firstTime, stats.retakeOnce, stats.retakeMultiple],
+                    backgroundColor: [
+                        '#16a34a', // สีเขียว
+                        '#f97316', // สีส้ม
+                        '#ef4444'  // สีแดง
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    }
+
+     function populateDonationStats(stats) {
+        if (!stats) return;
+
+        // อัปเดตการ์ดข้อมูลสรุป
+        const totalAmountEl = document.getElementById('totalDonationAmount');
+        const totalDonorsEl = document.getElementById('totalDonors');
+        
+        totalAmountEl.textContent = '฿' + stats.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        totalDonorsEl.textContent = stats.donorCount;
+
+        // เรียกฟังก์ชันวาดกราฟ
+        renderDonationPurposeChart(stats.purposes);
+        renderDonationTrendChart(stats.monthlyTrend);
+    }
+
+    function renderDonationPurposeChart(purposeData) {
+        const canvasId = 'donationPurposeChart';
+        if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); }
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || !purposeData) return;
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(purposeData),
+                datasets: [{
+                    label: 'จำนวนครั้ง',
+                    data: Object.values(purposeData),
+                    backgroundColor: ['#16a34a', '#f97316', '#3b82f6', '#ef4444', '#8b5cf6'],
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function renderDonationTrendChart(trendData) {
+        const canvasId = 'donationTrendChart';
+        if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); }
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || !trendData) return;
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendData.labels,
+                datasets: [{
+                    label: 'ยอดบริจาค (บาท)',
+                    data: trendData.data,
+                    backgroundColor: 'rgba(249, 115, 22, 0.2)', // สีส้มโปร่งแสง
+                    borderColor: '#F97316', // สีส้ม
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
     window.showTab = function(evt, tabName) {
+        // ซ่อนทุกแท็บ
         document.getElementById('demographicsTabContent').style.display = 'none';
         document.getElementById('employmentTabContent').style.display = 'none';
         document.getElementById('licenseTabContent').style.display = 'none';
+        document.getElementById('donationsTabContent').style.display = 'none';
+        
         const tabButtons = document.querySelectorAll('.tab-button');
         tabButtons.forEach(button => button.classList.remove('active'));
-        if (tabName === 'demographics') { document.getElementById('demographicsTabContent').style.display = 'grid'; } 
-        else if (tabName === 'employment') { document.getElementById('employmentTabContent').style.display = 'grid'; } 
-        else if (tabName === 'license') { document.getElementById('licenseTabContent').style.display = 'grid'; }
+        
+        // แสดงเฉพาะแท็บที่เลือก
+        const tabId = tabName + 'TabContent';
+        const activeTab = document.getElementById(tabId);
+        if (activeTab) {
+            activeTab.style.display = 'grid';
+        }
+        
         evt.currentTarget.classList.add('active');
     }
 
