@@ -399,7 +399,7 @@ function saveUserProfile(profileData) {
         profileSheet.appendRow(profileRowData);
     }
     
-    return "บันทึกข้อมูลส่วนตัวสำเร็จ!";
+    return "บันทึกข้อมูลสำเร็จ!";
   } catch (e) {
     Logger.log("เกิดข้อผิดพลาดใน saveUserProfile: " + e.message);
     return `เกิดข้อผิดพลาด: ${e.message}`;
@@ -1099,6 +1099,91 @@ function getClassDistribution() {
     return distribution;
   } catch (e) {
     Logger.log("Error in getClassDistribution: " + e.message);
+    return {};
+  }
+}
+
+/**
+ * ดึงข้อมูลการกระจายตัวของสถานะการทำงาน (เวอร์ชันแก้ไข: รวมและเปลี่ยนชื่อ 'ทำงานแล้ว' เป็น 'กำลังทำงาน')
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนในแต่ละสถานะ
+ */
+function getEmploymentStatusDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+    
+    const statuses = sheet.getRange(2, COLS_PROFILE.EMPLOYMENT_STATUS, sheet.getLastRow() - 1, 1).getValues().flat();
+    
+    const distribution = {};
+
+    statuses.forEach(status => {
+      if (!status) return; // ข้ามเซลล์ที่ว่าง
+
+      // ตรวจสอบถ้าในข้อความมีคำว่า 'ทำงานแล้ว'
+      if (status.includes('ทำงานแล้ว')) {
+        // ให้นับรวมใน key 'กำลังทำงาน' เสมอ
+        distribution['กำลังทำงาน'] = (distribution['กำลังทำงาน'] || 0) + 1;
+      } else {
+        // สำหรับสถานะอื่นๆ ให้นับตามปกติ
+        distribution[status] = (distribution[status] || 0) + 1;
+      }
+    });
+    
+    return distribution;
+  } catch (e) {
+    Logger.log("Error in getEmploymentStatusDistribution: " + e.message);
+    return {};
+  }
+}
+
+/**
+ * ดึงข้อมูลการกระจายตัวของแผนการไปทำงานต่างประเทศ
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนคนที่มีแผนและไม่มีแผน
+ */
+function getInternationalWorkPlanDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+    // ดึงข้อมูลจากคอลัมน์ InternationalWorkPlan (คอลัมน์ที่ 27)
+    const plans = sheet.getRange(2, COLS_PROFILE.INTERNATIONAL_PLAN, sheet.getLastRow() - 1, 1).getValues().flat();
+    const distribution = {
+      'ไม่มีแผนไปทำงานต่างประเทศ': 0,
+      'มีแผนไปทำงานต่างประเทศ': 0
+    };
+    plans.forEach(plan => {
+      // หากค่าเป็นค่าว่าง หรือ 'no_plan' ให้นับเป็น "ไม่มีแผน"
+      if (!plan || plan === 'no_plan') {
+        distribution['ไม่มีแผนไปทำงานต่างประเทศ']++;
+      } else {
+        distribution['มีแผนไปทำงานต่างประเทศ']++;
+      }
+    });
+    return distribution;
+  } catch (e) {
+    Logger.log("Error in getInternationalWorkPlanDistribution: " + e.message);
+    return {};
+  }
+}
+
+/**
+ * ดึงข้อมูลการกระจายตัวตามประเภทสถานที่ทำงาน (FutureWorkPlan)
+ * @returns {object} อ็อบเจกต์ข้อมูลจำนวนในแต่ละประเภท
+ */
+function getFutureWorkPlanDistribution() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    if (!sheet || sheet.getLastRow() < 2) return {};
+    // ดึงข้อมูลจากคอลัมน์ FutureWorkPlan (คอลัมน์ที่ 25)
+    const plans = sheet.getRange(2, COLS_PROFILE.FUTURE_PLAN, sheet.getLastRow() - 1, 1).getValues().flat();
+    const distribution = {};
+    plans.forEach(plan => {
+      if (plan) { // นับเฉพาะค่าที่ไม่ใช่เซลล์ว่าง
+        distribution[plan] = (distribution[plan] || 0) + 1;
+      }
+    });
+    return distribution;
+  } catch (e) {
+    Logger.log("Error in getFutureWorkPlanDistribution: " + e.message);
     return {};
   }
 }

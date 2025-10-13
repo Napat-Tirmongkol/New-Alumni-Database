@@ -55,7 +55,7 @@
     <button class="tab-button" onclick="showTab(event, 'donations')">การบริจาค</button>
 </div>
 
-<div class="charts-grid">
+<div id="demographicsTabContent" class="charts-grid">
     <div class="chart-card">
         <h3>การกระจายตามเพศ</h3>
         <div class="chart-placeholder">
@@ -81,6 +81,26 @@
         </div>
     </div>
 </div>
+
+<div id="employmentTabContent" class="charts-grid" style="display: none;">
+    <div class="chart-card">
+        <h3>สถานะการทำงาน</h3>
+        <div class="chart-placeholder">
+            <canvas id="employmentStatusChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-card">
+        <h3>การทำงานต่างประเทศ</h3>
+        <div class="chart-placeholder">
+            <canvas id="internationalWorkPlanChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-card" style="grid-column: 1 / -1;">
+        <h3>ประเภทสถานที่ทำงาน</h3>
+        <div class="chart-placeholder" style="min-height: 300px;">
+            <canvas id="workplaceTypeChart"></canvas>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -103,45 +123,42 @@
         google.script.run.withSuccessHandler(renderAgeChart).getAgeDistribution();
         google.script.run.withSuccessHandler(renderNationalityChart).getNationalityDistribution();
         google.script.run.withSuccessHandler(renderClassChart).getClassDistribution();
+        google.script.run.withSuccessHandler(renderEmploymentStatusChart).getEmploymentStatusDistribution();
+        google.script.run.withSuccessHandler(renderInternationalWorkPlanChart).getInternationalWorkPlanDistribution();
+        google.script.run.withSuccessHandler(renderWorkplaceTypeChart).getFutureWorkPlanDistribution();
     }
-    function renderGenderChart(data) {
-        const ctx = document.getElementById('genderChart');
-        if (!ctx || !data) return;
+    
+    function renderWorkplaceTypeChart(data) {
+        const ctx = document.getElementById('workplaceTypeChart');
+        if (!ctx || !data || Object.keys(data).length === 0) return;
 
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['ชาย', 'หญิง', 'ไม่ระบุ'],
-                datasets: [{
-                    label: 'จำนวน',
-                    data: [data.male, data.female, data.other],
-                    backgroundColor: ['#3b82f6', '#ec4899', '#a8a29e'],
-                    hoverOffset: 4
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
+        // Object สำหรับแปลง key เป็นชื่อภาษาไทย
+        const thaiLabels = {
+            'hospital_public': 'โรงพยาบาลรัฐ',
+            'hospital_private': 'โรงพยาบาลเอกชน',
+            'clinic': 'คลินิก',
+            'other': 'อื่นๆ',
+            'education': 'สถานศึกษา/อาจารย์',
+            'research': 'งานวิจัย',
+            'community_health': 'สาธารณสุขชุมชน',
+            // เพิ่ม key อื่นๆ จาก dropdown ของคุณที่นี่
+        };
 
-    /**
-     * --- ฟังก์ชันใหม่: สร้างกราฟแท่งแสดงข้อมูลอายุ ---
-     * @param {object} data - ข้อมูลจำนวนผู้ใช้ในแต่ละช่วงอายุ
-     */
-    function renderAgeChart(data) {
-        const ctx = document.getElementById('ageChart');
-        if (!ctx || !data) return;
-        
-        const labels = Object.keys(data);
-        const values = Object.values(data);
+              // 1. แปลง Object เป็น Array เพื่อเรียงลำดับ
+        const sortedArray = Object.entries(data).sort(([, a], [, b]) => b - a);
+
+        // 2. สร้าง Labels และ Data ที่เรียงลำดับแล้ว
+        const sortedLabels = sortedArray.map(([key]) => thaiLabels[key] || key);
+        const sortedDataValues = sortedArray.map(([, value]) => value);
 
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: sortedLabels,
                 datasets: [{
-                    label: 'จำนวนผู้ใช้',
-                    data: values,
-                    backgroundColor: 'rgba(249, 115, 22, 0.6)', // สีส้ม
+                    label: 'จำนวน',
+                    data: sortedDataValues,
+                    backgroundColor: 'rgba(249, 115, 22, 0.8)',
                     borderColor: 'rgba(249, 115, 22, 1)',
                     borderWidth: 1
                 }]
@@ -153,104 +170,158 @@
                     y: { beginAtZero: true }
                 },
                 plugins: {
-                    legend: { display: false } // ซ่อน Legend เพราะมีแค่ Dataset เดียว
-                }
-            }
-        });
-    }
-
-/**
-     * --- ฟังก์ชันใหม่: สร้างกราฟวงกลมแสดงข้อมูลสัญชาติ ---
-     * @param {object} data - ข้อมูลจำนวนผู้ใช้ในแต่ละสัญชาติ
-     */
-    function renderNationalityChart(data) {
-        const ctx = document.getElementById('nationalityChart');
-        if (!ctx || !data || Object.keys(data).length === 0) return;
-
-        const labels = Object.keys(data);
-        const values = Object.values(data);
-        
-        // สร้างชุดสีแบบไดนามิกเพื่อให้สวยงาม
-        const backgroundColors = labels.map((_, i) => `hsl(${i * (360 / labels.length)}, 70%, 60%)`);
-
-        new Chart(ctx, {
-            type: 'doughnut', // หรือ 'pie'
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'จำนวน',
-                    data: values,
-                    backgroundColor: backgroundColors,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * --- ฟังก์ชันใหม่: สร้างกราฟแท่งแสดงข้อมูลรุ่น ---
-     * @param {object} data - ข้อมูลจำนวนผู้ใช้ในแต่ละรุ่น
-     */
-    function renderClassChart(data) {
-        const ctx = document.getElementById('classChart');
-        if (!ctx || !data || Object.keys(data).length === 0) return;
-
-        // เรียงข้อมูลตามชื่อรุ่น (Key)
-        const sortedData = Object.keys(data).sort().reduce(
-          (obj, key) => { 
-            obj[key] = data[key]; 
-            return obj;
-          }, 
-          {}
-        );
-        
-        const labels = Object.keys(sortedData);
-        const values = Object.values(sortedData);
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'จำนวนศิษย์เก่า/นักศึกษา',
-                    data: values,
-                    backgroundColor: 'rgba(22, 163, 74, 0.6)', // สีเขียว
-                    borderColor: 'rgba(22, 163, 74, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { // ทำให้แกน Y เป็นเลขจำนวนเต็ม
-                            stepSize: 1
-                        }
-                    }
-                },
-                plugins: {
                     legend: { display: false }
                 }
             }
         });
     }
+    
+    function renderEmploymentStatusChart(data) {
+        const ctx = document.getElementById('employmentStatusChart');
+        if (!ctx || !data) return;
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'จำนวน',
+                    data: Object.values(data),
+                    backgroundColor: ['#16a34a', '#f97316', '#8b5cf6', '#6b7280'],
+                    hoverOffset: 4
+                }]
+            },
+            // --- จุดที่แก้ไข ---
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom', // ย้ายคำอธิบายไปไว้ด้านล่าง
+                        align: 'center'      // จัดชิดซ้าย
+                    }
+                }
+            }
+        });
+    }
+
+    function renderInternationalWorkPlanChart(data) {
+        const ctx = document.getElementById('internationalWorkPlanChart');
+        if (!ctx || !data) return;
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'จำนวน',
+                    data: Object.values(data),
+                    backgroundColor: ['#374151', '#ef4444'],
+                    hoverOffset: 4
+                }]
+            },
+            // --- จุดที่แก้ไข ---
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        align: 'center'
+                    }
+                }
+            }
+        });
+    }
+
+    function renderGenderChart(data) {
+        const ctx = document.getElementById('genderChart'); if (!ctx || !data) return;
+        new Chart(ctx, { 
+            type: 'pie', 
+            data: { labels: ['ชาย', 'หญิง', 'ไม่ระบุ'], datasets: [{ label: 'จำนวน', data: [data.male, data.female, data.other], backgroundColor: ['#3b82f6', '#ec4899', '#a8a29e'], hoverOffset: 4 }] }, 
+            // --- จุดที่แก้ไข ---
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        align: 'center'
+                    }
+                }
+            } 
+        });
+    }
+
+    function renderAgeChart(data) {
+        const ctx = document.getElementById('ageChart');
+        if (!ctx || !data) return;
+
+        // --- 1. กำหนดลำดับการเรียงที่ถูกต้อง ---
+        const sortedLabels = ['ต่ำกว่า 20', '20-25 ปี', '26-30 ปี', '31-40 ปี', '41-50 ปี', 'มากกว่า 50'];
+
+        // --- 2. สร้างชุดข้อมูลใหม่โดยอิงตามลำดับที่กำหนด ---
+        const sortedDataValues = sortedLabels.map(label => data[label] || 0);
+
+        new Chart(ctx, { 
+            type: 'bar', 
+            data: { 
+                // --- 3. ใช้ข้อมูลที่เรียงลำดับแล้ว ---
+                labels: sortedLabels, 
+                datasets: [{ 
+                    label: 'จำนวนผู้ใช้', 
+                    data: sortedDataValues, 
+                    backgroundColor: 'rgba(249, 115, 22, 0.6)', 
+                    borderColor: 'rgba(249, 115, 22, 1)', 
+                    borderWidth: 1 
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { y: { beginAtZero: true } }, 
+                plugins: { legend: { display: false } } 
+            } 
+        });
+    }
+
+    function renderNationalityChart(data) {
+        const ctx = document.getElementById('nationalityChart'); if (!ctx || !data || Object.keys(data).length === 0) return;
+        const backgroundColors = Object.keys(data).map((_, i) => `hsl(${i * (360 / Object.keys(data).length)}, 70%, 60%)`);
+        new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { labels: Object.keys(data), datasets: [{ label: 'จำนวน', data: Object.values(data), backgroundColor: backgroundColors, hoverOffset: 4 }] }, 
+            // --- จุดที่แก้ไข ---
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        align: 'center'
+                    } 
+                } 
+            } 
+        });
+    }
+
+    function renderClassChart(data) {
+        const ctx = document.getElementById('classChart'); if (!ctx || !data || Object.keys(data).length === 0) return;
+        const sortedData = Object.keys(data).sort().reduce((obj, key) => { obj[key] = data[key]; return obj; }, {});
+        new Chart(ctx, { type: 'bar', data: { labels: Object.keys(sortedData), datasets: [{ label: 'จำนวนศิษย์เก่า/นักศึกษา', data: Object.values(sortedData), backgroundColor: 'rgba(22, 163, 74, 0.6)', borderColor: 'rgba(22, 163, 74, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } } });
+    }
 
     window.showTab = function(evt, tabName) {
+        document.getElementById('demographicsTabContent').style.display = 'none';
+        document.getElementById('employmentTabContent').style.display = 'none';
         const tabButtons = document.querySelectorAll('.tab-button');
         tabButtons.forEach(button => button.classList.remove('active'));
+        if (tabName === 'demographics') {
+            document.getElementById('demographicsTabContent').style.display = 'grid';
+        } else if (tabName === 'employment') {
+            document.getElementById('employmentTabContent').style.display = 'grid';
+        }
         evt.currentTarget.classList.add('active');
-        console.log("เปลี่ยนไปที่แท็บ:", tabName);
     }
 
     loadDashboardData();
