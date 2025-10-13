@@ -53,9 +53,43 @@ function checkAndCreateSheet(spreadsheet, sheetName, headers) {
 // =================================================================
 // ส่วนที่ 3: ฟังก์ชันหลักของเว็บแอป (CORE WEB APP FUNCTIONS)
 // =================================================================
+// =================================================================
+// ส่วนที่ 3: ฟังก์ชันหลักของเว็บแอป (CORE WEB APP FUNCTIONS)
+// =================================================================
 function doGet(e) {
-  const page = e ? e.parameter.page : null;
-  const token = e ? e.parameter.token : null;
+  // --- ส่วนที่เพิ่มเข้ามา: ตรวจสอบ Callback จาก Google Sign-In ---
+  if (e.parameter.action === 'googleAuthCallback') {
+    const userEmail = Session.getActiveUser().getEmail();
+    
+    // ดึงข้อมูลชื่อจาก Google Account
+    const userInfo = {
+      email: userEmail,
+      firstName: '', // ค่าเริ่มต้น
+      lastName: '' // ค่าเริ่มต้น
+    };
+
+    // การเรียก People API ต้องขอสิทธิ์เพิ่มเติม
+    // ในที่นี้เราจะใช้ข้อมูลพื้นฐานจาก Session ก่อน
+    // หากต้องการชื่อที่ถูกต้องจาก Google Account จะต้องตั้งค่า People API เพิ่มเติม
+    // แต่เพื่อความง่าย เราจะใช้ชื่อจาก Profile หรือสร้าง User ใหม่ถ้าไม่มี
+
+    const result = logInOrRegisterGoogleUser(userInfo);
+    
+    // สร้างหน้า HTML ชั่วคราวเพื่อตั้งค่า session แล้ว Redirect
+    const template = HtmlService.createTemplateFromFile('PostAuth');
+    template.user = result.user;
+    template.webAppUrl = getWebAppUrl();
+    
+    // ส่งข้อมูล user ไปยัง PostAuth.html
+    return template.evaluate().setTitle('กำลังเข้าสู่ระบบ...');
+  }
+  // --- จบส่วนที่เพิ่มเข้ามา ---
+
+
+  // การทำงานเดิมสำหรับแสดงหน้าต่างๆ
+  const page = e.parameter.page;
+  const token = e.parameter.token;
+  
   if (page === 'resetpassword' && token) {
     const verification = verifyResetToken(token);
     if (verification.isValid) {
@@ -66,10 +100,18 @@ function doGet(e) {
       return HtmlService.createTemplateFromFile('InvalidToken').evaluate().setTitle('ลิงก์ไม่ถูกต้อง');
     }
   }
-  const pageMappings = {'forgotpassword':'ForgotPassword','admindashboard':'AdminDashboard','dashboard':'Dashboard','register':'Register'};
+  
+  const pageMappings = {
+    'forgotpassword':'ForgotPassword',
+    'admindashboard':'AdminDashboard',
+    'dashboard':'Dashboard',
+    'register':'Register'
+  };
+
   if (page && pageMappings[page]) {
     return HtmlService.createTemplateFromFile(pageMappings[page]).evaluate().setTitle('ระบบติดตามศิษย์');
   }
+
   return HtmlService.createTemplateFromFile('Login').evaluate().setTitle('ระบบติดตามศิษย์');
 }
 
@@ -305,6 +347,68 @@ function updateUserRole(email) {
   } catch (e) {
     Logger.log("Error in updateUserRole: " + e.message);
     return { success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตบทบาท: ' + e.message };
+  }
+}
+
+/**
+ * สร้าง URL สำหรับให้ผู้ใช้กดเพื่อเริ่มกระบวนการ Google Sign-In
+ */
+function getGoogleSignInUrl() {
+  const webAppUrl = getWebAppUrl();
+  // สร้าง URL ที่จะ redirect กลับมาที่สคริปต์ของเราเองพร้อมกับ action parameter
+  return `${webAppUrl}?action=googleAuthCallback`;
+}
+
+/**
+ * ตรวจสอบผู้ใช้จาก Google หากไม่มีในระบบจะทำการลงทะเบียนให้ใหม่
+ * @param {string} email - อีเมลที่ได้จาก Google
+ * @param {object} name - อ็อบเจกต์ชื่อ {givenName, familyName}
+ * @returns {object} ผลลัพธ์พร้อมข้อมูล user
+ */
+function logInOrRegisterGoogleUser(email, name) {
+  const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
+  const data = dbSheet.getDataRange().getValues();
+  const headers = data.shift();
+  const emailIndex = headers.indexOf('Email');
+  const roleIndex = headers.indexOf('Role');
+
+  // 1. ค้นหาว่ามีอีเมลนี้ในระบบหรือไม่
+  let existingUserRow = data.find(row => row[emailIndex] === email);
+
+  if (existingUserRow) {
+    // 2. ถ้ามี: ล็อกอินเลย
+    const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    const profileData = profileSheet.getDataRange().getValues();
+    const profileHeaders = profileData.shift();
+    const profileEmailIndex = profileHeaders.indexOf('Email');
+
+    const profileRow = profileData.find(pRow => pRow[profileEmailIndex] === email);
+
+    const user = {
+      firstName: profileRow ? profileRow[profileHeaders.indexOf('FirstNameTH')] : name.givenName,
+      lastName: profileRow ? profileRow[profileHeaders.indexOf('LastNameTH')] : name.familyName,
+      role: existingUserRow[roleIndex]
+    };
+    return { success: true, user: user };
+
+  } else {
+    // 3. ถ้าไม่มี: ลงทะเบียนให้ใหม่เป็น 'Student'
+    const newUserId = "UID-" + new Date().getTime();
+    const newUserDbRow = [newUserId, email, null, 'Student', new Date(), new Date(), true, null, null];
+    dbSheet.appendRow(newUserDbRow);
+
+    const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
+    // ใช้ชื่อ-นามสกุลจาก Google Account เป็นค่าเริ่มต้น
+    const newUserProfileRow = [newUserId, email, null, null, null, name.givenName, name.familyName];
+    profileSheet.appendRow(newUserProfileRow);
+
+    const user = {
+        firstName: name.givenName,
+        lastName: name.familyName,
+        role: 'Student'
+    };
+
+    return { success: true, user: user, isNew: true };
   }
 }
 

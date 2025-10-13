@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f6f9; }
+        .container { text-align: center; }
+        .loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 2s linear infinite; margin: auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="loader"></div>
+        <h2>เข้าสู่ระบบสำเร็จ!</h2>
+        <p>กำลังนำคุณไปยังหน้าแดชบอร์ด...</p>
+    </div>
+
+    <script>
+      // 1. รับข้อมูล user ที่ส่งมาจาก Code.js
+      const user = <?= JSON.stringify(user) ?>;
+      const webAppUrl = '<?= webAppUrl ?>';
+      
+      // 2. บันทึกข้อมูลลงใน sessionStorage
+      sessionStorage.setItem('loggedInUser', JSON.stringify(user));
+      sessionStorage.setItem('userEmail', user.email); // สมมติว่า object user มี email
+
+      // 3. Redirect ไปยังหน้า Dashboard ที่ถูกต้อง
+      if (user.role === 'Admin') {
+        window.top.location.href = webAppUrl + '?page=admindashboard';
+      } else {
+        window.top.location.href = webAppUrl + '?page=dashboard';
+      }
+    </script>
+  </body>
+</html>
