@@ -115,65 +115,92 @@
 <body>
   <?!= include('language.js.html'); ?>
   <script>
-    // Script นี้จะทำงานในหน้าที่เรียกใช้ Header
     const headerUserName = document.getElementById("headerUserName");
     const headerLogoutButton = document.getElementById("headerLogoutButton");
 
-    // ดึงข้อมูลผู้ใช้จาก sessionStorage มาแสดง
+    // ดึงข้อมูลผู้ใช้จาก sessionStorage มาแสดง (เหมือนเดิม)
     const userDataString = sessionStorage.getItem("loggedInUser");
     if (userDataString) {
-      const user = JSON.parse(userDataString);
-      if (headerUserName) {
-        headerUserName.textContent = user.firstName; // แสดงแค่ชื่อ
-      }
+        const user = JSON.parse(userDataString);
+        if (headerUserName) {
+            headerUserName.textContent = user.firstName;
+        }
     }
 
-    // ทำให้ปุ่ม Logout ทำงาน
+    // --- ทำให้ปุ่ม Logout ทำงาน (ส่วนที่แก้ไขใหม่ทั้งหมด) ---
     if (headerLogoutButton) {
-      headerLogoutButton.addEventListener("click", () => {
-        sessionStorage.removeItem("loggedInUser");
-        sessionStorage.removeItem("userEmail");
-        google.script.run
-          .withSuccessHandler((url) => {
-            window.open(url, "_top");
-          })
-          .getWebAppUrl();
-      });
-    }
-    // ฟังก์ชันสำหรับตั้งค่าภาษา
-    function setLanguage(lang) {
-      localStorage.setItem("userLanguage", lang);
-      document.querySelectorAll("[data-lang-key]").forEach((elem) => {
-        const key = elem.getAttribute("data-lang-key");
-        if (langStrings[lang] && langStrings[lang][key]) {
-          elem.innerText = langStrings[lang][key];
-        }
-      });
-      document
-        .querySelectorAll("[data-lang-key-placeholder]")
-        .forEach((elem) => {
-          const key = elem.getAttribute("data-lang-key-placeholder");
-          if (langStrings[lang] && langStrings[lang][key]) {
-            elem.placeholder = langStrings[lang][key];
-          }
+        headerLogoutButton.addEventListener("click", (e) => {
+            e.preventDefault(); // ป้องกันการทำงานเริ่มต้นของปุ่ม
+
+            Swal.fire({
+                title: 'ยืนยันการออกจากระบบ',
+                text: "คุณต้องการออกจากระบบใช่หรือไม่?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33', // สีปุ่มยืนยัน (แดง)
+                cancelButtonColor: '#3085d6', // สีปุ่มยกเลิก (น้ำเงิน)
+                confirmButtonText: 'ออกจากระบบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                // ตรวจสอบว่าผู้ใช้กดยืนยันหรือไม่
+                if (result.isConfirmed) {
+                    // ถ้ากดยืนยัน "ออกจากระบบ" ให้ทำงานส่วนนี้
+                    sessionStorage.removeItem("loggedInUser");
+                    sessionStorage.removeItem("userEmail");
+
+                    // แสดง Pop-up ว่ากำลังออกจากระบบ
+                    Swal.fire({
+                        title: 'กำลังออกจากระบบ...',
+                        timer: 2000, // แสดงผล 1 วินาที
+                        didOpen: () => {
+                           Swal.showLoading()
+                        },
+                        willClose: () => {
+                           // หลังจาก Pop-up ปิด ให้เปลี่ยนหน้าไปหน้า Login
+                           google.script.run
+                            .withSuccessHandler((url) => {
+                                window.open(url, "_top");
+                            })
+                            .getWebAppUrl();
+                        }
+                    });
+                }
+            });
         });
-      updateLangButtonUI(lang);
+    }
+
+    // --- ฟังก์ชันสลับภาษา (เหมือนเดิม) ---
+    function setLanguage(lang) {
+        localStorage.setItem("userLanguage", lang);
+        document.querySelectorAll("[data-lang-key]").forEach((elem) => {
+            const key = elem.getAttribute("data-lang-key");
+            if (langStrings[lang] && langStrings[lang][key]) {
+                elem.innerText = langStrings[lang][key];
+            }
+        });
+        document.querySelectorAll("[data-lang-key-placeholder]").forEach((elem) => {
+            const key = elem.getAttribute("data-lang-key-placeholder");
+            if (langStrings[lang] && langStrings[lang][key]) {
+                elem.placeholder = langStrings[lang][key];
+            }
+        });
+        updateLangButtonUI(lang);
     }
 
     function updateLangButtonUI(currentLang) {
-      const langButtons = document.querySelectorAll(".lang-toggle button");
-      langButtons.forEach((btn) => {
-        if (btn.dataset.lang === currentLang) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      });
+        const langButtons = document.querySelectorAll(".lang-toggle button");
+        langButtons.forEach((btn) => {
+            if (btn.dataset.lang === currentLang) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
     }
-
+    
     document.addEventListener("DOMContentLoaded", () => {
-      const savedLang = localStorage.getItem("userLanguage") || "th";
-      setLanguage(savedLang);
+        const savedLang = localStorage.getItem("userLanguage") || "th";
+        setLanguage(savedLang);
     });
-  </script>
+</script>
 </body>

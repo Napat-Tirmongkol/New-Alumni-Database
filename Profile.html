@@ -380,17 +380,24 @@
       }
     });
 
-  // ในไฟล์ Profile.html
+// ในไฟล์ Profile.html
 
 document.getElementById("profileForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    const saveButton = document.getElementById("saveButton");
-    saveButton.disabled = true;
-    
-    // --- แก้ไขบรรทัดนี้ ---
-    saveButton.innerHTML = "กำลังบันทึก..."; // ใช้ innerHTML แทน textContent
 
+    // 1. Pop-up "กำลังบันทึก" (ยังใช้แบบเดิมเพื่อให้ผู้ใช้รอ)
+    Swal.fire({
+        title: 'กำลังบันทึกข้อมูล...',
+        text: 'กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // --- ส่วนรวบรวมข้อมูล (เหมือนเดิม) ---
     const profileData = {
+        // ... (ข้อมูลฟอร์มทั้งหมด) ...
         prefix: document.getElementById("prefix").value,
         studentId: document.getElementById("studentId").value,
         firstNameTH: document.getElementById("firstNameTH").value,
@@ -427,29 +434,32 @@ document.getElementById("profileForm").addEventListener("submit", function (e) {
     profileData.email = userEmailForSave;
 
     if (!profileData.email) {
-        alert("ไม่สามารถระบุอีเมลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
-        saveButton.disabled = false;
-        
-        // --- แก้ไขบรรทัดนี้ด้วย ---
-        saveButton.innerHTML = `<i class="fas fa-save"></i>บันทึกข้อมูล`;
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถระบุอีเมลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง',
+        });
         return;
     }
 
     google.script.run
         .withSuccessHandler(function (result) {
-            alert(result);
+            // --- 2. เมื่อสำเร็จ, ใช้ Pop-up แบบ Draggable ที่คุณต้องการ ---
+            Swal.fire({
+                title: "บันทึกข้อมูลสำเร็จ!", // เปลี่ยนข้อความเป็นภาษาไทย
+                icon: "success",
+                draggable: true // ทำให้ Pop-up สามารถลากได้
+            });
         })
         .withFailureHandler(function (error) {
-            alert("เกิดข้อผิดพลาด: " + error.message);
+            // Pop-up "ล้มเหลว" (ยังใช้แบบเดิมเพื่อให้ผู้ใช้กดรับทราบ)
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: error.message,
+            });
         })
-        .saveUserProfile(profileData)
-        .finally(() => {
-            saveButton.disabled = false;
-            
-            // --- และแก้ไขบรรทัดนี้ ---
-            // ใส่โค้ดไอคอนกลับเข้าไปพร้อมกับข้อความ
-            saveButton.innerHTML = `<i class="fas fa-save"></i>บันทึกข้อมูล`;
-        });
+        .saveUserProfile(profileData);
 });
 
   function loadProfileData() {
