@@ -1,25 +1,178 @@
 <style>
-    .placeholder-card {
-        background-color: white;
-        padding: 2rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        text-align: center;
-        max-width: 600px;
+    /* --- Classic Style --- */
+    .id-card-classic {
+        max-width: 350px;
+        height: 550px;
         margin: 2rem auto;
+        font-family: 'Helvetica', 'Arial', sans-serif;
+        background-color: #F9FAFB;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
-    .placeholder-card h2 {
+    .id-card-classic .header {
+        background-color: #8C1D18; /* สีแดงเลือดหมู */
+        color: white;
+        text-align: center;
+        padding: 12px;
+    }
+    .id-card-classic .header h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .id-card-classic .content {
+        padding: 20px;
+        text-align: center;
+        flex-grow: 1;
+    }
+    .id-card-classic .photo {
+        width: 150px;
+        height: 180px;
+        background-color: #e0e0e0;
+        background-size: cover;
+        background-position: center;
+        margin: 0 auto 16px auto;
+        border: 4px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .id-card-classic .name {
         font-size: 1.5rem;
-        font-weight: 700;
+        font-weight: bold;
         color: #111827;
-        margin-top: 0;
+        margin: 0 0 4px 0;
+        text-transform: uppercase;
     }
-    .placeholder-card p {
-        color: #6b7280;
+    .id-card-classic .program {
+        font-size: 0.8rem;
+        color: #6B7280;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+    }
+    .id-card-classic .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        text-align: left;
+        gap: 12px;
+    }
+    .id-card-classic .info-item label {
+        display: block;
+        font-size: 0.75rem;
+        color: #8C1D18;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .id-card-classic .info-item span {
+        font-size: 1rem;
+        color: #374151;
+        font-weight: 500;
+    }
+    .id-card-classic .footer {
+        background-color: #374151; /* สีเทาเข้ม */
+        padding: 10px;
+        text-align: center;
+    }
+    /* โลโก้มหาวิทยาลัย */
+    .id-card-classic .footer-logo {
+        height: 30px;
+        width: 120px;
+        background-image: url('https://upload.wikimedia.org/wikipedia/en/thumb/4/4d/Assumption_University_of_Thailand_logo.svg/1200px-Assumption_University_of_Thailand_logo.svg.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        margin: 0 auto;
+        filter: brightness(0) invert(1); /* ทำให้โลโก้เป็นสีขาว */
+    }
+    .placeholder-text {
+        color: #aaa;
     }
 </style>
 
-<div class="placeholder-card">
-    <h2>บัตรประจำตัวเสมือน</h2>
-    <p>ส่วนนี้ยังอยู่ระหว่างการพัฒนา จะพร้อมให้ใช้งานเร็วๆ นี้</p>
+<div class="id-card-classic">
+    <div class="header">
+        <h3>Student Virtual ID</h3>
+    </div>
+    <div class="content">
+        <div id="cardPhoto" class="photo"></div>
+        <h2 id="cardName" class="name"><span class="placeholder-text">Loading...</span></h2>
+        <p class="program">Bachelor Degree Program</p>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>STUDENT ID</label>
+                <span id="cardStudentId"><span class="placeholder-text">N/A</span></span>
+            </div>
+            <div class="info-item">
+                <label>STATUS</label>
+                <span id="cardUserRole"><span class="placeholder-text">N/A</span></span>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="footer-logo"></div>
+    </div>
 </div>
+
+<script>
+    function loadVirtualIdData() {
+        // --- ดึง Element ที่จะใช้แสดงผล ---
+        const photoEl = document.getElementById('cardPhoto');
+        const nameEl = document.getElementById('cardName');
+        const studentIdEl = document.getElementById('cardStudentId');
+        const roleEl = document.getElementById('cardUserRole');
+
+        // --- ดึงข้อมูลผู้ใช้จาก sessionStorage ---
+        const userEmail = sessionStorage.getItem('userEmail');
+        const userDataString = sessionStorage.getItem('loggedInUser');
+
+        if (!userEmail || !userDataString) {
+            nameEl.textContent = 'Error';
+            studentIdEl.textContent = 'Cannot find user data.';
+            return;
+        }
+
+        // --- แสดง Role (สถานะ) จากข้อมูลที่เก็บไว้ตอน login ---
+        const user = JSON.parse(userDataString);
+        if (roleEl && user.role) {
+            roleEl.textContent = user.role.toUpperCase();
+        }
+
+        // --- เรียก Server เพื่อดึงข้อมูลโปรไฟล์ ---
+        google.script.run
+            .withSuccessHandler(profileData => {
+                if (profileData) {
+                    // 1. แสดงชื่อ-สกุล (อังกฤษ)
+                    const firstName = (profileData.FirstNameEN || '').toUpperCase();
+                    const lastName = (profileData.LastNameEN || '').toUpperCase();
+                    nameEl.textContent = `${firstName} ${lastName}`;
+
+                    // 2. แสดงรหัสนักศึกษา
+                    studentIdEl.textContent = profileData.StudentID || 'N/A';
+
+                    // 3. แสดงรูปโปรไฟล์
+                    if (profileData.profilePictureUrl) {
+                        photoEl.style.backgroundImage = `url('${profileData.profilePictureUrl}')`;
+                    } else {
+                        photoEl.style.backgroundColor = '#ccc'; // สีเทาถ้าไม่มีรูป
+                    }
+
+                } else {
+                    // กรณีไม่พบข้อมูลโปรไฟล์
+                    nameEl.textContent = 'PROFILE NOT FOUND';
+                    studentIdEl.textContent = 'N/A';
+                }
+            })
+            .withFailureHandler(error => {
+                // กรณีเกิด Error
+                nameEl.textContent = 'ERROR';
+                studentIdEl.textContent = 'Could not load profile.';
+                console.error('Failed to load profile data:', error);
+            })
+            .getUserProfile(userEmail);
+    }
+
+    // เริ่มทำงานทันที
+    loadVirtualIdData();
+</script>
