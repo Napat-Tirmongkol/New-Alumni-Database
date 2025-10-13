@@ -1,225 +1,523 @@
 <style>
-    .profile-form-container { background-color: white; padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-    .avatar-upload { position: relative; flex-shrink: 0; }
-    .avatar-preview { width: 80px; height: 80px; border-radius: 50%; background-color: #e9ecef; background-size: cover; background-position: center; border: 2px solid #ddd; }
-    .avatar-upload label { position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; background-color: #007bff; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    #profilePictureUpload { display: none; }
-    .profile-header-text h2 { margin: 0 0 5px 0; }
-    .profile-header-text p { margin: 0; color: #6c757d; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px 25px; }
-    .form-group { display: flex; flex-direction: column; }
-    .form-group label { margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
-    .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; font-family: 'Sarabun', sans-serif; width: 100%; box-sizing: border-box; }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .form-actions { text-align: right; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-    .btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-left: 10px; }
-    .save-btn { background-color: #28a745; color: white; }
-    .save-btn:disabled { background-color: #aaa; cursor: not-allowed; }
-    .back-btn { background-color: #6c757d; color: white; }
-    .section-header { margin-top: 30px; margin-bottom: 10px; font-size: 18px; font-weight: bold; color: #333; padding-bottom: 8px; grid-column: 1 / -1; }
+  .profile-form-container {
+    background-color: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+  }
+  .avatar-upload {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #ddd;
+  }
+  .avatar-upload label {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  #profilePictureUpload {
+    display: none;
+  }
+  .profile-header-text h2 {
+    margin: 0 0 5px 0;
+  }
+  .profile-header-text p {
+    margin: 0;
+    color: #6c757d;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px 25px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: "Sarabun", sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  .form-actions {
+    text-align: right;
+    margin-top: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+  }
+  .btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  .save-btn {
+    background-color: #28a745;
+    color: white;
+  }
+  .save-btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+  }
+  .save-btn .fas {
+    margin-right: 8px;
+  }
+  .back-btn {
+    background-color: #6c757d;
+    color: white;
+  }
+  .section-header {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    padding-bottom: 8px;
+    grid-column: 1 / -1;
+  }
 </style>
 
 <div class="profile-form-container">
-    <form id="profileForm">
-        <div class="profile-header">
-            <div class="avatar-upload">
-                <div id="avatarPreview" class="avatar-preview"></div>
-                <label for="profilePictureUpload">📷</label>
-                <input type="file" id="profilePictureUpload" accept="image/jpeg, image/png, image/gif">
-            </div>
-            <div class="profile-header-text">
-                <h2 id="profileNameDisplay">ข้อมูลส่วนตัว</h2>
-                <p>กรุณากรอกข้อมูลให้ครบถ้วนเพื่อประโยชน์ของท่าน</p>
-            </div>
-        </div>
-        
-        <div class="form-grid">
-            <div class="form-group"><label for="prefix">คำนำหน้า</label><select id="prefix"><option value="">-- เลือก --</option><option>นาย</option><option>นางสาว</option><option>นาง</option></select></div>
-            <div class="form-group"><label for="studentId">รหัสนักศึกษา/ศิษย์เก่า (7 หลัก)</label><input type="text" id="studentId" pattern="[0-9]{7}" maxlength="7"></div>
-            <div class="form-group"><label for="firstNameTH">ชื่อ (ภาษาไทย)</label><input type="text" id="firstNameTH"></div>
-            <div class="form-group"><label for="lastNameTH">นามสกุล (ภาษาไทย)</label><input type="text" id="lastNameTH"></div>
-            <div class="form-group"><label for="firstNameEN">ชื่อ (ภาษาอังกฤษ)</label><input type="text" id="firstNameEN"></div>
-            <div class="form-group"><label for="lastNameEN">นามสกุล (ภาษาอังกฤษ)</label><input type="text" id="lastNameEN"></div>
-            <div class="form-group"><label for="gradClass">รุ่นที่จบ</label><input type="text" id="gradClass" placeholder="เช่น LXVI, 66, รุ่นที่ 66"></div>
-            <div class="form-group"><label for="advisor">อาจารย์ที่ปรึกษา</label><input type="text" id="advisor"></div>
-            <div class="form-group"><label for="dob">วันเกิด</label><input type="date" id="dob"></div>
-            <div class="form-group"><label for="gender">เพศ</label><select id="gender"><option value="">-- เลือก --</option><option>ชาย</option><option>หญิง</option><option>ไม่ระบุ</option></select></div>
-            <div class="form-group"><label for="birthCountry">ประเทศที่เกิด</label><input type="text" id="birthCountry"></div>
-            <div class="form-group"><label for="nationality">สัญชาติ</label><input type="text" id="nationality"></div>
-            <div class="form-group"><label for="race">เชื้อชาติ</label><input type="text" id="race"></div>
-            <div class="form-group"><label for="email">อีเมล</label><input type="email" id="email" readonly style="background-color:#e9ecef;"></div>
-            <div class="form-group"><label for="phone">เบอร์โทรศัพท์</label><input type="tel" id="phone"></div>
-            <div class="form-group"><label for="gpax">เกรดเฉลี่ยสะสม (GPAX)</label><input type="number" id="gpax" step="0.01" min="0" max="4"></div>
-            <div class="form-group">
-                <label for="employmentStatus">สถานะการทำงาน</label>
-                <select id="employmentStatus">
-                    <option value="">-- เลือก --</option>
-                    <option>ทำงานแล้ว (ในประเทศไทย)</option>
-                    <option>ทำงานแล้ว (นอกประเทศไทย)</option>
-                    <option>กำลังหางาน</option>
-                    <option>ศึกษาต่อ</option>
-                    <option>อื่นๆ</option>
-                </select>
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;"><label for="address">ที่อยู่ปัจจุบัน</label><textarea id="address"></textarea></div>
+  <form id="profileForm">
+    <div class="profile-header">
+      <div class="avatar-upload">
+        <div id="avatarPreview" class="avatar-preview"></div>
+        <label for="profilePictureUpload">📷</label>
+        <input
+          type="file"
+          id="profilePictureUpload"
+          accept="image/jpeg, image/png, image/gif"
+        />
+      </div>
+      <div class="profile-header-text">
+        <h2 id="profileNameDisplay">ข้อมูลส่วนตัว</h2>
+        <p>กรุณากรอกข้อมูลให้ครบถ้วนเพื่อประโยชน์ของท่าน</p>
+      </div>
+    </div>
 
-            <div class="section-header">ข้อมูลผู้ติดต่อกรณีฉุกเฉิน</div>
-            <div class="form-group"><label for="emergencyName">ชื่อ-นามสกุล</label><input type="text" id="emergencyName"></div>
-            <div class="form-group"><label for="emergencyRelation">ความสัมพันธ์</label><input type="text" id="emergencyRelation"></div>
-            <div class="form-group"><label for="emergencyPhone">เบอร์โทรศัพท์</label><input type="tel" id="emergencyPhone"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="prefix">คำนำหน้า</label
+        ><select id="prefix">
+          <option value="">-- เลือก --</option>
+          <option>นาย</option>
+          <option>นางสาว</option>
+          <option>นาง</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="studentId">รหัสนักศึกษา/ศิษย์เก่า (7 หลัก)</label
+        ><input type="text" id="studentId" pattern="[0-9]{7}" maxlength="7" />
+      </div>
+      <div class="form-group">
+        <label for="firstNameTH">ชื่อ (ภาษาไทย)</label
+        ><input type="text" id="firstNameTH" />
+      </div>
+      <div class="form-group">
+        <label for="lastNameTH">นามสกุล (ภาษาไทย)</label
+        ><input type="text" id="lastNameTH" />
+      </div>
+      <div class="form-group">
+        <label for="firstNameEN">ชื่อ (ภาษาอังกฤษ)</label
+        ><input type="text" id="firstNameEN" />
+      </div>
+      <div class="form-group">
+        <label for="lastNameEN">นามสกุล (ภาษาอังกฤษ)</label
+        ><input type="text" id="lastNameEN" />
+      </div>
+      <div class="form-group">
+        <label for="gradClass">รุ่นที่จบ</label
+        ><input
+          type="text"
+          id="gradClass"
+          placeholder="เช่น LXVI, 66, รุ่นที่ 66"
+        />
+      </div>
+      <div class="form-group">
+        <label for="advisor">อาจารย์ที่ปรึกษา</label
+        ><input type="text" id="advisor" />
+      </div>
+      <div class="form-group">
+        <label for="dob">วันเกิด</label><input type="date" id="dob" />
+      </div>
+      <div class="form-group">
+        <label for="gender">เพศ</label
+        ><select id="gender">
+          <option value="">-- เลือก --</option>
+          <option>ชาย</option>
+          <option>หญิง</option>
+          <option>ไม่ระบุ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="birthCountry">ประเทศที่เกิด</label
+        ><input type="text" id="birthCountry" />
+      </div>
+      <div class="form-group">
+        <label for="nationality">สัญชาติ</label
+        ><input type="text" id="nationality" />
+      </div>
+      <div class="form-group">
+        <label for="race">เชื้อชาติ</label><input type="text" id="race" />
+      </div>
+      <div class="form-group">
+        <label for="email">อีเมล</label
+        ><input
+          type="email"
+          id="email"
+          readonly
+          style="background-color: #e9ecef"
+        />
+      </div>
+      <div class="form-group">
+        <label for="phone">เบอร์โทรศัพท์</label><input type="tel" id="phone" />
+      </div>
+      <div class="form-group">
+        <label for="gpax">เกรดเฉลี่ยสะสม (GPAX)</label
+        ><input type="number" id="gpax" step="0.01" min="0" max="4" />
+      </div>
+      <div class="form-group">
+        <label for="employmentStatus">สถานะการทำงาน</label>
+        <select id="employmentStatus">
+          <option value="">-- เลือก --</option>
+          <option>ทำงานแล้ว (ในประเทศไทย)</option>
+          <option>ทำงานแล้ว (นอกประเทศไทย)</option>
+          <option>กำลังหางาน</option>
+          <option>ศึกษาต่อ</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column: 1 / -1">
+        <label for="address">ที่อยู่ปัจจุบัน</label
+        ><textarea id="address"></textarea>
+      </div>
 
-            <div class="section-header">ข้อมูลเพิ่มเติม</div>
-            <div class="form-group" style="grid-column: 1 / -1;"><label for="awards">ประวัติการได้รับรางวัล</label><textarea id="awards" placeholder="ระบุชื่อรางวัล, ปี, หน่วยงานที่มอบ"></textarea></div>
-            <div class="form-group"><label for="futurePlan">แผนการทำงานในอนาคต</label><select id="futurePlan"><option value="">เลือกแผนการทำงาน</option><option value="hospital_public">ทำงานโรงพยาบาลรัฐ</option><option value="hospital_private">ทำงานโรงพยาบาลเอกชน</option><option value="clinic">ทำงานคลินิก</option><option value="community_health">ทำงานด้านสาธารณสุขชุมชน</option><option value="home_care">ทำงานด้านการดูแลผู้ป่วยที่บ้าน</option><option value="elderly_care">ทำงานด้านการดูแลผู้สูงอายุ</option><option value="occupational_health">ทำงานด้านอาชีวอนามัย</option><option value="education">ทำงานด้านการศึกษา/อาจารย์</option><option value="research">ทำงานด้านการวิจัย</option><option value="entrepreneur">ประกอบธุรกิจส่วนตัว</option><option value="international">ทำงานต่างประเทศ</option><option value="other">อื่นๆ</option></select></div>
-            <div class="form-group"><label for="educationPlan">แผนการศึกษาต่อ</label><select id="educationPlan"><option value="">เลือกแผนการศึกษาต่อ</option><option value="no_plan">ไม่มีแผนศึกษาต่อ</option><option value="master_nursing">ปริญญาโท พยาบาลศาสตร์</option><option value="master_public_health">ปริญญาโท สาธารณสุขศาสตร์</option><option value="master_health_admin">ปริญญาโท การบริหารสุขภาพ</option><option value="master_midwifery">ปริญญาโท การผดุงครรภ์</option><option value="master_mental_health">ปริญญาโท สุขภาพจิต</option><option value="master_community">ปริญญาโท พยาบาลชุมชน</option><option value="master_critical_care">ปริญญาโท พยาบาลผู้ป่วยวิกฤต</option><option value="master_pediatric">ปริญญาโท พยาบาลเด็ก</option><option value="master_geriatric">ปริญญาโท พยาบาลผู้สูงอายุ</option><option value="phd_nursing">ปริญญาเอก พยาบาลศาสตร์</option><option value="certificate">หลักสูตรประกาศนียบัตร</option><option value="international">ศึกษาต่อต่างประเทศ</option><option value="other">อื่นๆ</option></select></div>
-            <div class="form-group"><label for="internationalPlan">แผนการไปทำงานต่างประเทศ</label><select id="internationalPlan"><option value="">เลือกแผนการทำงานต่างประเทศ</option><option value="no_plan">ไม่มีแผนไปทำงานต่างประเทศ</option><option value="usa">สหรัฐอเมริกา</option><option value="canada">แคนาดา</option><option value="australia">ออสเตรเลีย</option><option value="uk">สหราชอาณาจักร</option><option value="germany">เยอรมนี</option><option value="netherlands">เนเธอร์แลนด์</option><option value="sweden">สวีเดน</option><option value="norway">นอร์เวย์</option><option value="singapore">สิงคโปร์</option><option value="japan">ญี่ปุ่น</option><option value="south_korea">เกาหลีใต้</option><option value="uae">สหรัฐอาหรับเอมิเรตส์</option><option value="saudi_arabia">ซาอุดีอาระเบีย</option><option value="qatar">กาตาร์</option><option value="kuwait">คูเวต</option><option value="new_zealand">นิวซีแลนด์</option><option value="other">ประเทศอื่นๆ</option></select></div>
-            <div class="form-group" style="justify-content: center;"><label style="flex-direction: row; cursor:pointer; align-items: center; display:flex; gap: 8px;"><input type="checkbox" id="willTakeThaiLicense" style="width: auto;"><span>จะสอบใบประกอบวิชาชีพของไทย</span></label></div>
-        </div>
+      <div class="section-header">ข้อมูลผู้ติดต่อกรณีฉุกเฉิน</div>
+      <div class="form-group">
+        <label for="emergencyName">ชื่อ-นามสกุล</label
+        ><input type="text" id="emergencyName" />
+      </div>
+      <div class="form-group">
+        <label for="emergencyRelation">ความสัมพันธ์</label
+        ><input type="text" id="emergencyRelation" />
+      </div>
+      <div class="form-group">
+        <label for="emergencyPhone">เบอร์โทรศัพท์</label
+        ><input type="tel" id="emergencyPhone" />
+      </div>
 
-        <div class="form-actions">
-            <button type="button" class="btn back-btn" onclick="loadContent('profileSummary')">⬅️ ย้อนกลับ</button>
-            <button type="submit" id="saveButton" class="btn save-btn">💾 บันทึกข้อมูล</button>
-        </div>
-    </form>
+      <div class="section-header">ข้อมูลเพิ่มเติม</div>
+      <div class="form-group" style="grid-column: 1 / -1">
+        <label for="awards">ประวัติการได้รับรางวัล</label
+        ><textarea
+          id="awards"
+          placeholder="ระบุชื่อรางวัล, ปี, หน่วยงานที่มอบ"
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label for="futurePlan">แผนการทำงานในอนาคต</label
+        ><select id="futurePlan">
+          <option value="">เลือกแผนการทำงาน</option>
+          <option value="hospital_public">ทำงานโรงพยาบาลรัฐ</option>
+          <option value="hospital_private">ทำงานโรงพยาบาลเอกชน</option>
+          <option value="clinic">ทำงานคลินิก</option>
+          <option value="community_health">ทำงานด้านสาธารณสุขชุมชน</option>
+          <option value="home_care">ทำงานด้านการดูแลผู้ป่วยที่บ้าน</option>
+          <option value="elderly_care">ทำงานด้านการดูแลผู้สูงอายุ</option>
+          <option value="occupational_health">ทำงานด้านอาชีวอนามัย</option>
+          <option value="education">ทำงานด้านการศึกษา/อาจารย์</option>
+          <option value="research">ทำงานด้านการวิจัย</option>
+          <option value="entrepreneur">ประกอบธุรกิจส่วนตัว</option>
+          <option value="international">ทำงานต่างประเทศ</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="educationPlan">แผนการศึกษาต่อ</label
+        ><select id="educationPlan">
+          <option value="">เลือกแผนการศึกษาต่อ</option>
+          <option value="no_plan">ไม่มีแผนศึกษาต่อ</option>
+          <option value="master_nursing">ปริญญาโท พยาบาลศาสตร์</option>
+          <option value="master_public_health">ปริญญาโท สาธารณสุขศาสตร์</option>
+          <option value="master_health_admin">ปริญญาโท การบริหารสุขภาพ</option>
+          <option value="master_midwifery">ปริญญาโท การผดุงครรภ์</option>
+          <option value="master_mental_health">ปริญญาโท สุขภาพจิต</option>
+          <option value="master_community">ปริญญาโท พยาบาลชุมชน</option>
+          <option value="master_critical_care">
+            ปริญญาโท พยาบาลผู้ป่วยวิกฤต
+          </option>
+          <option value="master_pediatric">ปริญญาโท พยาบาลเด็ก</option>
+          <option value="master_geriatric">ปริญญาโท พยาบาลผู้สูงอายุ</option>
+          <option value="phd_nursing">ปริญญาเอก พยาบาลศาสตร์</option>
+          <option value="certificate">หลักสูตรประกาศนียบัตร</option>
+          <option value="international">ศึกษาต่อต่างประเทศ</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="internationalPlan">แผนการไปทำงานต่างประเทศ</label
+        ><select id="internationalPlan">
+          <option value="">เลือกแผนการทำงานต่างประเทศ</option>
+          <option value="no_plan">ไม่มีแผนไปทำงานต่างประเทศ</option>
+          <option value="usa">สหรัฐอเมริกา</option>
+          <option value="canada">แคนาดา</option>
+          <option value="australia">ออสเตรเลีย</option>
+          <option value="uk">สหราชอาณาจักร</option>
+          <option value="germany">เยอรมนี</option>
+          <option value="netherlands">เนเธอร์แลนด์</option>
+          <option value="sweden">สวีเดน</option>
+          <option value="norway">นอร์เวย์</option>
+          <option value="singapore">สิงคโปร์</option>
+          <option value="japan">ญี่ปุ่น</option>
+          <option value="south_korea">เกาหลีใต้</option>
+          <option value="uae">สหรัฐอาหรับเอมิเรตส์</option>
+          <option value="saudi_arabia">ซาอุดีอาระเบีย</option>
+          <option value="qatar">กาตาร์</option>
+          <option value="kuwait">คูเวต</option>
+          <option value="new_zealand">นิวซีแลนด์</option>
+          <option value="other">ประเทศอื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group" style="justify-content: center">
+        <label
+          style="
+            flex-direction: row;
+            cursor: pointer;
+            align-items: center;
+            display: flex;
+            gap: 8px;
+          "
+          ><input
+            type="checkbox"
+            id="willTakeThaiLicense"
+            style="width: auto"
+          /><span>จะสอบใบประกอบวิชาชีพของไทย</span></label
+        >
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn back-btn"
+        onclick="loadContent('profileSummary')"
+      >
+        ⬅️ ย้อนกลับ
+      </button>
+      <button type="submit" id="saveButton" class="btn save-btn">
+        <i class="fas fa-save"></i>บันทึกข้อมูล
+      </button>
+    </div>
+  </form>
 </div>
 
 <script>
-    let profilePictureBase64 = null;
-    let profilePictureMimeType = null;
-    let existingPictureId = null;
+  let profilePictureBase64 = null;
+  let profilePictureMimeType = null;
+  let existingPictureId = null;
 
-    document.getElementById('profilePictureUpload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('avatarPreview').style.backgroundImage = `url('${event.target.result}')`;
-                const result = event.target.result;
-                profilePictureMimeType = result.split(';')[0].split(':')[1];
-                profilePictureBase64 = result.split(',')[1];
-            }
-            reader.readAsDataURL(file);
-        }
+  document
+    .getElementById("profilePictureUpload")
+    .addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          document.getElementById(
+            "avatarPreview"
+          ).style.backgroundImage = `url('${event.target.result}')`;
+          const result = event.target.result;
+          profilePictureMimeType = result.split(";")[0].split(":")[1];
+          profilePictureBase64 = result.split(",")[1];
+        };
+        reader.readAsDataURL(file);
+      }
     });
 
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const saveButton = document.getElementById('saveButton');
-        saveButton.disabled = true;
-        saveButton.textContent = 'กำลังบันทึก...';
-        
-        const profileData = {
-            prefix: document.getElementById('prefix').value,
-            studentId: document.getElementById('studentId').value,
-            firstNameTH: document.getElementById('firstNameTH').value,
-            lastNameTH: document.getElementById('lastNameTH').value,
-            firstNameEN: document.getElementById('firstNameEN').value,
-            lastNameEN: document.getElementById('lastNameEN').value,
-            gradClass: document.getElementById('gradClass').value,
-            advisor: document.getElementById('advisor').value,
-            dob: document.getElementById('dob').value,
-            gender: document.getElementById('gender').value,
-            birthCountry: document.getElementById('birthCountry').value,
-            nationality: document.getElementById('nationality').value,
-            race: document.getElementById('race').value,
-            phone: document.getElementById('phone').value,
-            gpax: document.getElementById('gpax').value,
-            employmentStatus: document.getElementById('employmentStatus').value,
-            address: document.getElementById('address').value,
-            emergencyName: document.getElementById('emergencyName').value,
-            emergencyRelation: document.getElementById('emergencyRelation').value,
-            emergencyPhone: document.getElementById('emergencyPhone').value,
-            awards: document.getElementById('awards').value,
-            futurePlan: document.getElementById('futurePlan').value,
-            educationPlan: document.getElementById('educationPlan').value,
-            internationalPlan: document.getElementById('internationalPlan').value,
-            willTakeThaiLicense: document.getElementById('willTakeThaiLicense').checked,
-            profilePicture: profilePictureBase64,
-            mimeType: profilePictureMimeType,
-            existingPictureId: existingPictureId
-        };
-        
-        const userEmailForSave = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-        profileData.email = userEmailForSave;
+  // ในไฟล์ Profile.html
 
-        if (!profileData.email) {
-            alert('ไม่สามารถระบุอีเมลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-            saveButton.disabled = false;
-            saveButton.textContent = '💾 บันทึกข้อมูล';
-            return;
-        }
+document.getElementById("profileForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const saveButton = document.getElementById("saveButton");
+    saveButton.disabled = true;
+    
+    // --- แก้ไขบรรทัดนี้ ---
+    saveButton.innerHTML = "กำลังบันทึก..."; // ใช้ innerHTML แทน textContent
+
+    const profileData = {
+        prefix: document.getElementById("prefix").value,
+        studentId: document.getElementById("studentId").value,
+        firstNameTH: document.getElementById("firstNameTH").value,
+        lastNameTH: document.getElementById("lastNameTH").value,
+        firstNameEN: document.getElementById("firstNameEN").value,
+        lastNameEN: document.getElementById("lastNameEN").value,
+        gradClass: document.getElementById("gradClass").value,
+        advisor: document.getElementById("advisor").value,
+        dob: document.getElementById("dob").value,
+        gender: document.getElementById("gender").value,
+        birthCountry: document.getElementById("birthCountry").value,
+        nationality: document.getElementById("nationality").value,
+        race: document.getElementById("race").value,
+        phone: document.getElementById("phone").value,
+        gpax: document.getElementById("gpax").value,
+        employmentStatus: document.getElementById("employmentStatus").value,
+        address: document.getElementById("address").value,
+        emergencyName: document.getElementById("emergencyName").value,
+        emergencyRelation: document.getElementById("emergencyRelation").value,
+        emergencyPhone: document.getElementById("emergencyPhone").value,
+        awards: document.getElementById("awards").value,
+        futurePlan: document.getElementById("futurePlan").value,
+        educationPlan: document.getElementById("educationPlan").value,
+        internationalPlan: document.getElementById("internationalPlan").value,
+        willTakeThaiLicense: document.getElementById("willTakeThaiLicense").checked,
+        profilePicture: profilePictureBase64,
+        mimeType: profilePictureMimeType,
+        existingPictureId: existingPictureId,
+    };
+
+    const userEmailForSave =
+        sessionStorage.getItem("selectedUserEmail") ||
+        sessionStorage.getItem("userEmail");
+    profileData.email = userEmailForSave;
+
+    if (!profileData.email) {
+        alert("ไม่สามารถระบุอีเมลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+        saveButton.disabled = false;
         
-        google.script.run
-        .withSuccessHandler(function(result) {
+        // --- แก้ไขบรรทัดนี้ด้วย ---
+        saveButton.innerHTML = `<i class="fas fa-save"></i>บันทึกข้อมูล`;
+        return;
+    }
+
+    google.script.run
+        .withSuccessHandler(function (result) {
             alert(result);
         })
-        .withFailureHandler(function(error) {
-            alert('เกิดข้อผิดพลาด: ' + error.message);
+        .withFailureHandler(function (error) {
+            alert("เกิดข้อผิดพลาด: " + error.message);
         })
         .saveUserProfile(profileData)
         .finally(() => {
             saveButton.disabled = false;
-            saveButton.textContent = '💾 บันทึกข้อมูล';
+            
+            // --- และแก้ไขบรรทัดนี้ ---
+            // ใส่โค้ดไอคอนกลับเข้าไปพร้อมกับข้อความ
+            saveButton.innerHTML = `<i class="fas fa-save"></i>บันทึกข้อมูล`;
         });
-    });
+});
 
-    function loadProfileData() {
-        const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-        if (userEmail) {
-            google.script.run.withSuccessHandler(populateForm).getUserProfile(userEmail);
-        }
+  function loadProfileData() {
+    const userEmail =
+      sessionStorage.getItem("selectedUserEmail") ||
+      sessionStorage.getItem("userEmail");
+    if (userEmail) {
+      google.script.run
+        .withSuccessHandler(populateForm)
+        .getUserProfile(userEmail);
+    }
+  }
+
+  function populateForm(data) {
+    if (!data) {
+      const userEmail =
+        sessionStorage.getItem("selectedUserEmail") ||
+        sessionStorage.getItem("userEmail");
+      document.getElementById("email").value = userEmail || "";
+      return;
     }
 
-    function populateForm(data) {
-        if (!data) {
-            const userEmail = sessionStorage.getItem('selectedUserEmail') || sessionStorage.getItem('userEmail');
-            document.getElementById('email').value = userEmail || '';
-            return;
-        };
-        
-        const setValue = (id, value) => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.value = value || '';
-            }
-        };
+    const setValue = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.value = value || "";
+      }
+    };
 
-        setValue('prefix', data.Prefix);
-        setValue('studentId', data.StudentID);
-        setValue('firstNameTH', data.FirstNameTH);
-        setValue('lastNameTH', data.LastNameTH);
-        setValue('firstNameEN', data.FirstNameEN);
-        setValue('lastNameEN', data.LastNameEN);
-        setValue('gradClass', data.GraduationClass);
-        setValue('advisor', data.Advisor);
-        if (data.DateOfBirth) {
-            try { setValue('dob', new Date(data.DateOfBirth).toISOString().split('T')[0]); } catch (e) {}
-        }
-        setValue('gender', data.Gender);
-        setValue('birthCountry', data.BirthCountry);
-        setValue('nationality', data.Nationality);
-        setValue('race', data.Race);
-        setValue('email', data.Email);
-        setValue('phone', data.PhoneNumber);
-        setValue('gpax', data.GPAX);
-        setValue('employmentStatus', data.EmploymentStatus);
-        setValue('address', data.CurrentAddress);
-        setValue('emergencyName', data.EmergencyContactName);
-        setValue('emergencyRelation', data.EmergencyContactRelation);
-        setValue('emergencyPhone', data.EmergencyContactPhone);
-        setValue('awards', data.Awards);
-        setValue('futurePlan', data.FutureWorkPlan);
-        setValue('educationPlan', data.EducationPlan);
-        setValue('internationalPlan', data.InternationalPlan);
-
-        const thaiLicenseCheckbox = document.getElementById('willTakeThaiLicense');
-        if (thaiLicenseCheckbox) {
-            thaiLicenseCheckbox.checked = data.WillTakeThaiLicense === true;
-        }
-        if (data.profilePictureUrl) {
-            document.getElementById('avatarPreview').style.backgroundImage = `url('${data.profilePictureUrl}')`;
-            existingPictureId = data.ProfilePictureID;
-        }
+    setValue("prefix", data.Prefix);
+    setValue("studentId", data.StudentID);
+    setValue("firstNameTH", data.FirstNameTH);
+    setValue("lastNameTH", data.LastNameTH);
+    setValue("firstNameEN", data.FirstNameEN);
+    setValue("lastNameEN", data.LastNameEN);
+    setValue("gradClass", data.GraduationClass);
+    setValue("advisor", data.Advisor);
+    if (data.DateOfBirth) {
+      try {
+        setValue("dob", new Date(data.DateOfBirth).toISOString().split("T")[0]);
+      } catch (e) {}
     }
+    setValue("gender", data.Gender);
+    setValue("birthCountry", data.BirthCountry);
+    setValue("nationality", data.Nationality);
+    setValue("race", data.Race);
+    setValue("email", data.Email);
+    setValue("phone", data.PhoneNumber);
+    setValue("gpax", data.GPAX);
+    setValue("employmentStatus", data.EmploymentStatus);
+    setValue("address", data.CurrentAddress);
+    setValue("emergencyName", data.EmergencyContactName);
+    setValue("emergencyRelation", data.EmergencyContactRelation);
+    setValue("emergencyPhone", data.EmergencyContactPhone);
+    setValue("awards", data.Awards);
+    setValue("futurePlan", data.FutureWorkPlan);
+    setValue("educationPlan", data.EducationPlan);
+    setValue("internationalPlan", data.InternationalPlan);
+
+    const thaiLicenseCheckbox = document.getElementById("willTakeThaiLicense");
+    if (thaiLicenseCheckbox) {
+      thaiLicenseCheckbox.checked = data.WillTakeThaiLicense === true;
+    }
+    if (data.profilePictureUrl) {
+      document.getElementById(
+        "avatarPreview"
+      ).style.backgroundImage = `url('${data.profilePictureUrl}')`;
+      existingPictureId = data.ProfilePictureID;
+    }
+  }
 </script>
