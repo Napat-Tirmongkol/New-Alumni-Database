@@ -87,7 +87,8 @@ function getPageContent(pageName) {
     'adminDashboard': 'AdminStatsDashboard',
     'manageUsers': 'AdminUserManagement', 
     'licenseForAdmin': 'LicenseTracking',
-    'manageBackend': 'AdminBackendManagement' 
+    'manageBackend': 'AdminBackendManagement', 
+    'manageDonations': 'AdminDonationManagement'
   };
   if (pageMap[pageName]) { return include(pageMap[pageName]); }
   return '<h1>ไม่พบหน้าเว็บ</h1>';
