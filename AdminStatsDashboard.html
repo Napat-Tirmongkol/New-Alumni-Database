@@ -315,34 +315,41 @@
   </div>
 </div>
 
-<div id="licenseTabContent" class="charts-grid" style="display: none">
-  <div class="chart-card">
-    <h3>อัตราการสอบผ่านรวม</h3>
-    <div class="chart-placeholder">
-      <canvas id="overallPassRateChart"></canvas>
+<div id="licenseTabContent" class="charts-grid" style="display: none;">
+    <div class="chart-card" style="grid-column: 1 / -1;">
+        <h3>อัตราผ่านแยกตามรอบสอบ</h3>
+        <div class="chart-placeholder" style="min-height: 300px;">
+            <canvas id="passRateByRoundChart"></canvas>
+        </div>
     </div>
-  </div>
-  <div class="chart-card">
-    <h3>อัตราการสอบผ่านแต่ละรายวิชา (%)</h3>
-    <div class="chart-placeholder">
-      <canvas id="subjectPassRateChart"></canvas>
+    <div class="chart-card">
+        <h3>อัตราการสอบผ่านรวม</h3>
+        <div class="chart-placeholder">
+            <canvas id="overallPassRateChart"></canvas>
+        </div>
     </div>
-  </div>
+    <div class="chart-card">
+        <h3>อัตราการสอบผ่านแต่ละรายวิชา (%)</h3>
+        <div class="chart-placeholder">
+            <canvas id="subjectPassRateChart"></canvas>
+        </div>
+    </div>
 </div>
 
 <script>
-    // ===== 1. เพิ่มตัวแปรสำหรับเก็บข้อมูลกราฟทั้งหมด =====
     let chartInstances = {};
 
-    function refreshDashboard() {
-        const refreshIcon = document.querySelector('.refresh-btn .fas');
+     window.refreshDashboard = function() {
+        const refreshIcon = document.querySelector(".refresh-btn .fas");
         if (refreshIcon) {
-            refreshIcon.classList.add('fa-spin');
+            refreshIcon.classList.add("fa-spin");
         }
+
         loadDashboardData();
+
         setTimeout(() => {
             if (refreshIcon) {
-                refreshIcon.classList.remove('fa-spin');
+                refreshIcon.classList.remove("fa-spin");
             }
         }, 1500);
     }
@@ -371,9 +378,8 @@
         google.script.run.withSuccessHandler(renderInternationalWorkPlanChart).getInternationalWorkPlanDistribution();
         google.script.run.withSuccessHandler(renderWorkplaceTypeChart).getFutureWorkPlanDistribution();
         google.script.run.withSuccessHandler(renderSubjectPassRateChart).getSubjectPassRates();
+        google.script.run.withSuccessHandler(renderPassRateByRoundChart).getPassRateByRound();
     }
-    
-    // ===== 2. แก้ไขฟังก์ชันวาดกราฟทั้งหมด ให้มีการ destroy ก่อนวาดใหม่ =====
 
     function renderWorkplaceTypeChart(data) {
         const canvasId = 'workplaceTypeChart';
@@ -454,6 +460,43 @@
         if (!ctx) return;
         const textCenterPlugin = { id: 'textCenter', beforeDraw(chart) { const { ctx, chartArea } = chart; if (!chartArea) { return; } const text = chart.data.datasets[0].data[0] + '%'; ctx.save(); ctx.font = 'bold 48px Sarabun, sans-serif'; ctx.fillStyle = '#16a34a'; ctx.textAlign = 'center'; const centerX = (chartArea.left + chartArea.right) / 2; const centerY = chartArea.bottom - 20; ctx.fillText(text, centerX, centerY); ctx.restore(); } };
         chartInstances[canvasId] = new Chart(ctx, { type: 'doughnut', data: { labels: ['ผ่าน', 'ยังไม่ผ่าน'], datasets: [{ data: [passRate, 100 - passRate], backgroundColor: ['#16a34a', '#e5e7eb'], borderColor: '#ffffff', borderWidth: 2, circumference: 180, rotation: -90, }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }, plugins: [textCenterPlugin] });
+    }
+    
+     function renderPassRateByRoundChart(chartData) {
+        const canvasId = 'passRateByRoundChart';
+        if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); }
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || !chartData || !chartData.labels || chartData.labels.length === 0) return;
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'อัตราผ่าน (%)',
+                    data: chartData.data,
+                    backgroundColor: '#F97316', // สีส้ม
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) { return value + '%' }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
     }
     
     window.showTab = function(evt, tabName) {

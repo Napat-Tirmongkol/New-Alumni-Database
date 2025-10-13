@@ -1187,3 +1187,141 @@ function getFutureWorkPlanDistribution() {
     return {};
   }
 }
+
+/**
+ * คำนวณอัตราการสอบผ่านของแต่ละรายวิชาในใบประกอบวิชาชีพ
+ * @returns {object} อ็อบเจกต์ที่ประกอบด้วยชื่อวิชา (labels) และข้อมูลอัตราการผ่าน (data)
+ */
+function getSubjectPassRates() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return { labels: [], data: [] };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    
+    const subjectKeys = [
+      'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 
+      'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 
+      'Subject7_Law', 'Subject8_Surgical'
+    ];
+
+    // ชื่อย่อสำหรับแสดงบนกราฟ
+    const thaiLabels = [
+      'การผดุงครรภ์', 'พยาบาลมารดาฯ', 'พยาบาลเด็กฯ', 'พยาบาลผู้ใหญ่',
+      'พยาบาลผู้สูงอายุ', 'สุขภาพจิตฯ', 'อนามัยชุมชนฯ', 'กฎหมายวิชาชีพฯ'
+    ];
+
+    const subjectIndices = subjectKeys.map(key => headers.indexOf(key));
+    const passCounts = Array(8).fill(0);
+    const totalTakers = {}; // ใช้อีเมลเพื่อนับจำนวนผู้เข้าสอบที่ไม่ซ้ำกันในแต่ละวิชา
+
+    data.forEach(row => {
+      const email = row[headers.indexOf('Email')];
+      if (!email) return;
+
+      subjectIndices.forEach((subjIndex, i) => {
+        // ตรวจสอบว่ามีผลสอบ (ไม่เป็นค่าว่าง)
+        if (subjIndex !== -1 && row[subjIndex]) { 
+          const subjectKey = subjectKeys[i];
+          if (!totalTakers[subjectKey]) {
+            totalTakers[subjectKey] = new Set();
+          }
+          totalTakers[subjectKey].add(email);
+
+          if (row[subjIndex] === 'ผ่าน') {
+            passCounts[i]++;
+          }
+        }
+      });
+    });
+
+    // คำนวณเป็นเปอร์เซ็นต์
+    const passRates = passCounts.map((count, i) => {
+        const subjectKey = subjectKeys[i];
+        const total = totalTakers[subjectKey] ? totalTakers[subjectKey].size : 0;
+        return total > 0 ? Math.round((count / total) * 100) : 0;
+    });
+
+    return {
+      labels: thaiLabels,
+      data: passRates
+    };
+
+  } catch (e) {
+    Logger.log("Error in getSubjectPassRates: " + e.message);
+    return { labels: [], data: [] };
+  }
+}
+
+/**
+ * คำนวณอัตราการสอบผ่านโดยแยกตามปีและรอบสอบ
+ * @returns {object} อ็อบเจกต์ที่ประกอบด้วยป้ายชื่อรอบสอบ (labels) และข้อมูลอัตราการผ่าน (data)
+ */
+function getPassRateByRound() {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return { labels: [], data: [] };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    
+    const yearIndex = headers.indexOf('ExamYear');
+    const sessionIndex = headers.indexOf('ExamSession');
+    const subjectKeys = [
+      'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 
+      'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 
+      'Subject7_Law', 'Subject8_Surgical'
+    ];
+    const subjectIndices = subjectKeys.map(key => headers.indexOf(key));
+
+    const roundStats = {}; // object สำหรับเก็บข้อมูล เช่น { "2023 รอบ 1": { passed: 0, total: 0 } }
+
+    data.forEach(row => {
+      const year = row[yearIndex];
+      const session = row[sessionIndex];
+      if (!year || !session) return; // ข้ามแถวที่ไม่มีข้อมูลปี/รอบ
+
+      const key = `${year} รอบ ${session}`;
+      if (!roundStats[key]) {
+        roundStats[key] = { passed: 0, total: 0 };
+      }
+
+      subjectIndices.forEach(index => {
+        if (index !== -1) {
+          const result = row[index];
+          if (result === 'ผ่าน') {
+            roundStats[key].passed++;
+            roundStats[key].total++;
+          } else if (result === 'ไม่ผ่าน') {
+            roundStats[key].total++;
+          }
+        }
+      });
+    });
+
+    // แปลง object เป็น array, เรียงลำดับ, และคำนวณเปอร์เซ็นต์
+    const sortedRounds = Object.keys(roundStats).sort((a, b) => {
+      const [yearA, , sessionA] = a.split(' ');
+      const [yearB, , sessionB] = b.split(' ');
+      if (yearA !== yearB) return yearA - yearB;
+      return sessionA - sessionB;
+    });
+
+    const labels = sortedRounds;
+    const rates = sortedRounds.map(key => {
+      const stats = roundStats[key];
+      return stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0;
+    });
+
+    return { labels: labels, data: rates };
+
+  } catch (e) {
+    Logger.log("Error in getPassRateByRound: " + e.message);
+    return { labels: [], data: [] };
+  }
+}
