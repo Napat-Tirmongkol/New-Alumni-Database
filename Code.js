@@ -1437,3 +1437,96 @@ function getDonationDashboardStats() {
     return { totalAmount: 0, donorCount: 0, purposes: {}, monthlyTrend: { labels: [], data: [] } };
   }
 }
+
+/**
+ * ดึงข้อมูลการบริจาคทั้งหมดสำหรับหน้าแอดมิน (รองรับ Pagination และการค้นหา)
+ * @param {number} page - หมายเลขหน้าที่ต้องการ
+ * @param {string} searchText - ข้อความสำหรับค้นหา (ค้นจากอีเมล, ชื่อ, สถานะ)
+ * @returns {object} อ็อบเจกต์ที่ประกอบด้วยรายการบริจาคและจำนวนทั้งหมด
+ */
+function getDonationsForAdmin(page = 1, searchText = '') {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return { donations: [], totalDonations: 0 };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    
+    let allDonations = data.map(row => {
+      const record = {};
+      headers.forEach((header, index) => {
+        record[header] = (row[index] instanceof Date) ? row[index].toISOString() : row[index];
+      });
+      return record;
+    }).sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp)); // เรียงจากล่าสุดไปเก่าสุด
+
+    let filteredDonations = allDonations;
+    if (searchText) {
+      const lowercasedText = searchText.toLowerCase();
+      filteredDonations = allDonations.filter(d => 
+        (d.Email && d.Email.toLowerCase().includes(lowercasedText)) ||
+        (d.DonorName && d.DonorName.toLowerCase().includes(lowercasedText)) ||
+        (d.Status && d.Status.toLowerCase().includes(lowercasedText))
+      );
+    }
+
+    const pageSize = 15;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedDonations = filteredDonations.slice(start, end);
+
+    return {
+      donations: paginatedDonations,
+      totalDonations: filteredDonations.length
+    };
+  } catch (e) {
+    Logger.log("Error in getDonationsForAdmin: " + e.message);
+    return { donations: [], totalDonations: 0 };
+  }
+}
+
+/**
+ * อัปเดตสถานะของการบริจาค
+ * @param {string} donationId - ID ของการบริจาคที่ต้องการอัปเดต
+ * @param {string} newStatus - สถานะใหม่ (เช่น 'Verified')
+ * @returns {object} ผลลัพธ์การดำเนินการ
+ */
+function updateDonationStatus(donationId, newStatus) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
+    if (!sheet) throw new Error("ไม่พบชีต Donations_Log");
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const idColumnIndex = headers.indexOf('DonationID');
+    const statusColumnIndex = headers.indexOf('Status');
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][idColumnIndex] === donationId) {
+        sheet.getRange(i + 1, statusColumnIndex + 1).setValue(newStatus);
+        return { success: true, message: 'อัปเดตสถานะสำเร็จ!' };
+      }
+    }
+    return { success: false, message: 'ไม่พบข้อมูลการบริจาค' };
+  } catch (e) {
+    Logger.log("Error in updateDonationStatus: " + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+/**
+ * สร้าง URL สำหรับดูไฟล์สลิปใน Google Drive
+ * @param {string} fileId - ID ของไฟล์ใน Google Drive
+ * @returns {string} URL สำหรับดูไฟล์
+ */
+function getDonationSlipUrl(fileId) {
+  if (!fileId) return null;
+  try {
+    // สร้าง URL ที่สามารถแสดงภาพได้โดยตรง
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  } catch (e) {
+    return null;
+  }
+}

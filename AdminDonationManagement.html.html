@@ -1,0 +1,196 @@
+<style>
+    /* ใช้ CSS ร่วมกับหน้า AdminUserManagement */
+    .user-table-card { background-color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
+    .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .table th, .table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; }
+    .table th { background-color: #f9fafb; font-weight: 600; color: #4b5563; }
+    .search-container { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .search-container input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    .search-container button { padding: 10px 20px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .pagination-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; font-size: 0.875rem; }
+    .pagination-controls button:disabled { cursor: not-allowed; opacity: 0.5; }
+    .action-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 4px; }
+    .btn-verify { color: #16a34a; } .btn-verify:hover { background-color: #f0fdf4; }
+    .btn-view { color: #3b82f6; } .btn-view:hover { background-color: #eff6ff; }
+    .status-pending { color: #f59e0b; font-weight: 600; }
+    .status-verified { color: #10b981; font-weight: 600; }
+
+    /* Modal styles */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000; }
+    .modal-content { background-color: white; padding: 2rem; border-radius: 0.5rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .modal-header h3 { margin: 0; font-size: 1.25rem; }
+    .close-modal-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+    .detail-item { margin-bottom: 1rem; }
+    .detail-item .label { font-weight: 600; color: #4b5563; display: block; margin-bottom: 0.25rem; font-size: 0.8rem; }
+    .detail-item .value { color: #1f2937; }
+    #slip-image { max-width: 100%; border-radius: 6px; border: 1px solid #e5e7eb; margin-top: 1rem; }
+</style>
+
+<div class="user-table-card">
+    <h2 style="margin-top:0;">จัดการข้อมูลการบริจาค</h2>
+    <div class="search-container">
+        <input type="text" id="searchInputDonations" placeholder="ค้นหาด้วยอีเมล, ชื่อ, หรือสถานะ...">
+        <button id="searchBtnDonations">ค้นหา</button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>วันที่</th>
+                <th>ผู้บริจาค</th>
+                <th>จำนวนเงิน</th>
+                <th>สถานะ</th>
+                <th>จัดการ</th>
+            </tr>
+        </thead>
+        <tbody id="donationsTableBody"></tbody>
+    </table>
+
+    <div id="paginationContainerDonations"></div>
+</div>
+
+<div id="donationDetailModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">รายละเอียดการบริจาค</h3>
+            <button class="close-modal-btn" onclick="closeDetailModal()">×</button>
+        </div>
+        <div id="modalBody">
+            <div class="detail-item"><span class="label">Donation ID</span><span id="detailDonationID" class="value"></span></div>
+            <div class="detail-item"><span class="label">ผู้บริจาค</span><span id="detailDonorName" class="value"></span></div>
+            <div class="detail-item"><span class="label">อีเมล</span><span id="detailEmail" class="value"></span></div>
+            <div class="detail-item"><span class="label">จำนวนเงิน</span><span id="detailAmount" class="value"></span></div>
+            <div class="detail-item"><span class="label">วัตถุประสงค์</span><span id="detailPurpose" class="value"></span></div>
+            <div class="detail-item"><span class="label">ข้อความเพิ่มเติม</span><span id="detailMessage" class="value"></span></div>
+            <hr style="margin: 1.5rem 0; border-color: #f3f4f6;">
+            <div class="detail-item"><span class="label">สลิปการโอนเงิน</span><a id="slipLink" href="#" target="_blank"><img id="slip-image" src="" alt="Slip Image" style="display:none;"></a></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDonationsPage = 1;
+    let allDonations = [];
+
+    function fetchDonations(page = 1) {
+        currentDonationsPage = page;
+        const searchText = document.getElementById('searchInputDonations').value;
+        const tableBody = document.getElementById('donationsTableBody');
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">กำลังโหลด...</td></tr>';
+
+        google.script.run.withSuccessHandler(displayDonations).getDonationsForAdmin(page, searchText);
+    }
+
+    function displayDonations({ donations, totalDonations }) {
+        allDonations = donations;
+        const tableBody = document.getElementById('donationsTableBody');
+        tableBody.innerHTML = '';
+
+        if (donations && donations.length > 0) {
+            donations.forEach(d => {
+                const date = new Date(d.Timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                const amount = Number(d.Amount).toLocaleString('th-TH', { style: 'currency', currency: 'THB' });
+                const statusClass = d.Status === 'Pending Verification' ? 'status-pending' : 'status-verified';
+
+                let actionButtons = `<button class="action-btn btn-view" onclick="openDetailModal('${d.DonationID}')" title="ดูรายละเอียด"><i class="fas fa-eye"></i></button>`;
+                if (d.Status === 'Pending Verification') {
+                    actionButtons += `<button class="action-btn btn-verify" onclick="handleVerify('${d.DonationID}')" title="ยืนยันการบริจาค"><i class="fas fa-check-circle"></i></button>`;
+                }
+                
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${d.DonorName || d.Email}</td>
+                        <td>${amount}</td>
+                        <td><span class="${statusClass}">${d.Status}</span></td>
+                        <td>${actionButtons}</td>
+                    </tr>`;
+            });
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">ไม่พบข้อมูล</td></tr>';
+        }
+        
+        // Pagination
+        const pageSize = 15;
+        const totalPages = Math.ceil(totalDonations / pageSize);
+        const paginationContainer = document.getElementById('paginationContainerDonations');
+        paginationContainer.innerHTML = totalPages > 1 ? `
+            <div class="pagination-controls">
+                <button onclick="changeDonationsPage(-1)" ${currentDonationsPage === 1 ? 'disabled' : ''}>ก่อนหน้า</button>
+                <span>หน้า ${currentDonationsPage} จาก ${totalPages}</span>
+                <button onclick="changeDonationsPage(1)" ${currentDonationsPage === totalPages ? 'disabled' : ''}>ถัดไป</button>
+            </div>` : '';
+    }
+
+    function changeDonationsPage(direction) {
+        fetchDonations(currentDonationsPage + direction);
+    }
+
+    function openDetailModal(donationId) {
+        const donation = allDonations.find(d => d.DonationID === donationId);
+        if (!donation) return;
+
+        document.getElementById('detailDonationID').textContent = donation.DonationID;
+        document.getElementById('detailDonorName').textContent = donation.DonorName || 'N/A';
+        document.getElementById('detailEmail').textContent = donation.Email;
+        document.getElementById('detailAmount').textContent = Number(donation.Amount).toLocaleString('th-TH', { style: 'currency', currency: 'THB' });
+        document.getElementById('detailPurpose').textContent = donation.Purpose || 'N/A';
+        document.getElementById('detailMessage').textContent = donation.Message || '-';
+        
+        const slipImage = document.getElementById('slip-image');
+        const slipLink = document.getElementById('slipLink');
+        if (donation.SlipFileID) {
+            google.script.run.withSuccessHandler(url => {
+                if(url) {
+                    slipImage.src = url;
+                    slipLink.href = url;
+                    slipImage.style.display = 'block';
+                } else {
+                    slipImage.style.display = 'none';
+                }
+            }).getDonationSlipUrl(donation.SlipFileID);
+        } else {
+            slipImage.style.display = 'none';
+        }
+
+        document.getElementById('donationDetailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() {
+        document.getElementById('donationDetailModal').style.display = 'none';
+    }
+
+    function handleVerify(donationId) {
+        Swal.fire({
+            title: 'ยืนยันการตรวจสอบ',
+            text: "คุณต้องการยืนยันการบริจาคนี้ใช่หรือไม่?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'ใช่, ยืนยันเลย!',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                google.script.run.withSuccessHandler(response => {
+                    if (response.success) {
+                        Swal.fire('สำเร็จ!', 'ยืนยันการบริจาคเรียบร้อยแล้ว', 'success');
+                        fetchDonations(currentDonationsPage);
+                    } else {
+                        Swal.fire('ผิดพลาด!', response.message, 'error');
+                    }
+                }).updateDonationStatus(donationId, 'Verified');
+            }
+        });
+    }
+
+    // Event Listeners
+    document.getElementById('searchBtnDonations').addEventListener('click', () => fetchDonations(1));
+    document.getElementById('searchInputDonations').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') fetchDonations(1);
+    });
+
+    // Initial Load
+    fetchDonations(1);
+</script>
