@@ -49,7 +49,8 @@
                     // ใช้ eval() เพื่อให้ JavaScript ที่อยู่ในไฟล์ที่โหลดมาทำงานได้
                     eval(scripts[i].innerText);
                 }
-                
+                const currentLang = localStorage.getItem('userLanguage') || 'th';
+                setLanguage(currentLang);
                 // --- เพิ่มส่วนนี้: เรียกใช้ฟังก์ชันโหลดข้อมูลเฉพาะหน้าที่ต้องการ ---
                 if (pageName === 'profile') {
                     loadProfileData();
@@ -71,10 +72,8 @@
     const userDataString = sessionStorage.getItem('loggedInUser');
 
     if (userDataString) {
-        // ถ้าล็อกอินแล้ว: โหลดหน้าข้อมูลสรุปเป็นหน้าเริ่มต้น
         loadContent('profileSummary');
             } else {
-                // ถ้ายังไม่ได้ล็อกอิน: แสดงข้อความแจ้งเตือนพร้อมลิงก์ให้กลับไปหน้า Login
                 const contentArea = document.getElementById('mainContentArea');
                 if (contentArea) {
                     google.script.run.withSuccessHandler(url => {
