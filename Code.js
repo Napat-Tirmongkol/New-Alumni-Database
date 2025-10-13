@@ -53,9 +53,6 @@ function checkAndCreateSheet(spreadsheet, sheetName, headers) {
 // =================================================================
 // ส่วนที่ 3: ฟังก์ชันหลักของเว็บแอป (CORE WEB APP FUNCTIONS)
 // =================================================================
-// =================================================================
-// ส่วนที่ 3: ฟังก์ชันหลักของเว็บแอป (CORE WEB APP FUNCTIONS)
-// =================================================================
 function doGet(e) {
   // ตรวจสอบ Callback จาก Google Sign-In
   if (e.parameter.action === 'googleAuthCallback') {
@@ -67,10 +64,13 @@ function doGet(e) {
     template.user = result.user;
     template.webAppUrl = getWebAppUrl();
     
-    return template.evaluate().setTitle('กำลังเข้าสู่ระบบ...');
+    // --- จุดสำคัญ ---
+    return template.evaluate()
+      .setTitle('กำลังเข้าสู่ระบบ...')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
   }
 
-  // การทำงานเดิมสำหรับแสดงหน้าต่างๆ
+  // --- และต้องมีในทุกๆ return ที่ส่งหน้าเว็บกลับไป ---
   const page = e.parameter.page;
   const token = e.parameter.token;
   
@@ -79,9 +79,14 @@ function doGet(e) {
     if (verification.isValid) {
       const template = HtmlService.createTemplateFromFile('ResetPassword');
       template.token = token;
-      return template.evaluate().setTitle('ตั้งรหัสผ่านใหม่');
+      return template.evaluate()
+        .setTitle('ตั้งรหัสผ่านใหม่')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
     } else {
-      return HtmlService.createTemplateFromFile('InvalidToken').evaluate().setTitle('ลิงก์ไม่ถูกต้อง');
+      return HtmlService.createTemplateFromFile('InvalidToken')
+        .evaluate()
+        .setTitle('ลิงก์ไม่ถูกต้อง')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
     }
   }
   
@@ -93,10 +98,16 @@ function doGet(e) {
   };
 
   if (page && pageMappings[page]) {
-    return HtmlService.createTemplateFromFile(pageMappings[page]).evaluate().setTitle('ระบบติดตามศิษย์');
+    return HtmlService.createTemplateFromFile(pageMappings[page])
+      .evaluate()
+      .setTitle('ระบบติดตามศิษย์')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
   }
 
-  return HtmlService.createTemplateFromFile('Login').evaluate().setTitle('ระบบติดตามศิษย์');
+  return HtmlService.createTemplateFromFile('Login')
+    .evaluate()
+    .setTitle('ระบบติดตามศิษย์')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
 }
 
 function include(filename) {
