@@ -1373,7 +1373,7 @@ function getExamAttemptStats() {
 }
 
 /**
- * คำนวณข้อมูลสรุปสำหรับการบริจาคทั้งหมด
+ * คำนวณข้อมูลสรุปสำหรับการบริจาคทั้งหมด (เฉพาะที่ยืนยันแล้ว)
  * @returns {object} อ็อบเจกต์ข้อมูลสรุป 4 ส่วน: ยอดรวม, จำนวนผู้บริจาค, วัตถุประสงค์, และแนวโน้มรายเดือน
  */
 function getDonationDashboardStats() {
@@ -1389,6 +1389,7 @@ function getDonationDashboardStats() {
     const emailIndex = headers.indexOf('Email');
     const purposeIndex = headers.indexOf('Purpose');
     const timestampIndex = headers.indexOf('Timestamp');
+    const statusIndex = headers.indexOf('Status'); // <-- 1. เพิ่มตัวแปรสำหรับคอลัมน์สถานะ
 
     let totalAmount = 0;
     const donors = new Set();
@@ -1396,27 +1397,32 @@ function getDonationDashboardStats() {
     const monthlyTrend = {};
 
     data.forEach(row => {
-      const amount = parseFloat(row[amountIndex]) || 0;
-      const email = row[emailIndex];
-      const purpose = row[purposeIndex] || 'ไม่ระบุ';
-      const timestamp = new Date(row[timestampIndex]);
+      const status = row[statusIndex];
 
-      totalAmount += amount;
-      if (email) donors.add(email);
-      purposes[purpose] = (purposes[purpose] || 0) + 1; // นับจำนวนครั้งของการบริจาคในแต่ละวัตถุประสงค์
+      // ===== 2. เพิ่มเงื่อนไข: ตรวจสอบสถานะก่อนนำไปคำนวณ =====
+      if (status && status !== 'Pending Verification') {
+        const amount = parseFloat(row[amountIndex]) || 0;
+        const email = row[emailIndex];
+        const purpose = row[purposeIndex] || 'ไม่ระบุ';
+        const timestamp = new Date(row[timestampIndex]);
 
-      if (!isNaN(timestamp.getTime())) {
-        const monthKey = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}`;
-        monthlyTrend[monthKey] = (monthlyTrend[monthKey] || 0) + amount;
+        totalAmount += amount;
+        if (email) donors.add(email);
+        purposes[purpose] = (purposes[purpose] || 0) + 1;
+
+        if (!isNaN(timestamp.getTime())) {
+          const monthKey = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}`;
+          monthlyTrend[monthKey] = (monthlyTrend[monthKey] || 0) + amount;
+        }
       }
     });
 
-    // ประมวลผลข้อมูลแนวโน้มรายเดือน
+    // ส่วนประมวลผลข้อมูลที่เหลือ (เหมือนเดิม)
     const sortedMonths = Object.keys(monthlyTrend).sort();
     const trendLabels = sortedMonths.map(key => {
       const [year, month] = key.split('-');
       const date = new Date(year, month - 1, 1);
-      return date.toLocaleDateString('th-TH', { month: 'short', year: '2-digit' }); // ผลลัพธ์เช่น "ต.ค. 68"
+      return date.toLocaleDateString('th-TH', { month: 'short', year: '2-digit' });
     });
     const trendData = sortedMonths.map(key => monthlyTrend[key]);
     
