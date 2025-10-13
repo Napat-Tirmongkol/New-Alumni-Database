@@ -54,60 +54,23 @@ function checkAndCreateSheet(spreadsheet, sheetName, headers) {
 // ส่วนที่ 3: ฟังก์ชันหลักของเว็บแอป (CORE WEB APP FUNCTIONS)
 // =================================================================
 function doGet(e) {
-  // ตรวจสอบ Callback จาก Google Sign-In
-  if (e.parameter.action === 'googleAuthCallback') {
-    const userEmail = Session.getActiveUser().getEmail();
-    const userInfo = { email: userEmail };
-    const result = logInOrRegisterGoogleUser(userInfo);
-    
-    const template = HtmlService.createTemplateFromFile('PostAuth');
-    template.user = result.user;
-    template.webAppUrl = getWebAppUrl();
-    
-    // --- จุดสำคัญ ---
-    return template.evaluate()
-      .setTitle('กำลังเข้าสู่ระบบ...')
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
-  }
-
-  // --- และต้องมีในทุกๆ return ที่ส่งหน้าเว็บกลับไป ---
-  const page = e.parameter.page;
-  const token = e.parameter.token;
-  
+  const page = e ? e.parameter.page : null;
+  const token = e ? e.parameter.token : null;
   if (page === 'resetpassword' && token) {
     const verification = verifyResetToken(token);
     if (verification.isValid) {
       const template = HtmlService.createTemplateFromFile('ResetPassword');
       template.token = token;
-      return template.evaluate()
-        .setTitle('ตั้งรหัสผ่านใหม่')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
+      return template.evaluate().setTitle('ตั้งรหัสผ่านใหม่');
     } else {
-      return HtmlService.createTemplateFromFile('InvalidToken')
-        .evaluate()
-        .setTitle('ลิงก์ไม่ถูกต้อง')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
+      return HtmlService.createTemplateFromFile('InvalidToken').evaluate().setTitle('ลิงก์ไม่ถูกต้อง');
     }
   }
-  
-  const pageMappings = {
-    'forgotpassword':'ForgotPassword',
-    'admindashboard':'AdminDashboard',
-    'dashboard':'Dashboard',
-    'register':'Register'
-  };
-
+  const pageMappings = {'forgotpassword':'ForgotPassword','admindashboard':'AdminDashboard','dashboard':'Dashboard','register':'Register'};
   if (page && pageMappings[page]) {
-    return HtmlService.createTemplateFromFile(pageMappings[page])
-      .evaluate()
-      .setTitle('ระบบติดตามศิษย์')
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
+    return HtmlService.createTemplateFromFile(pageMappings[page]).evaluate().setTitle('ระบบติดตามศิษย์');
   }
-
-  return HtmlService.createTemplateFromFile('Login')
-    .evaluate()
-    .setTitle('ระบบติดตามศิษย์')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // <--- **ต้องมีบรรทัดนี้**
+  return HtmlService.createTemplateFromFile('Login').evaluate().setTitle('ระบบติดตามศิษย์');
 }
 
 function include(filename) {
@@ -241,25 +204,31 @@ function processForgotPassword(email) {
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     if (!sheet) { throw new Error("ไม่พบชีต 'User_Database'"); }
-    const data = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn()).getValues(); 
-
-    let userRow = -1;
-    for (let i = 0; i < data.length; i++) {
-      if (data[i][COLS_DB.EMAIL - 1] === email) {
-        userRow = i + 2; 
-        break;
-      }
-    }
-
+    const data = sheet.getRange(2, 1, sheet.getLastRow(), COLS_DB.IS_ACTIVE).getValues();
+for (let i = 0; i < data.length; i++) {
+  const rowData = data[i];
+  // เพิ่มการตรวจสอบความยาวของแถวข้อมูล
+  if (rowData.length < COLS_DB.FIRST_NAME) {
+    continue; // ถ้าแถวสั้นเกินไป (เป็นแถวเปล่า) ให้ข้ามไป
+  }
+  const email = rowData[COLS_DB.EMAIL - 1];
+  const password = String(rowData[COLS_DB.PASSWORD - 1]);
+  const isActive = rowData[COLS_DB.IS_ACTIVE - 1];
+  if (email === credentials.email && password === credentials.password) {
+    if (isActive === false) { return { success: false, message: 'บัญชีของคุณถูกระงับการใช้งาน' }; }
+    const userRow = i + 2;
+    sheet.getRange(userRow, COLS_DB.LAST_LOGIN).setValue(new Date());
+    const user = {firstName:rowData[COLS_DB.FIRST_NAME-1],lastName:rowData[COLS_DB.LAST_NAME-1],role:rowData[COLS_DB.ROLE-1]};
+    return { success: true, user: user }; 
+  }
+}
     if (userRow === -1) { return { success: false, message: 'ไม่พบอีเมลนี้ในระบบ' }; }
-
     const token = Utilities.getUuid();
-    const expiryDate = new Date(new Date().getTime() + 15 * 60 * 1000); // 15 นาที
+    const expiryDate = new Date(new Date().getTime() + 15 * 60 * 1000);
     sheet.getRange(userRow, COLS_DB.RESET_TOKEN).setValue(token);
     sheet.getRange(userRow, COLS_DB.TOKEN_EXPIRY).setValue(expiryDate);
-
     const resetLink = getWebAppUrl() + '?page=resetpassword&token=' + token;
-
+    // MailApp.sendEmail(email, subject, body); // ต้องใส่ subject, body
     return { success: true, message: 'ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปที่อีเมลของคุณแล้ว' };
   } catch (error) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + error.message };
@@ -336,69 +305,6 @@ function updateUserRole(email) {
   } catch (e) {
     Logger.log("Error in updateUserRole: " + e.message);
     return { success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตบทบาท: ' + e.message };
-  }
-}
-
-/**
- * สร้าง URL สำหรับให้ผู้ใช้กดเพื่อเริ่มกระบวนการ Google Sign-In
- * @returns {string} URL สำหรับ Redirect
- */
-function getGoogleSignInUrl() {
-  const webAppUrl = getWebAppUrl();
-  return `${webAppUrl}?action=googleAuthCallback`;
-}
-
-/**
- * ตรวจสอบผู้ใช้จาก Google หากไม่มีในระบบจะทำการลงทะเบียนให้ใหม่
- * @param {object} userInfo - อ็อบเจกต์ข้อมูลผู้ใช้จาก Google {email}
- * @returns {object} ผลลัพธ์พร้อมข้อมูล user
- */
-function logInOrRegisterGoogleUser(userInfo) {
-  const email = userInfo.email;
-  const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
-  const profileSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
-  
-  const dbData = dbSheet.getDataRange().getValues();
-  const dbHeaders = dbData.shift();
-  const emailIndex = dbHeaders.indexOf('Email');
-  const roleIndex = dbHeaders.indexOf('Role');
-
-  const existingUserRow = dbData.find(row => row[emailIndex] === email);
-
-  if (existingUserRow) {
-    // ถ้ามี: ล็อกอินเลย และดึงข้อมูลชื่อจาก Profile
-    const profileData = profileSheet.getDataRange().getValues();
-    const profileHeaders = profileData.shift();
-    const profileEmailIndex = profileHeaders.indexOf('Email');
-    const profileFnameIndex = profileHeaders.indexOf('FirstNameTH');
-    const profileLnameIndex = profileHeaders.indexOf('LastNameTH');
-    
-    const profileRow = profileData.find(pRow => pRow[profileEmailIndex] === email);
-
-    const user = {
-      email: email,
-      firstName: profileRow ? profileRow[profileFnameIndex] : 'User',
-      lastName: profileRow ? profileRow[profileLnameIndex] : '',
-      role: existingUserRow[roleIndex]
-    };
-    return { success: true, user: user };
-
-  } else {
-    // ถ้าไม่มี: ลงทะเบียนให้ใหม่เป็น 'Student'
-    const newUserId = "UID-" + new Date().getTime();
-    const newUserDbRow = [newUserId, email, null, 'Student', new Date(), new Date(), true, null, null];
-    dbSheet.appendRow(newUserDbRow);
-
-    const newUserProfileRow = [newUserId, email, null, null, null, 'ผู้ใช้ใหม่', ''];
-    profileSheet.appendRow(newUserProfileRow);
-    
-    const user = {
-        email: email,
-        firstName: 'ผู้ใช้ใหม่',
-        lastName: '',
-        role: 'Student'
-    };
-    return { success: true, user: user, isNew: true };
   }
 }
 
