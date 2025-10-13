@@ -111,7 +111,6 @@
             tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">ไม่พบข้อมูล</td></tr>';
         }
         
-        // Pagination
         const pageSize = 15;
         const totalPages = Math.ceil(totalDonations / pageSize);
         const paginationContainer = document.getElementById('paginationContainerDonations');
@@ -123,11 +122,13 @@
             </div>` : '';
     }
 
-    function changeDonationsPage(direction) {
+    // ===== ส่วนที่แก้ไข: เพิ่ม "window." ข้างหน้าฟังก์ชันที่ onclick เรียกใช้ =====
+
+    window.changeDonationsPage = function(direction) {
         fetchDonations(currentDonationsPage + direction);
     }
 
-    function openDetailModal(donationId) {
+    window.openDetailModal = function(donationId) {
         const donation = allDonations.find(d => d.DonationID === donationId);
         if (!donation) return;
 
@@ -140,28 +141,28 @@
         
         const slipImage = document.getElementById('slip-image');
         const slipLink = document.getElementById('slipLink');
+        slipImage.style.display = 'none'; // ซ่อนรูปเก่าไว้ก่อน
+        slipImage.src = ''; // เคลียร์ src รูปเก่า
+        slipLink.href = '#';
+
         if (donation.SlipFileID) {
             google.script.run.withSuccessHandler(url => {
                 if(url) {
                     slipImage.src = url;
                     slipLink.href = url;
                     slipImage.style.display = 'block';
-                } else {
-                    slipImage.style.display = 'none';
                 }
             }).getDonationSlipUrl(donation.SlipFileID);
-        } else {
-            slipImage.style.display = 'none';
         }
 
         document.getElementById('donationDetailModal').style.display = 'flex';
     }
 
-    function closeDetailModal() {
+    window.closeDetailModal = function() {
         document.getElementById('donationDetailModal').style.display = 'none';
     }
 
-    function handleVerify(donationId) {
+    window.handleVerify = function(donationId) {
         Swal.fire({
             title: 'ยืนยันการตรวจสอบ',
             text: "คุณต้องการยืนยันการบริจาคนี้ใช่หรือไม่?",
@@ -185,12 +186,12 @@
         });
     }
 
-    // Event Listeners
+    // Event Listeners (เหมือนเดิม)
     document.getElementById('searchBtnDonations').addEventListener('click', () => fetchDonations(1));
     document.getElementById('searchInputDonations').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') fetchDonations(1);
     });
 
-    // Initial Load
+    // Initial Load (เหมือนเดิม)
     fetchDonations(1);
 </script>
