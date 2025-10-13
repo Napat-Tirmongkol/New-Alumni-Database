@@ -13,7 +13,7 @@
         height: 100vh;
       }
       .login-container {
-        position: relative; 
+        position: relative;
         background-color: white;
         padding: 40px 30px;
         border-radius: 12px;
@@ -211,28 +211,51 @@
 
           google.script.run
             .withSuccessHandler((result) => {
+              const loginButton = document.getElementById("loginButton");
+              const messageDiv = document.getElementById("error-message");
+
               loginButton.disabled = false;
-              loginButton.textContent = "เข้าสู่ระบบ";
+              loginButton.textContent = "เข้าสู่ระบบ"; // รีเซ็ตข้อความปุ่มทุกครั้ง
+
               if (result.success) {
+                // 1. เก็บข้อมูลผู้ใช้ที่จำเป็น
                 const email = document.getElementById("email").value;
                 sessionStorage.setItem(
                   "loggedInUser",
                   JSON.stringify(result.user)
                 );
                 sessionStorage.setItem("userEmail", email);
-                loginButton.textContent = "สำเร็จ! กำลังเปลี่ยนหน้า...";
 
-                if (result.user.role === "Admin") {
-                  window.top.location.href = webAppUrl + "?page=admindashboard";
-                } else {
-                  window.top.location.href = webAppUrl + "?page=dashboard";
-                }
+                // 2. ซ่อนฟอร์มล็อกอินและลิงก์อื่นๆ
+                document.getElementById("loginForm").style.display = "none";
+                document.querySelector(".links").style.display = "none";
+
+                // 3. กำหนด URL ปลายทางตามบทบาท (Role) ของผู้ใช้
+                const destinationUrl =
+                  result.user.role === "Admin"
+                    ? webAppUrl + "?page=admindashboard"
+                    : webAppUrl + "?page=dashboard";
+
+                // 4. แสดงข้อความสำเร็จพร้อม "ปุ่ม" ให้ผู้ใช้กดไปต่อ
+                messageDiv.style.display = "block";
+                messageDiv.style.color = "green";
+                messageDiv.innerHTML = `
+        <p style="font-weight: bold; font-size: 16px;">เข้าสู่ระบบสำเร็จ!</p>
+        <a href="${destinationUrl}" target="_top" style="display:inline-block; margin-top:15px; padding: 12px 25px; background-color:#28a745; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">
+            ไปยังหน้าแดชบอร์ด
+        </a>
+      `;
               } else {
-                errorMessageDiv.textContent = result.message;
-                errorMessageDiv.style.display = "block";
+                // ถ้าล็อกอินไม่สำเร็จ ให้แสดงข้อความผิดพลาด
+                messageDiv.textContent = result.message;
+                messageDiv.style.display = "block";
+                messageDiv.style.color = "red";
               }
             })
             .withFailureHandler((error) => {
+              // โค้ดส่วนนี้จัดการกรณี Error ร้ายแรง (คงไว้เหมือนเดิม)
+              const loginButton = document.getElementById("loginButton");
+              const errorMessageDiv = document.getElementById("error-message");
               errorMessageDiv.textContent =
                 "เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: " + error.message;
               errorMessageDiv.style.display = "block";
@@ -257,38 +280,40 @@
           .getWebAppUrl();
       });
       function setLanguage(lang) {
-        localStorage.setItem('userLanguage', lang);
-        document.querySelectorAll('[data-lang-key]').forEach(elem => {
-            const key = elem.getAttribute('data-lang-key');
-            if (langStrings[lang] && langStrings[lang][key]) {
-                elem.innerText = langStrings[lang][key];
-            }
+        localStorage.setItem("userLanguage", lang);
+        document.querySelectorAll("[data-lang-key]").forEach((elem) => {
+          const key = elem.getAttribute("data-lang-key");
+          if (langStrings[lang] && langStrings[lang][key]) {
+            elem.innerText = langStrings[lang][key];
+          }
         });
-        document.querySelectorAll('[data-lang-key-placeholder]').forEach(elem => {
-            const key = elem.getAttribute('data-lang-key-placeholder');
+        document
+          .querySelectorAll("[data-lang-key-placeholder]")
+          .forEach((elem) => {
+            const key = elem.getAttribute("data-lang-key-placeholder");
             if (langStrings[lang] && langStrings[lang][key]) {
-                elem.placeholder = langStrings[lang][key];
+              elem.placeholder = langStrings[lang][key];
             }
-        });
+          });
         updateLangButtonUI(lang);
-    }
+      }
 
-    function updateLangButtonUI(currentLang) {
-        const langButtons = document.querySelectorAll('.lang-toggle button');
-        langButtons.forEach(btn => {
-            if (btn.dataset.lang === currentLang) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+      function updateLangButtonUI(currentLang) {
+        const langButtons = document.querySelectorAll(".lang-toggle button");
+        langButtons.forEach((btn) => {
+          if (btn.dataset.lang === currentLang) {
+            btn.classList.add("active");
+          } else {
+            btn.classList.remove("active");
+          }
         });
-    }
+      }
 
-    // เมื่อหน้าเว็บโหลด ให้ตั้งค่าภาษาเริ่มต้น
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedLang = localStorage.getItem('userLanguage') || 'th';
+      // เมื่อหน้าเว็บโหลด ให้ตั้งค่าภาษาเริ่มต้น
+      document.addEventListener("DOMContentLoaded", () => {
+        const savedLang = localStorage.getItem("userLanguage") || "th";
         setLanguage(savedLang);
-    });
+      });
     </script>
   </body>
 </html>
