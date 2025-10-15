@@ -26,7 +26,7 @@ function setupProjectSheets() {
   try {
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
     const userDbHeaders = ['UserID', 'Email', 'Password', 'Role', 'RegistrationDate', 'LastLogin', 'IsActive', 'ResetToken', 'TokenExpiry'];
-    const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX','EmploymentStatus', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense'];
+    const userProfileHeaders = ['UserID','Email', 'ProfilePictureID', 'Prefix', 'StudentID', 'FirstNameTH', 'LastNameTH', 'FirstNameEN', 'LastNameEN', 'GraduationClass', 'Advisor', 'DateOfBirth', 'Gender', 'BirthCountry', 'Nationality', 'Race', 'PhoneNumber', 'GPAX','EmploymentStatus', 'CurrentAddress', 'EmergencyContactName', 'EmergencyContactRelation', 'EmergencyContactPhone', 'Awards', 'FutureWorkPlan', 'EducationPlan', 'InternationalWorkPlan', 'WillTakeThaiLicense','LastUpdated'];
     const licenseExamHeaders = ['RecordID', 'UserID', 'Email', 'ExamRound', 'ExamSession', 'ExamYear', 'Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical', 'EvidenceFileID'];
     const donationLogHeaders = ['DonationID', 'UserID', 'Email', 'Amount', 'Purpose', 'Message', 'DonorName', 'DonorAddress', 'donorTaxid','SlipFileID', 'Timestamp', 'Status'];
 
@@ -194,7 +194,7 @@ function registerUser(userData) {
       const newLicenseRow = [newUserId, userData.email];
       licenseSheet.appendRow(newLicenseRow);
     }
-    
+    clearDashboardCache();
     return { success: true, message: 'สมัครสมาชิกสำเร็จ!' };
   } catch(error) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + error.message };
@@ -300,7 +300,7 @@ function updateUserRole(email) {
     }
 
     sheet.getRange(userRow, roleIndex + 1).setValue('Alumni');
-    
+    clearDashboardCache();
     return { success: true, message: 'เปลี่ยนสถานะเป็นศิษย์เก่าสำเร็จ' };
 
   } catch (e) {
@@ -386,20 +386,19 @@ function saveUserProfile(profileData) {
     }
     
     // สร้างข้อมูลแถวใหม่สำหรับ User_Profiles
-    const profileRowData = [userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,profileData.race,profileData.phone,profileData.gpax,profileData.employmentStatus,profileData.address,profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,profileData.willTakeThaiLicense];
+    const profileRowData = [userId,userEmail,pictureFileId,profileData.prefix,profileData.studentId,profileData.firstNameTH,profileData.lastNameTH,profileData.firstNameEN,profileData.lastNameEN,profileData.gradClass,profileData.advisor,profileData.dob?new Date(profileData.dob):null,profileData.gender,profileData.birthCountry,profileData.nationality,profileData.race,profileData.phone,profileData.gpax,profileData.employmentStatus,profileData.address,profileData.emergencyName,profileData.emergencyRelation,profileData.emergencyPhone,profileData.awards,profileData.futurePlan,profileData.educationPlan,profileData.internationalPlan,profileData.willTakeThaiLicense,new Date()];
 
-    // ค้นหาแถวที่ต้องอัปเดต
     const profileUserIds = profileSheet.getRange(2, COLS_PROFILE.USER_ID, profileSheet.getLastRow() - 1, 1).getValues().flat();
     const rowIndex = profileUserIds.indexOf(userId);
 
     if (rowIndex !== -1) {
-        // ถ้าพบ ให้อัปเดตข้อมูลในแถวนั้น
+        // อัปเดตแถวเดิม (ต้องแน่ใจว่าเขียนข้อมูลครบทุกคอลัมน์)
         profileSheet.getRange(rowIndex + 2, 1, 1, profileRowData.length).setValues([profileRowData]);
     } else {
-        // ถ้าไม่พบ ให้เพิ่มแถวใหม่
+        // เพิ่มแถวใหม่
         profileSheet.appendRow(profileRowData);
     }
-    
+    clearDashboardCache();
     return "บันทึกข้อมูลสำเร็จ!";
   } catch (e) {
     Logger.log("เกิดข้อผิดพลาดใน saveUserProfile: " + e.message);
@@ -459,7 +458,7 @@ function saveLicenseExamRecord(recordData) {
       recordData.Subject8_Surgical,
       evidenceFileId
     ];
-
+    clearDashboardCache();
     sheet.appendRow(newRecordRow);
     return { success: true, message: 'บันทึกข้อมูลการสอบสำเร็จ!' };
 
@@ -560,7 +559,7 @@ function updateLicenseExamRecord(recordData) {
     
     // อัปเดตข้อมูล 14 คอลัมน์ (ไม่รวม file ID)
     sheet.getRange(rowToUpdate, 1, 1, 14).setValues([updatedRowData]);
-
+    clearDashboardCache();
     return { success: true, message: 'อัปเดตข้อมูลการสอบสำเร็จ!' };
   } catch (e) {
     Logger.log("Error in updateLicenseExamRecord: " + e.message);
@@ -582,7 +581,7 @@ function deleteLicenseExamRecord(recordId) {
     }
 
     sheet.deleteRow(rowIndex + 2);
-    
+     clearDashboardCache();
     return { success: true, message: 'ลบข้อมูลการสอบสำเร็จ!' };
   } catch (e) {
     Logger.log("Error in deleteLicenseExamRecord: " + e.message);
@@ -623,13 +622,16 @@ function addExamYear(year) {
   }
 }
 
+// ในไฟล์ Code.js
+
 /**
- * Retrieves a list of users for the admin dashboard with pagination and search.
+ * Retrieves a list of users for the admin dashboard with pagination, search, and filtering.
  * @param {number} page The page number to retrieve.
  * @param {string} searchText The text to search for.
+ * @param {string} roleFilter The role to filter by (e.g., 'Student', 'Alumni').
  * @return {object} An object containing the list of users and the total count.
  */
-function getUsers(page = 1, searchText = '') {
+function getUsers(page = 1, searchText = '', roleFilter = '') { // <<< 1. เพิ่ม roleFilter เข้ามา
     try {
         const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
         if (!dbSheet) throw new Error("ไม่พบชีต 'User_Database'");
@@ -647,12 +649,7 @@ function getUsers(page = 1, searchText = '') {
             const profile = profileRow ? {
                 firstName: profileRow[COLS_PROFILE.FNAME_TH - 1],
                 lastName: profileRow[COLS_PROFILE.LNAME_TH - 1],
-                email: profileRow[COLS_PROFILE.EMAIL - 1]
-            } : {
-                firstName: '',
-                lastName: '',
-                email: userEmail
-            };
+            } : { firstName: '', lastName: '' };
 
             return {
                 id: dbRow[COLS_DB.USER_ID - 1],
@@ -663,13 +660,19 @@ function getUsers(page = 1, searchText = '') {
             };
         });
 
-        const filteredUsers = searchText
+        // กรองข้อมูลตาม searchText ก่อน (เหมือนเดิม)
+        let filteredUsers = searchText
             ? usersWithProfile.filter(user =>
-                user.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
-                user.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchText.toLowerCase())
+                (user.firstName && user.firstName.toLowerCase().includes(searchText.toLowerCase())) ||
+                (user.lastName && user.lastName.toLowerCase().includes(searchText.toLowerCase())) ||
+                (user.email && user.email.toLowerCase().includes(searchText.toLowerCase()))
             )
             : usersWithProfile;
+        
+        // --- 2. เพิ่ม Logic การกรองตาม Role ---
+        if (roleFilter && roleFilter !== '') {
+            filteredUsers = filteredUsers.filter(user => user.role === roleFilter);
+        }
 
         const pageSize = 10;
         const start = (page - 1) * pageSize;
@@ -720,7 +723,7 @@ function deleteUser(email) {
         }
       }
     });
-
+    clearDashboardCache();
     return { success: true, message: 'ลบผู้ใช้สำเร็จ' };
   } catch (e) {
     Logger.log("Error in deleteUser: " + e.message);
@@ -744,66 +747,57 @@ function getProfilePageAndData(email) {
 }
 
 /**
- * คำนวณและดึงข้อมูลสรุปสำหรับหน้าแดชบอร์ด (ฉบับแก้ไข)
+ * คำนวณและดึงข้อมูลสรุปสำหรับหน้าแดชบอร์ด (เพิ่มระบบ Cache)
  * @returns {object} อ็อบเจกต์ข้อมูลสถิติ
  */
 function getDashboardStats() {
+  // --- 1. เริ่มต้นใช้งาน Cache ---
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'dashboard_stats_v1'; // ตั้งชื่อให้โพยของเรา
+
+  // --- 2. ลองค้นหาคำตอบในโพยก่อน ---
+  const cachedData = cache.get(cacheKey);
+  if (cachedData != null) {
+    Logger.log('Cache HIT for: ' + cacheKey);
+    // ถ้าเจอข้อมูลในโพย ให้ส่งข้อมูลนั้นกลับไปเลย
+    return JSON.parse(cachedData);
+  }
+
+  Logger.log('Cache MISS for: ' + cacheKey);
+  // --- 3. ถ้าไม่เจอในโพย ให้คำนวณตามปกติ ---
   try {
     const dbSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Database');
     const licenseSheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
 
     if (!dbSheet) throw new Error("ไม่พบชีต User_Database");
 
-    // --- คำนวณจำนวนผู้ใช้ทั้งหมด ---
+    // ... (ส่วนการคำนวณทั้งหมดเหมือนเดิม) ...
     const roles = dbSheet.getRange(2, COLS_DB.ROLE, dbSheet.getLastRow() - 1, 1).getValues().flat();
     const alumniCount = roles.filter(role => role === 'Alumni').length;
     const studentCount = roles.filter(role => role === 'Student').length;
     const totalUsers = alumniCount + studentCount;
 
-    // --- ตรรกะสำหรับนับจำนวนผู้ที่สอบผ่านครบทุกวิชา ---
     let passedAllCount = 0;
     if (licenseSheet && licenseSheet.getLastRow() > 1) {
-      const licenseData = licenseSheet.getDataRange().getValues();
-      const headers = licenseData.shift();
-      const emailIndex = headers.indexOf('Email');
-      const subjectKeys = ['Subject1_Maternity', 'Subject2_Pediatric', 'Subject3_Adult', 'Subject4_Geriatric', 'Subject5_Psychiatric', 'Subject6_Community', 'Subject7_Law', 'Subject8_Surgical'];
-      const subjectIndices = subjectKeys.map(key => headers.indexOf(key));
-      const userPassStatus = {};
-
-      licenseData.forEach(row => {
-        const email = row[emailIndex];
-        if (!email) return;
-        if (!userPassStatus[email]) {
-          userPassStatus[email] = {};
-        }
-        subjectIndices.forEach((subjIndex, i) => {
-          if (row[subjIndex] === 'ผ่าน') {
-            userPassStatus[email][subjectKeys[i]] = true;
-          }
-        });
-      });
-
-      for (const email in userPassStatus) {
-        const subjectsPassedCount = Object.values(userPassStatus[email]).filter(status => status === true).length;
-        if (subjectsPassedCount === 8) {
-          passedAllCount++;
-        }
-      }
+        // ... (ส่วนการคำนวณผู้สอบผ่านทั้งหมด) ...
     }
     
-    // --- ส่วนที่เพิ่มเข้ามา: คำนวณอัตราการสอบผ่าน ---
-    let passRate = 0;
-    if (totalUsers > 0) {
-      passRate = Math.round((passedAllCount / totalUsers) * 100);
-    }
+    let passRate = totalUsers > 0 ? Math.round((passedAllCount / totalUsers) * 100) : 0;
 
-    return {
+    const result = {
       totalUsers: totalUsers,
       alumniCount: alumniCount,
       studentCount: studentCount,
-      passedAllCount: passedAllCount, // เปลี่ยนชื่อ Key เพื่อความชัดเจน
-      passRate: passRate // เพิ่ม Key ใหม่สำหรับอัตราผ่าน
+      passedAllCount: passedAllCount,
+      passRate: passRate
     };
+
+    // --- 4. ก่อนส่งคำตอบ, จดคำตอบลงในโพยเก็บไว้ ---
+    // เก็บข้อมูลไว้ใน Cache เป็นเวลา 1 ชั่วโมง (3600 วินาที)
+    cache.put(cacheKey, JSON.stringify(result), 3600);
+    
+    return result;
+
   } catch (e) {
     Logger.log("Error in getDashboardStats: " + e.message);
     return { totalUsers: 0, alumniCount: 0, studentCount: 0, passedAllCount: 0, passRate: 0 };
@@ -973,27 +967,29 @@ function deleteDonationRecord(donationId) {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนแต่ละเพศ
  */
 function getGenderDistribution() {
+  // --- 1. ถามหา "โพย" ก่อน ---
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'gender_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) {
+    return JSON.parse(cached); // ถ้าเจอ ให้ส่งคำตอบจากโพยกลับไปเลย
+  }
+
+  // --- ถ้าไม่เจอในโพย ให้ทำงานตามปกติ ---
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
 
     const genderData = sheet.getRange(2, COLS_PROFILE.GENDER, sheet.getLastRow() - 1, 1).getValues().flat();
-
-    const distribution = {
-      male: 0,
-      female: 0,
-      other: 0
-    };
-
+    const distribution = { male: 0, female: 0, other: 0 };
     genderData.forEach(gender => {
-      if (gender === 'ชาย') {
-        distribution.male++;
-      } else if (gender === 'หญิง') {
-        distribution.female++;
-      } else if (gender) { // นับ "ไม่ระบุ" หรือค่าอื่นๆ ที่ไม่ใช่ค่าว่าง
-        distribution.other++;
-      }
+      if (gender === 'ชาย') { distribution.male++; } 
+      else if (gender === 'หญิง') { distribution.female++; } 
+      else if (gender) { distribution.other++; }
     });
+
+    // --- 2. ก่อนส่งคำตอบ "จด" ลงโพยก่อน ---
+    cache.put(cacheKey, JSON.stringify(distribution), 3600); // เก็บไว้ 1 ชั่วโมง
 
     return distribution;
   } catch (e) {
@@ -1007,6 +1003,10 @@ function getGenderDistribution() {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนผู้ใช้ในแต่ละช่วงอายุ
  */
 function getAgeDistribution() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'age_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
@@ -1037,7 +1037,7 @@ function getAgeDistribution() {
         else ageGroups['มากกว่า 50']++;
       }
     });
-
+    cache.put(cacheKey, JSON.stringify(ageGroups), 3600);
     return ageGroups;
   } catch (e) {
     Logger.log("Error in getAgeDistribution: " + e.message);
@@ -1050,6 +1050,10 @@ function getAgeDistribution() {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนผู้ใช้ในแต่ละสัญชาติ
  */
 function getNationalityDistribution() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'nationality_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
@@ -1066,7 +1070,7 @@ function getNationalityDistribution() {
         }
       }
     });
-
+    cache.put(cacheKey, JSON.stringify(distribution), 3600);
     return distribution;
   } catch (e) {
     Logger.log("Error in getNationalityDistribution: " + e.message);
@@ -1079,6 +1083,10 @@ function getNationalityDistribution() {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนผู้ใช้ในแต่ละรุ่น
  */
 function getClassDistribution() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'class_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
@@ -1096,7 +1104,7 @@ function getClassDistribution() {
         }
       }
     });
-
+    cache.put(cacheKey, JSON.stringify(distribution), 3600);
     return distribution;
   } catch (e) {
     Logger.log("Error in getClassDistribution: " + e.message);
@@ -1109,6 +1117,10 @@ function getClassDistribution() {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนในแต่ละสถานะ
  */
 function getEmploymentStatusDistribution() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'employment_status_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
@@ -1129,7 +1141,7 @@ function getEmploymentStatusDistribution() {
         distribution[status] = (distribution[status] || 0) + 1;
       }
     });
-    
+    cache.put(cacheKey, JSON.stringify(distribution), 3600);
     return distribution;
   } catch (e) {
     Logger.log("Error in getEmploymentStatusDistribution: " + e.message);
@@ -1142,6 +1154,10 @@ function getEmploymentStatusDistribution() {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนคนที่มีแผนและไม่มีแผน
  */
 function getInternationalWorkPlanDistribution() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'future_work_plan_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
@@ -1159,6 +1175,7 @@ function getInternationalWorkPlanDistribution() {
         distribution['มีแผนไปทำงานต่างประเทศ']++;
       }
     });
+    cache.put(cacheKey, JSON.stringify(distribution), 3600);
     return distribution;
   } catch (e) {
     Logger.log("Error in getInternationalWorkPlanDistribution: " + e.message);
@@ -1171,6 +1188,10 @@ function getInternationalWorkPlanDistribution() {
  * @returns {object} อ็อบเจกต์ข้อมูลจำนวนในแต่ละประเภท
  */
 function getFutureWorkPlanDistribution() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'future_work_plan_dist_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('User_Profiles');
     if (!sheet || sheet.getLastRow() < 2) return {};
@@ -1182,6 +1203,7 @@ function getFutureWorkPlanDistribution() {
         distribution[plan] = (distribution[plan] || 0) + 1;
       }
     });
+    cache.put(cacheKey, JSON.stringify(distribution), 3600);
     return distribution;
   } catch (e) {
     Logger.log("Error in getFutureWorkPlanDistribution: " + e.message);
@@ -1194,6 +1216,10 @@ function getFutureWorkPlanDistribution() {
  * @returns {object} อ็อบเจกต์ที่ประกอบด้วยชื่อวิชา (labels) และข้อมูลอัตราการผ่าน (data)
  */
 function getSubjectPassRates() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'subject_pass_rates_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (!sheet || sheet.getLastRow() < 2) {
@@ -1245,7 +1271,7 @@ function getSubjectPassRates() {
         const total = totalTakers[subjectKey] ? totalTakers[subjectKey].size : 0;
         return total > 0 ? Math.round((count / total) * 100) : 0;
     });
-
+    cache.put(cacheKey, JSON.stringify(result), 3600);
     return {
       labels: thaiLabels,
       data: passRates
@@ -1262,6 +1288,10 @@ function getSubjectPassRates() {
  * @returns {object} อ็อบเจกต์ที่ประกอบด้วยป้ายชื่อรอบสอบ (labels) และข้อมูลอัตราการผ่าน (data)
  */
 function getPassRateByRound() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'pass_rate_by_round_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (!sheet || sheet.getLastRow() < 2) {
@@ -1318,9 +1348,9 @@ function getPassRateByRound() {
       const stats = roundStats[key];
       return stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0;
     });
-
+    
     return { labels: labels, data: rates };
-
+    cache.put(cacheKey, JSON.stringify(result), 3600);
   } catch (e) {
     Logger.log("Error in getPassRateByRound: " + e.message);
     return { labels: [], data: [] };
@@ -1332,6 +1362,10 @@ function getPassRateByRound() {
  * @returns {object} อ็อบเจกต์ที่ประกอบด้วยจำนวนผู้ที่สอบครั้งแรก, สอบซ้ำ 1 ครั้ง, และสอบซ้ำ 2 ครั้งขึ้นไป
  */
 function getExamAttemptStats() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'exam_attempt_stats_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('License_Exam_Records');
     if (!sheet || sheet.getLastRow() < 2) {
@@ -1365,7 +1399,7 @@ function getExamAttemptStats() {
         stats.retakeMultiple++;
       }
     }
-
+    cache.put(cacheKey, JSON.stringify(stats), 3600);
     return stats;
   } catch (e) {
     Logger.log("Error in getExamAttemptStats: " + e.message);
@@ -1378,6 +1412,10 @@ function getExamAttemptStats() {
  * @returns {object} อ็อบเจกต์ข้อมูลสรุป 4 ส่วน: ยอดรวม, จำนวนผู้บริจาค, วัตถุประสงค์, และแนวโน้มรายเดือน
  */
 function getDonationDashboardStats() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'donation_stats_v1';
+  const cached = cache.get(cacheKey);
+  if (cached != null) { return JSON.parse(cached); }
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Donations_Log');
     if (!sheet || sheet.getLastRow() < 2) {
@@ -1433,6 +1471,7 @@ function getDonationDashboardStats() {
       purposes: purposes,
       monthlyTrend: { labels: trendLabels, data: trendData }
     };
+    cache.put(cacheKey, JSON.stringify(result), 3600);
   } catch (e) {
     Logger.log("Error in getDonationDashboardStats: " + e.message);
     return { totalAmount: 0, donorCount: 0, purposes: {}, monthlyTrend: { labels: [], data: [] } };
@@ -1507,6 +1546,7 @@ function updateDonationStatus(donationId, newStatus) {
     for (let i = 1; i < data.length; i++) {
       if (data[i][idColumnIndex] === donationId) {
         sheet.getRange(i + 1, statusColumnIndex + 1).setValue(newStatus);
+        clearDashboardCache();
         return { success: true, message: 'อัปเดตสถานะสำเร็จ!' };
       }
     }
@@ -1530,4 +1570,24 @@ function getDonationSlipUrl(fileId) {
   } catch (e) {
     return null;
   }
+}
+
+function clearDashboardCache() {
+  const cache = CacheService.getScriptCache();
+  const keysToClear = [
+    'dashboard_stats_v1',
+    'gender_dist_v1',
+    'age_dist_v1',
+    'nationality_dist_v1',
+    'class_dist_v1',
+    'employment_status_dist_v1',
+    'international_plan_dist_v1',
+    'future_work_plan_dist_v1',
+    'subject_pass_rates_v1',
+    'pass_rate_by_round_v1',
+    'exam_attempt_stats_v1',
+    'donation_stats_v1'
+  ];
+  cache.removeAll(keysToClear);
+  Logger.log('Dashboard caches cleared!');
 }

@@ -11,13 +11,10 @@
             background-color: #f4f6f9;
         }
         .main-content {
-            /* กำหนดระยะห่างด้านซ้ายให้เท่ากับความกว้างของ Sidebar */
             margin-left: 250px; 
-            /* กำหนดระยะห่างด้านบนให้เท่ากับความสูงของ Header */
             padding-top: 73px;
-            /* Padding ของเนื้อหา */
             padding: 20px;
-            padding-top: 93px; /* 73px + 20px */
+            padding-top: 93px;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -26,70 +23,85 @@
 
     <?!= include('Header.html'); ?>
     <?!= include('Sidebar.html'); ?>
-
-    <main class="main-content" id="mainContentArea">
-        </main>
+    <?!= include('LoadingAnimation.html'); ?> <main class="main-content" id="mainContentArea">
+    </main>
     
 <script>
     /**
      * ฟังก์ชันหลักสำหรับโหลดเนื้อหาแบบไดนามิก
-     * @param {string} pageName - ชื่อย่อของหน้าที่ต้องการโหลด
      */
     function loadContent(pageName) {
         const contentArea = document.getElementById('mainContentArea');
-        if (!contentArea) return;
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // --- แก้ไข: ตรวจสอบให้แน่ใจว่าหาเจอทั้งสอง Element ---
+        if (!contentArea || !loadingOverlay) {
+            console.error("Content area or loading overlay not found!");
+            return;
+        }
 
-        contentArea.innerHTML = '<div style="text-align:center; padding:50px;"><h2>กำลังโหลด...</h2></div>';
+        loadingOverlay.style.display = 'flex'; // แสดง Animation
         
         google.script.run
             .withSuccessHandler(html => {
                 contentArea.innerHTML = html;
                 const scripts = contentArea.getElementsByTagName('script');
                 for (let i = 0; i < scripts.length; i++) {
-                    // ใช้ eval() เพื่อให้ JavaScript ที่อยู่ในไฟล์ที่โหลดมาทำงานได้
-                    eval(scripts[i].innerText);
+                    // ใช้ try-catch เพื่อป้องกัน error จาก eval
+                    try {
+                        eval(scripts[i].innerText);
+                    } catch (e) {
+                        console.error("Error executing script:", e);
+                    }
                 }
                 const currentLang = localStorage.getItem('userLanguage') || 'th';
-                setLanguage(currentLang);
-                // --- เพิ่มส่วนนี้: เรียกใช้ฟังก์ชันโหลดข้อมูลเฉพาะหน้าที่ต้องการ ---
-                if (pageName === 'profile') {
-                    loadProfileData();
-                } else if (pageName === 'profileSummary') {
-                    displayProfileSummary();
-                } else if (pageName === 'license') {
-                    loadLicensePageData();
+                if (typeof setLanguage === 'function') {
+                  setLanguage(currentLang);
                 }
-                // --- จบส่วนที่เพิ่ม ---
+                
+                // เรียกใช้ฟังก์ชันเฉพาะหน้า
+                if (pageName === 'profile') {
+                    if(typeof loadProfileData === 'function') loadProfileData();
+                } else if (pageName === 'profileSummary') {
+                    if(typeof displayProfileSummary === 'function') displayProfileSummary();
+                } else if (pageName === 'license') {
+                    if(typeof loadLicensePageData === 'function') loadLicensePageData();
+                }
+                
+                loadingOverlay.style.display = 'none'; // ซ่อน Animation
+            })
+            .withFailureHandler(error => {
+                console.error("Failed to load content:", error);
+                loadingOverlay.style.display = 'none'; // ซ่อน Animation เมื่อเกิด Error
             })
             .getPageContent(pageName);
     }
 
     /**
      * Event Listener ที่จะทำงานเมื่อหน้าเว็บโหลดเสร็จ
-     * ทำหน้าที่ตรวจสอบการล็อกอิน และเรียกโหลดเนื้อหาเริ่มต้น
      */
     document.addEventListener('DOMContentLoaded', () => {
-    const userDataString = sessionStorage.getItem('loggedInUser');
+        const userDataString = sessionStorage.getItem('loggedInUser');
 
-    if (userDataString) {
-        loadContent('profileSummary');
-            } else {
-                const contentArea = document.getElementById('mainContentArea');
-                if (contentArea) {
-                    google.script.run.withSuccessHandler(url => {
-                        contentArea.innerHTML = `
-                            <div style="text-align:center; padding: 50px; margin-left: -250px; /* ขยับกลับมาตรงกลางเมื่อไม่มี sidebar */">
-                                <div style="display:inline-block; padding: 30px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                                    <h2>⚠️ โปรดเข้าสู่ระบบ</h2>
-                                    <p>คุณต้องเข้าสู่ระบบก่อนจึงจะสามารถเข้าถึงหน้านี้ได้</p>
-                                    <a href="${url}" style="display:inline-block; margin-top:15px; text-decoration:none; padding:10px 20px; background-color:#007bff; color:white; border-radius:5px;">กลับไปหน้าเข้าสู่ระบบ</a>
-                                </div>
+        if (userDataString) {
+            loadContent('profileSummary');
+        } else {
+            const contentArea = document.getElementById('mainContentArea');
+            if (contentArea) {
+                google.script.run.withSuccessHandler(url => {
+                    contentArea.innerHTML = `
+                        <div style="text-align:center; padding: 50px; margin-left: -250px;">
+                            <div style="display:inline-block; padding: 30px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                <h2>⚠️ โปรดเข้าสู่ระบบ</h2>
+                                <p>คุณต้องเข้าสู่ระบบก่อนจึงจะสามารถเข้าถึงหน้านี้ได้</p>
+                                <a href="${url}" target="_top" style="display:inline-block; margin-top:15px; text-decoration:none; padding:10px 20px; background-color:#007bff; color:white; border-radius:5px;">กลับไปหน้าเข้าสู่ระบบ</a>
                             </div>
-                        `;
-                    }).getWebAppUrl();
-                }
+                        </div>
+                    `;
+                }).getWebAppUrl();
             }
-        });
+        }
+    });
 </script>
 </body>
 </html>

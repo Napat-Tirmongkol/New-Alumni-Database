@@ -28,6 +28,7 @@
 
     <?!= include('Header.html'); ?>
     <?!= include('AdminSidebar.html'); ?>
+    <?!= include('LoadingAnimation.html'); ?>
 
     <main class="main-content" id="mainContentArea">
         </main>
@@ -35,6 +36,7 @@
     <script>
     function loadContent(pageName) {
         const contentArea = document.getElementById('mainContentArea');
+        const loadingOverlay = document.getElementById('loading-overlay');
         if (!contentArea) return;
         contentArea.innerHTML = '<div style="text-align:center; padding:50px;"><h2>กำลังโหลด...</h2></div>';
         google.script.run
@@ -44,6 +46,11 @@
                 for (let i = 0; i < scripts.length; i++) {
                     eval(scripts[i].innerText);
                 }
+                loadingOverlay.style.display = 'none'; // <<< ซ่อน Animation เมื่อโหลดเสร็จ
+            })
+            .withFailureHandler(error => { // <<< เพิ่ม
+                console.error("Failed to load content:", error);
+                loadingOverlay.style.display = 'none'; // ซ่อน Animation เมื่อเกิด Error
             })
             .getPageContent(pageName);
     }
