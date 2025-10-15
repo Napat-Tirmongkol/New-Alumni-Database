@@ -1571,23 +1571,3 @@ function getDonationSlipUrl(fileId) {
     return null;
   }
 }
-
-function clearDashboardCache() {
-  const cache = CacheService.getScriptCache();
-  const keysToClear = [
-    'dashboard_stats_v1',
-    'gender_dist_v1',
-    'age_dist_v1',
-    'nationality_dist_v1',
-    'class_dist_v1',
-    'employment_status_dist_v1',
-    'international_plan_dist_v1',
-    'future_work_plan_dist_v1',
-    'subject_pass_rates_v1',
-    'pass_rate_by_round_v1',
-    'exam_attempt_stats_v1',
-    'donation_stats_v1'
-  ];
-  cache.removeAll(keysToClear);
-  Logger.log('Dashboard caches cleared!');
-}
